@@ -1,0 +1,170 @@
+admin:
+    address:
+        socket_address:
+            address: 0.0.0.0
+            port_value: 9090
+static_resources:
+    listeners:
+        - name: listener_0
+          address:
+              socket_address:
+                  address: 0.0.0.0
+                  port_value: 8080
+          filter_chains:
+              - filters:
+                    - name: envoy.filters.network.http_connection_manager
+                      typed_config:
+                          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                          stat_prefix: ingress_http
+                          access_log:
+                              - name: envoy.access_loggers.stdout
+                                typed_config:
+                                    "@type": type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog
+                                    log_format:
+                                        json_format:
+                                            start_time: "%START_TIME%"
+                                            authority: "%REQ(:AUTHORITY)%"
+                                            method: "%REQ(:METHOD)%"
+                                            path: "%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%"
+                                            protocol: "%PROTOCOL%"
+                                            bytes_received: "%BYTES_RECEIVED%"
+                                            bytes_sent: "%BYTES_SENT%"
+                                            duration: "%DURATION%"
+                                            upstream_host: "%UPSTREAM_HOST%"
+                                            user_agent: "%REQ(USER-AGENT)%"
+                                            upstream_transport_failure_reason: "%UPSTREAM_TRANSPORT_FAILURE_REASON%"
+                                            response_code: "%RESPONSE_CODE%"
+                                            response_flags: "%RESPONSE_FLAGS%"
+                                            response_code_details: "%RESPONSE_CODE_DETAILS%"
+                                            connection_termination_details: "%CONNECTION_TERMINATION_DETAILS%"
+                          route_config:
+                              name: local_route
+                              virtual_hosts:
+                                  - name: keycloak_service
+                                    domains: ["*"]
+                                    routes:
+                                        - match:
+                                              prefix: "/"
+                                          route:
+                                              cluster_header: "x-target-cluster"
+                                              timeout: 60s
+                          http_filters:
+                              # Lua filter to inspect POST body and set cluster
+                              - name: envoy.filters.http.lua
+                                typed_config:
+                                    "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
+                                    default_source_code:
+                                        inline_string: |
+                                            -- URL decode function
+                                            function urldecode(str)
+                                              if str == nil then
+                                                return nil
+                                              end
+                                              str = string.gsub(str, "+", " ")
+                                              str = string.gsub(str, "%%(%x%x)", function(h)
+                                                return string.char(tonumber(h, 16))
+                                              end)
+                                              return str
+                                            end
+
+                                            -- Parse URL-encoded form data into a table
+                                            function parse_form_data(body_string)
+                                              local params = {}
+                                              for key, value in string.gmatch(body_string, "([^&=]+)=([^&=]*)") do
+                                                params[urldecode(key)] = urldecode(value)
+                                              end
+                                              return params
+                                            end
+
+                                             -- Check if string ends with suffix
+                                            function ends_with(str, suffix)
+                                              return suffix == "" or str:sub(-#suffix) == suffix
+                                            end
+
+                                            function envoy_on_request(request_handle)
+                                              local headers = request_handle:headers()
+                                              local method = headers:get(":method")
+                                              local path = headers:get(":path")
+                                              local target_cluster = "keycloak_cluster"
+
+                                              -- Only process POST requests to the token endpoint
+                                              if method == "POST" and ends_with(path, "/protocol/openid-connect/token") then
+                                                local body = request_handle:body()
+
+                                                if body ~= nil then
+                                                  local body_length = body:length()
+
+                                                  if body_length > 0 then
+                                                    local body_string = body:getBytes(0, body_length)
+
+                                                    -- Parse form parameters
+                                                    local params = parse_form_data(body_string)
+
+                                                    -- Check if 'code' parameter exists and starts with "1337b33f"
+                                                    if params["code"] then
+                                                      if string.sub(params["code"], 1, 8) == "1337b33f" then
+                                                        -- Route to special cluster
+                                                        target_cluster = "safed_cluster"
+                                                      end
+                                                    end
+                                                  end
+                                                end
+                                              end
+
+                                              -- Only process GET requests to the userinfo endpoint
+                                              if method == "GET" and ends_with(path, "/protocol/openid-connect/userinfo") then
+                                                -- Get the Authorization header
+                                                local auth_header = request_handle:headers():get("authorization")
+
+                                                if auth_header ~= nil then
+                                                  -- Check if the Authorization header contains the specific string
+                                                  if string.find(auth_header, ".eyIxMzM3YjMzZiI6IjEzMzdiMzNmIi", 1, true) then
+                                                    -- Route to special cluster
+                                                    target_cluster = "safed_cluster"
+                                                  end
+                                                end
+                                              end
+
+                                              -- Apply path rewrite if routing to safed_cluster
+                                              if target_cluster == "safed_cluster" then
+                                                local new_path = string.gsub(path, "^/realms/demo(.*)$", "%1")
+                                                request_handle:headers():replace(":path", new_path)
+                                              end
+
+                                              request_handle:logInfo("ROUTING DECISION:" .. target_cluster)
+                                              request_handle:headers():add("x-target-cluster", target_cluster)
+                                            end
+                              - name: envoy.filters.http.router
+                                typed_config:
+                                    "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+
+    clusters:
+        - name: keycloak_cluster
+          connect_timeout: 5s
+          type: LOGICAL_DNS
+          dns_lookup_family: V4_ONLY
+          lb_policy: ROUND_ROBIN
+          load_assignment:
+              cluster_name: keycloak_cluster
+              endpoints:
+                  - lb_endpoints:
+                        - endpoint:
+                              address:
+                                  socket_address:
+                                      address: keycloak_orig
+                                      port_value: 8080
+        # Special cluster for matched requests (can be same as above or different)
+        - name: safed_cluster
+          connect_timeout: 5s
+          type: LOGICAL_DNS
+          dns_lookup_family: V4_ONLY
+          lb_policy: ROUND_ROBIN
+          load_assignment:
+              cluster_name: safed_cluster
+              endpoints:
+                  - lb_endpoints:
+                        - endpoint:
+                              address:
+                                  socket_address:
+                                      address: host.docker.internal
+                                      port_value: ${SAFED_APP_PORT}

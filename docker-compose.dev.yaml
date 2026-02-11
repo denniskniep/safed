@@ -1,0 +1,74 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      - POSTGRES_DB=keycloak
+      - POSTGRES_USER=keycloak
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres:/var/lib/postgresql
+    networks: [ "safed-net" ]
+
+  keycloak:
+    build:
+      context: ./dev/envoy/
+    ports:
+      - "8080:8080"
+      - "9090:9090"
+    environment:
+      - SAFED_APP_PORT=${SAFED_APP_PORT:-8070}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - keycloak_orig
+    networks: [ "safed-net" ]
+
+  keycloak_orig:
+    image: quay.io/keycloak/keycloak:26.2.5
+    command: --verbose start-dev --import-realm --features=preview
+    depends_on:
+      - postgres
+    environment:
+      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+      - KC_LOG_LEVEL=INFO,org.keycloak:debug
+      - KC_DB=postgres
+      - KC_DB_URL_HOST=postgres
+      - KC_DB_URL_PORT=5432
+      - KC_DB_URL_DATABASE=keycloak
+      - KC_DB_USERNAME=keycloak
+      - KC_DB_PASSWORD=password
+      - KC_LOG_CONSOLE_COLOR=true
+      - KC_FEATURES=preview
+      - QUARKUS_HTTP_ACCESS_LOG_ENABLED=true
+      - QUARKUS_HTTP_RECORD_REQUEST_START_TIME=true
+      - KEYCLOAK_IMPORT=/opt/keycloak/data/import/realm-demo.json
+      - KC_PROXY_HEADERS=xforwarded
+      - KC_HOSTNAME=http://keycloak:8080
+    volumes:
+      - "./dev/keycloak/realm-demo.json:/opt/keycloak/data/import/realm-demo.json"
+    networks: [ "safed-net" ]
+
+  keycloak_sidekick:
+    build:
+      dockerfile: ./dev/keycloak/Keycloak-Sidekick.dockerfile
+    depends_on:
+      - keycloak
+      - keycloak_orig
+    environment:
+      - KEYCLOAK_URL=http://keycloak:8080/
+    entrypoint: "sh -c"
+    command: ["/tmp/keycloak/wait-for-keycloak.sh && /tmp/keycloak/setup-keycloak.sh"]
+    volumes:
+      - "./dev/keycloak/signing_cert.pem:/tmp/keycloak/signing_cert.pem:ro"
+      - "./dev/keycloak/signing_key.pem:/tmp/keycloak/signing_key.pem:ro"
+      - "./dev/keycloak/wait-for-keycloak.sh:/tmp/keycloak/wait-for-keycloak.sh:ro"
+      - "./dev/keycloak/setup-keycloak.sh:/tmp/keycloak/setup-keycloak.sh"
+      - "./dev/apps:/tmp/apps"
+    networks: [ "safed-net" ]
+
+volumes:
+  postgres:
+
+networks:
+  safed-net: { }

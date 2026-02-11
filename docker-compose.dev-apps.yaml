@@ -1,0 +1,11 @@
+services:
+  grafana-oidc:
+    image: grafana/grafana:12.4.0-21419697389-ubuntu
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./dev/apps/grafana-oidc/grafana.ini:/etc/grafana/grafana.ini
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    networks: [ "safed-net" ]

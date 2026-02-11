@@ -1,0 +1,51 @@
+server:
+  port: 8070
+  address: 0.0.0.0
+
+logging:
+  level:
+    de.denniskniep.safed: DEBUG
+
+spring:
+  application:
+    name: safed
+
+oidc:
+  clients:
+    example-oidc-002:
+      client-id: example-oidc-002
+      sign-in-url: "http://localhost:8082/"
+      redirect-url: "http://localhost:8082/login/oauth2/code/example-oidc-002"
+      claims:
+        - name: role
+          values:
+            - default-roles-demo
+            - offline_access
+            - uma_authorization
+    grafana-oidc:
+      client-id: grafana-oidc
+      sign-in-url: "http://localhost:3001/login/generic_oauth"
+      redirect-url: "http://localhost:3001/login/generic_oauth"
+  issuer:
+    id: http://keycloak:8080/realms/demo
+    endpointUrl: http://keycloak:8080/realms/demo/protocol/openid-connect/auth
+    signing-private-key-pem-file-path: "file:///home/m293241/development/safed/dev/keycloak/signing_key.pem"
+    signing-x509-cert-pem-file-path: "file:///home/m293241/development/safed/dev/keycloak/signing_cert.pem"
+
+saml:
+  clients:
+    example-saml-001:
+      client-id: example-saml-001
+      sign-in-url: "http://localhost:8081/"
+      redirect-url: "http://localhost:8081/login/saml2/sso/example-saml-001"
+      claims:
+        - name: role
+          values:
+            - default-roles-demo
+            - offline_access
+            - uma_authorization
+  issuer:
+    id: http://keycloak:8080/realms/demo
+    endpointUrl: http://keycloak:8080/realms/demo/protocol/saml
+    signing-private-key-pem-file-path: "file:///home/m293241/development/safed/dev/keycloak/signing_key.pem"
+    signing-x509-cert-pem-file-path: "file:///home/m293241/development/safed/dev/keycloak/signing_cert.pem"

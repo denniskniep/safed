@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<saml2p:AuthnRequest
+        xmlns:saml2p="urn:oasis:names:tc:SAML:2.0:protocol" AssertionConsumerServiceURL="http://localhost:8081/login/saml2/sso/example-saml-001" Destination="http://keycloak:8080/realms/demo/protocol/saml" ForceAuthn="false" ID="ARQ9171cbe-6b33-4bb0-a6a1-e1b46ec94a5d" IsPassive="false" IssueInstant="2025-06-08T19:34:24.986Z" ProtocolBinding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Version="2.0">
+    <saml2:Issuer xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion">example-saml-001</saml2:Issuer>
+</saml2p:AuthnRequest>

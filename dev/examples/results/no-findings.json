@@ -1,0 +1,141 @@
+{
+  "status" : "OK",
+  "positiveScan" : {
+    "createdAt" : "2026-02-01T21:15:30.132Z",
+    "evidences" : [
+      "[INFO] Diff: \n-2026-02-01T21:15:28.044309564Z\n+2026-02-01T21:15:29.725516033Z",
+      "[VULNERABLE] Normal diff lines between successful authentications: 2 and line distance of scan: 2",
+      "[INFO] Content:\nLogout\nLogin\nExample Oidc App - Authorization Code Flow\nYou are logged in as jonny.tester\nCurrent Time\n2026-02-01T21:15:29.725516033Z",
+      "[VULNERABLE] Normal distance between successful authentications: 9 and distance of scan: 10 -> deviation of 1 (<=5 -> vulnerable)",
+      "[VULNERABLE] http://localhost:8082/?continue -> 200 == http://localhost:8082/?continue -> 200"
+    ],
+    "trafficLog" : [
+      "[OidcRequest] GET http://localhost:8082/ -> 302",
+      "[OidcRequest] GET http://localhost:8082/oauth2/authorization/example-oidc-002 -> 302",
+      "[OidcRequest] GET http://keycloak:8080/realms/demo/protocol/openid-connect/auth?response_type=code&client_id=example-oidc-002&scope=openid%20profile%20email&state=rhA56kNfhYZWu6-Pm-C8nmjHYWU8ETvVM4GFMu-Ukx4%3D&redirect_uri=http://localhost:8082/login/oauth2/code/example-oidc-002&nonce=Mm-rE_IWehyyjYSdDAqfirnxHeoF9mNPM-kILvQfj_s -> 0",
+      "[OidcResponse] GET http://localhost:8082/login/oauth2/code/example-oidc-002?code=1337b33f-1ec1-cb88-e1eb-8cc059c1f399.a1e1b4f7-ebb0-1df9-0e63-531a8509dce9.668b5a8e-d3b9-d800-3279-90f3a29b198a&state=rhA56kNfhYZWu6-Pm-C8nmjHYWU8ETvVM4GFMu-Ukx4%3D&iss=http%3A%2F%2Fkeycloak%3A8080%2Frealms%2Fdemo -> 302",
+      "[OidcResponse] GET http://localhost:8082/?continue -> 200",
+      "[OidcResponse] GET https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css -> 200",
+      "[OidcResponse] GET http://localhost:8082/static/css/site.css -> 404",
+      "[OidcResponse] GET https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js -> 200",
+      "[OidcResponse] GET https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js -> 200"
+    ]
+  },
+  "findings" : { },
+  "noFindings" : {
+    "ExpiredBeforeIssuedOidcScanner" : {
+      "createdAt" : "2026-02-01T21:15:30.294Z",
+      "status" : "OK",
+      "evidences" : [
+        "[INFO] Diff: \n-Logout\n-Login\n-Example Oidc App - Authorization Code Flow\n-You are logged in as jonny.tester\n-Current Time\n-2026-02-01T21:15:28.044309564Z\n+Login with OAuth 2.0\n+Invalid credentials\n+http://keycloak:8080/realms/demo",
+        "[OK] Normal diff lines between successful authentications: 2 and line distance of scan: 9",
+        "[INFO] Content:\nLogin with OAuth 2.0\nInvalid credentials\nhttp://keycloak:8080/realms/demo",
+        "[OK] Normal distance between successful authentications: 9 and distance of scan: 108 -> deviation of 99 (<=5 -> vulnerable)",
+        "[OK] http://localhost:8082/?continue -> 200 != http://localhost:8082/login?error -> 200"
+      ],
+      "trafficLog" : [
+        "[OidcRequest] GET http://localhost:8082/ -> 302",
+        "[OidcRequest] GET http://localhost:8082/oauth2/authorization/example-oidc-002 -> 302",
+        "[OidcRequest] GET http://keycloak:8080/realms/demo/protocol/openid-connect/auth?response_type=code&client_id=example-oidc-002&scope=openid%20profile%20email&state=hlv_tnI2PYqkBSKsC7daR6nH1Xm96mHtIjLhtWufwxU%3D&redirect_uri=http://localhost:8082/login/oauth2/code/example-oidc-002&nonce=QI4RPaDznt31xuqwfoLNb8DT06f0oTDmritk_925IXU -> 0",
+        "[OidcResponse] GET http://localhost:8082/login/oauth2/code/example-oidc-002?code=1337b33f-4869-4971-68c1-25eafc9c07cd.3af9c88f-9761-4a71-90be-008017c4a851.935f2c18-ac01-2f7d-bb51-e68c36fea124&state=hlv_tnI2PYqkBSKsC7daR6nH1Xm96mHtIjLhtWufwxU%3D&iss=http%3A%2F%2Fkeycloak%3A8080%2Frealms%2Fdemo -> 302",
+        "[OidcResponse] GET http://localhost:8082/login?error -> 200",
+        "[OidcResponse] GET http://localhost:8082/default-ui.css -> 200"
+      ]
+    },
+    "NoSignatureOidcScanner" : {
+      "createdAt" : "2026-02-01T21:15:30.521Z",
+      "status" : "OK",
+      "evidences" : [
+        "[INFO] Diff: \n-Logout\n-Login\n-Example Oidc App - Authorization Code Flow\n-You are logged in as jonny.tester\n-Current Time\n-2026-02-01T21:15:28.044309564Z\n+Login with OAuth 2.0\n+Invalid credentials\n+http://keycloak:8080/realms/demo",
+        "[OK] Normal diff lines between successful authentications: 2 and line distance of scan: 9",
+        "[INFO] Content:\nLogin with OAuth 2.0\nInvalid credentials\nhttp://keycloak:8080/realms/demo",
+        "[OK] Normal distance between successful authentications: 9 and distance of scan: 108 -> deviation of 99 (<=5 -> vulnerable)",
+        "[OK] http://localhost:8082/?continue -> 200 != http://localhost:8082/login?error -> 200"
+      ],
+      "trafficLog" : [
+        "[OidcRequest] GET http://localhost:8082/ -> 302",
+        "[OidcRequest] GET http://localhost:8082/oauth2/authorization/example-oidc-002 -> 302",
+        "[OidcRequest] GET http://keycloak:8080/realms/demo/protocol/openid-connect/auth?response_type=code&client_id=example-oidc-002&scope=openid%20profile%20email&state=7TyZ7qVcA4EyfulkxdU1F0qQ8aV7cMZ5G5m9UvdCmyo%3D&redirect_uri=http://localhost:8082/login/oauth2/code/example-oidc-002&nonce=ae-oiPf82suHqLcZtxMR0ewF1M3z6WIBAPOdaJm4Who -> 0",
+        "[OidcResponse] GET http://localhost:8082/login/oauth2/code/example-oidc-002?code=1337b33f-7ab4-c2d7-4547-b85f84a29053.d2d06561-0e08-4800-9024-e54cc8617cb5.7f9c6d54-787d-3817-8004-c45c72ec976d&state=7TyZ7qVcA4EyfulkxdU1F0qQ8aV7cMZ5G5m9UvdCmyo%3D&iss=http%3A%2F%2Fkeycloak%3A8080%2Frealms%2Fdemo -> 302",
+        "[OidcResponse] GET http://localhost:8082/login?error -> 200",
+        "[OidcResponse] GET http://localhost:8082/default-ui.css -> 200"
+      ]
+    },
+    "BreakSignatureOidcScanner" : {
+      "createdAt" : "2026-02-01T21:15:30.221Z",
+      "status" : "OK",
+      "evidences" : [
+        "[INFO] Diff: \n-Logout\n-Login\n-Example Oidc App - Authorization Code Flow\n-You are logged in as jonny.tester\n-Current Time\n-2026-02-01T21:15:28.044309564Z\n+Login with OAuth 2.0\n+Invalid credentials\n+http://keycloak:8080/realms/demo",
+        "[OK] Normal diff lines between successful authentications: 2 and line distance of scan: 9",
+        "[INFO] Content:\nLogin with OAuth 2.0\nInvalid credentials\nhttp://keycloak:8080/realms/demo",
+        "[OK] Normal distance between successful authentications: 9 and distance of scan: 108 -> deviation of 99 (<=5 -> vulnerable)",
+        "[OK] http://localhost:8082/?continue -> 200 != http://localhost:8082/login?error -> 200"
+      ],
+      "trafficLog" : [
+        "[OidcRequest] GET http://localhost:8082/ -> 302",
+        "[OidcRequest] GET http://localhost:8082/oauth2/authorization/example-oidc-002 -> 302",
+        "[OidcRequest] GET http://keycloak:8080/realms/demo/protocol/openid-connect/auth?response_type=code&client_id=example-oidc-002&scope=openid%20profile%20email&state=4zll-3go1e_O-dfOtFCaE3Aao-JypqKlPdSvlaTlHuY%3D&redirect_uri=http://localhost:8082/login/oauth2/code/example-oidc-002&nonce=hfyCwB4enWfctYUskFnWgtywuURNHRfQ0tG6Bg9g35I -> 0",
+        "[OidcResponse] GET http://localhost:8082/login/oauth2/code/example-oidc-002?code=1337b33f-47b2-4db7-ed08-7465bfc6e3db.9d5e4921-0c68-ffc4-6b8b-423eb7c8a90f.f2bfa8ec-58f8-d0ad-85a8-3bc202f91b4c&state=4zll-3go1e_O-dfOtFCaE3Aao-JypqKlPdSvlaTlHuY%3D&iss=http%3A%2F%2Fkeycloak%3A8080%2Frealms%2Fdemo -> 302",
+        "[OidcResponse] GET http://localhost:8082/login?error -> 200",
+        "[OidcResponse] GET http://localhost:8082/default-ui.css -> 200"
+      ]
+    },
+    "FutureNotBeforeOidcScanner" : {
+      "createdAt" : "2026-02-01T21:15:30.453Z",
+      "status" : "OK",
+      "evidences" : [
+        "[INFO] Diff: \n-Logout\n-Login\n-Example Oidc App - Authorization Code Flow\n-You are logged in as jonny.tester\n-Current Time\n-2026-02-01T21:15:28.044309564Z\n+Login with OAuth 2.0\n+Invalid credentials\n+http://keycloak:8080/realms/demo",
+        "[OK] Normal diff lines between successful authentications: 2 and line distance of scan: 9",
+        "[INFO] Content:\nLogin with OAuth 2.0\nInvalid credentials\nhttp://keycloak:8080/realms/demo",
+        "[OK] Normal distance between successful authentications: 9 and distance of scan: 108 -> deviation of 99 (<=5 -> vulnerable)",
+        "[OK] http://localhost:8082/?continue -> 200 != http://localhost:8082/login?error -> 200"
+      ],
+      "trafficLog" : [
+        "[OidcRequest] GET http://localhost:8082/ -> 302",
+        "[OidcRequest] GET http://localhost:8082/oauth2/authorization/example-oidc-002 -> 302",
+        "[OidcRequest] GET http://keycloak:8080/realms/demo/protocol/openid-connect/auth?response_type=code&client_id=example-oidc-002&scope=openid%20profile%20email&state=PRkyHRLGK42Tk6C2tkHvfWsjXX_rHxtVbFGGDAlny74%3D&redirect_uri=http://localhost:8082/login/oauth2/code/example-oidc-002&nonce=t-hjkTBbv7LCCfjwjIWPynDQ4rR7YudJL7R3GPYR1Uc -> 0",
+        "[OidcResponse] GET http://localhost:8082/login/oauth2/code/example-oidc-002?code=1337b33f-c788-1605-4c47-46608648e43f.4625ccb1-b5c9-6493-f468-b0c01fcfa73f.3de09f61-7430-2457-9b6a-1f2d4821943a&state=PRkyHRLGK42Tk6C2tkHvfWsjXX_rHxtVbFGGDAlny74%3D&iss=http%3A%2F%2Fkeycloak%3A8080%2Frealms%2Fdemo -> 302",
+        "[OidcResponse] GET http://localhost:8082/login?error -> 200",
+        "[OidcResponse] GET http://localhost:8082/default-ui.css -> 200"
+      ]
+    },
+    "NoneAlgOidcScanner" : {
+      "createdAt" : "2026-02-01T21:15:30.588Z",
+      "status" : "OK",
+      "evidences" : [
+        "[INFO] Diff: \n-Logout\n-Login\n-Example Oidc App - Authorization Code Flow\n-You are logged in as jonny.tester\n-Current Time\n-2026-02-01T21:15:28.044309564Z\n+Login with OAuth 2.0\n+Invalid credentials\n+http://keycloak:8080/realms/demo",
+        "[OK] Normal diff lines between successful authentications: 2 and line distance of scan: 9",
+        "[INFO] Content:\nLogin with OAuth 2.0\nInvalid credentials\nhttp://keycloak:8080/realms/demo",
+        "[OK] Normal distance between successful authentications: 9 and distance of scan: 108 -> deviation of 99 (<=5 -> vulnerable)",
+        "[OK] http://localhost:8082/?continue -> 200 != http://localhost:8082/login?error -> 200"
+      ],
+      "trafficLog" : [
+        "[OidcRequest] GET http://localhost:8082/ -> 302",
+        "[OidcRequest] GET http://localhost:8082/oauth2/authorization/example-oidc-002 -> 302",
+        "[OidcRequest] GET http://keycloak:8080/realms/demo/protocol/openid-connect/auth?response_type=code&client_id=example-oidc-002&scope=openid%20profile%20email&state=3ov1DOqFo6s2HAxoGMF4Kiz6VVMk-eE_THOpFcjME0Y%3D&redirect_uri=http://localhost:8082/login/oauth2/code/example-oidc-002&nonce=BevMQRV2L3GqO7CK8kf3N0_unPiDwgQJifJiNwEwRHw -> 0",
+        "[OidcResponse] GET http://localhost:8082/login/oauth2/code/example-oidc-002?code=1337b33f-7df6-b6c5-5f44-a6c801c14471.927637f8-e8e1-dfe1-30e3-d10d416550d0.355034cc-daa9-741a-ed66-c9f123c658c9&state=3ov1DOqFo6s2HAxoGMF4Kiz6VVMk-eE_THOpFcjME0Y%3D&iss=http%3A%2F%2Fkeycloak%3A8080%2Frealms%2Fdemo -> 302",
+        "[OidcResponse] GET http://localhost:8082/login?error -> 200",
+        "[OidcResponse] GET http://localhost:8082/default-ui.css -> 200"
+      ]
+    },
+    "ExpiredOidcScanner" : {
+      "createdAt" : "2026-02-01T21:15:30.378Z",
+      "status" : "OK",
+      "evidences" : [
+        "[INFO] Diff: \n-Logout\n-Login\n-Example Oidc App - Authorization Code Flow\n-You are logged in as jonny.tester\n-Current Time\n-2026-02-01T21:15:28.044309564Z\n+Login with OAuth 2.0\n+Invalid credentials\n+http://keycloak:8080/realms/demo",
+        "[OK] Normal diff lines between successful authentications: 2 and line distance of scan: 9",
+        "[INFO] Content:\nLogin with OAuth 2.0\nInvalid credentials\nhttp://keycloak:8080/realms/demo",
+        "[OK] Normal distance between successful authentications: 9 and distance of scan: 108 -> deviation of 99 (<=5 -> vulnerable)",
+        "[OK] http://localhost:8082/?continue -> 200 != http://localhost:8082/login?error -> 200"
+      ],
+      "trafficLog" : [
+        "[OidcRequest] GET http://localhost:8082/ -> 302",
+        "[OidcRequest] GET http://localhost:8082/oauth2/authorization/example-oidc-002 -> 302",
+        "[OidcRequest] GET http://keycloak:8080/realms/demo/protocol/openid-connect/auth?response_type=code&client_id=example-oidc-002&scope=openid%20profile%20email&state=FmbgnqPfGVyLDTN9bmj1VpPYk0-ZBxPivcAQ2rNtSHc%3D&redirect_uri=http://localhost:8082/login/oauth2/code/example-oidc-002&nonce=ixKooJUQU7cH9T9zaafpaCaBtqDunadSB9IqzY1qrMo -> 0",
+        "[OidcResponse] GET http://localhost:8082/login/oauth2/code/example-oidc-002?code=1337b33f-a73d-b232-aa96-c0bceadbbb06.55a4dcca-9f63-e003-07c6-3666159a55ff.e1dee441-781f-c946-f7c7-6b1e8073d496&state=FmbgnqPfGVyLDTN9bmj1VpPYk0-ZBxPivcAQ2rNtSHc%3D&iss=http%3A%2F%2Fkeycloak%3A8080%2Frealms%2Fdemo -> 302",
+        "[OidcResponse] GET http://localhost:8082/login?error -> 200",
+        "[OidcResponse] GET http://localhost:8082/default-ui.css -> 200"
+      ]
+    }
+  }
+}

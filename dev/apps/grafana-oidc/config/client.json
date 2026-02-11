@@ -1,0 +1,26 @@
+{
+  "protocol": "openid-connect",
+  "clientId": "grafana-oidc",
+  "secret": "grafana-oidc",
+  "name": "Grafana OIDC",
+  "description": "",
+  "publicClient": false,
+  "authorizationServicesEnabled": false,
+  "serviceAccountsEnabled": false,
+  "implicitFlowEnabled": false,
+  "directAccessGrantsEnabled": false,
+  "standardFlowEnabled": true,
+  "frontchannelLogout": true,
+  "attributes": {
+    "saml_idp_initiated_sso_url_name": "",
+    "standard.token.exchange.enabled": false,
+    "oauth2.device.authorization.grant.enabled": false,
+    "oidc.ciba.grant.enabled": false
+  },
+  "alwaysDisplayInConsole": false,
+  "rootUrl": "http://localhost:3001",
+  "baseUrl": "",
+  "redirectUris": [
+    "http://localhost:3001/login/generic_oauth"
+  ]
+}

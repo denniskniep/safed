@@ -1,0 +1,24 @@
+server:
+  port: 8081
+
+logging:
+  level:
+    org.springframework.security: INFO
+    org.springframework.web.client.RestTemplate: INFO
+
+spring:
+  application:
+    name: ExampleSamlApp
+    title: Example SAML App
+
+  #https://github.com/spring-projects/spring-security-samples/blob/6.2.x/servlet/spring-boot/java/saml2/login/src/main/resources/application.yml
+  security:
+    saml2: # https://docs.spring.io/spring-security/site/docs/5.2.1.RELEASE/reference/htmlsingle/#samllogin-sample-boot
+      relyingparty:
+        registration:
+          example-saml-001:
+            entity-id: "example-saml-001"
+            assertingparty:
+              singlesignon:
+                signRequest: false
+              metadata-uri: "http://keycloak:8080/realms/demo/protocol/saml/descriptor"

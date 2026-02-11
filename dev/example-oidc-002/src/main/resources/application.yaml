@@ -1,0 +1,30 @@
+server:
+  port: 8082
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.springframework.web.client.RestTemplate: INFO
+    de.denniskniep.exampleoidc: DEBUG
+
+spring:
+
+  application:
+    name: ExampleOidcApp
+    title: Example Oidc App - Authorization Code Flow
+
+  security:
+    oauth2:
+      client:
+        registration:
+          example-oidc-002:
+            # todo: pkce!
+            client-id: example-oidc-002
+            client-secret: 6N5fnpxRJ18fmu9qOVGZwYN5hA6P2gDx
+            scope:
+              - openid
+              - profile
+              - email
+        provider:
+          example-oidc-002:
+            issuer-uri: http://keycloak:8080/realms/demo

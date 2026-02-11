@@ -1,0 +1,74 @@
+package de.denniskniep.safed;
+
+import de.denniskniep.safed.common.config.IssuerConfig;
+import de.denniskniep.safed.oidc.OidcAssessment;
+import de.denniskniep.safed.oidc.config.OidcClientConfig;
+import de.denniskniep.safed.oidc.config.OidcConfig;
+import de.denniskniep.safed.saml.SamlAssessment;
+import de.denniskniep.safed.saml.config.SamlClientConfig;
+import de.denniskniep.safed.saml.config.SamlConfig;
+import de.denniskniep.safed.common.report.Report;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
+
+import java.net.MalformedURLException;
+import java.util.Arrays;
+import java.util.Optional;
+
+@Component
+@Profile("!test")
+public class SafedCli implements CommandLineRunner {
+    private final SamlConfig samlConfig;
+    private final SamlAssessment samlAssessment;
+    private final OidcConfig oidcConfig;
+    private final OidcAssessment oidcAssessment;
+
+    private ApplicationContext applicationContext;
+
+    private static final Logger LOG = LoggerFactory
+            .getLogger(SafedCli.class);
+
+    @Autowired
+    public SafedCli(ApplicationContext applicationContext, SamlConfig samlConfig, SamlAssessment samlAssessment, OidcConfig oidcConfig, OidcAssessment oidcAssessment) {
+        this.applicationContext = applicationContext;
+        this.samlConfig = samlConfig;
+        this.samlAssessment = samlAssessment;
+        this.oidcConfig = oidcConfig;
+        this.oidcAssessment = oidcAssessment;
+    }
+
+    @Override
+    public void run(String... args) throws MalformedURLException {
+        Optional<String> firstArg = Arrays.stream(args).findFirst();
+        if(firstArg.isEmpty()) {
+            throw new RuntimeException("First argument is empty, must be a configured clientId");
+        }
+        String clientId = firstArg.get();
+
+        SamlClientConfig samlClientConfig = samlConfig.getClient(clientId);
+        if(samlClientConfig != null) {
+            IssuerConfig issuerConfig = samlConfig.getIssuer();
+            Report report = samlAssessment.run(issuerConfig, samlClientConfig);
+            LOG.info(report.asJson());
+        }
+
+        OidcClientConfig oidcClientConfig = oidcConfig.getClient(clientId);
+        if(oidcClientConfig != null) {
+            IssuerConfig issuerConfig = oidcConfig.getIssuer();
+            Report report = oidcAssessment.run(issuerConfig, oidcClientConfig);
+            LOG.info(report.asJson());
+        }
+
+        if(samlClientConfig == null && oidcClientConfig == null){
+            throw new RuntimeException("Provided ClientId not found!");
+        }
+
+        SpringApplication.exit(applicationContext, () -> 0);
+    }
+}
