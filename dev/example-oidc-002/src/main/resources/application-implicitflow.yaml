@@ -1,0 +1,24 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: ExampleOidcApp
+    title: Example Oidc App - Implicit Flow
+
+  security:
+    oauth2:
+      client:
+        registration:
+          example-oidc-002-implicitflow:
+            # todo: pkce!
+            client-id: example-oidc-002-implicitflow
+            client-secret: 6N5fnpxRJ18fmu9qOVGZwYN5hA6P2gDx
+            redirect-uri: http://localhost:8084/oauth/implicit
+            scope:
+              - openid
+              - profile
+              - email
+        provider:
+          example-oidc-002-implicitflow:
+            issuer-uri: http://keycloak:8080/realms/demo

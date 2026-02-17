@@ -12,10 +12,10 @@ spring:
 
 oidc:
   clients:
-    example-oidc-002:
-      client-id: example-oidc-002
+    example-oidc-002-codeflow:
+      client-id: example-oidc-002-codeflow
       sign-in-url: "http://localhost:8082/"
-      redirect-url: "http://localhost:8082/login/oauth2/code/example-oidc-002"
+      redirect-url: "http://localhost:8082/login/oauth2/code/example-oidc-002-codeflow"
       claims:
         - name: role
           values:

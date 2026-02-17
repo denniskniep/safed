@@ -44,21 +44,21 @@ class AssessmentTests extends ApplicationBaseTest {
 
 	@BeforeEach
 	protected void testSetUp() {
-		exampleOidcApp.setIgnoredErrorDescriptions(new String[]{});
+		exampleOidcCodeFlowApp.setIgnoredErrorDescriptions(new String[]{});
 		exampleSamlApp.setIgnoredErrorDescriptions(new String[]{});
 	}
 
 	private void oidcTest(String[] triggeredScanners, String[] ignoredErrorDescriptions){
-		exampleOidcApp.setIgnoredErrorDescriptions(ignoredErrorDescriptions);
+		exampleOidcCodeFlowApp.setIgnoredErrorDescriptions(ignoredErrorDescriptions);
 
-		OidcClientConfig oidcClientConfig = oidcConfig.getClient(EXAMPLE_OIDC_CLIENT_ID).deepCopy();
+		OidcClientConfig oidcClientConfig = oidcConfig.getClient(EXAMPLE_OIDC_CODE_FLOW.clientId()).deepCopy();
 		oidcClientConfig.setScanners(Arrays.asList(triggeredScanners));
 		IssuerConfig issuerConfig = oidcConfig.getIssuer().deepCopy();
 		var result = oidcAssessment.run(issuerConfig, oidcClientConfig);
 
 		LOG.info(result.asJson());
 
-		List<String> lastSeenErrorDescriptions = exampleOidcApp.getLastSeenErrorDescriptions();
+		List<String> lastSeenErrorDescriptions = exampleOidcCodeFlowApp.getLastSeenErrorDescriptions();
 		if(lastSeenErrorDescriptions.isEmpty()){
 			LOG.info("No errors occurred in app (after ignoreFilter was applied)");
 		}else{
@@ -77,7 +77,7 @@ class AssessmentTests extends ApplicationBaseTest {
 
 	@Test
 	void OidcTest_NoVulnerabilities() {
-		OidcClientConfig oidcClientConfig = oidcConfig.getClient(EXAMPLE_OIDC_CLIENT_ID).deepCopy();
+		OidcClientConfig oidcClientConfig = oidcConfig.getClient(EXAMPLE_OIDC_CODE_FLOW.clientId()).deepCopy();
 		IssuerConfig issuerConfig = oidcConfig.getIssuer().deepCopy();
 		var result = oidcAssessment.run(issuerConfig, oidcClientConfig);
 		LOG.info(result.asJson());
@@ -162,7 +162,7 @@ class AssessmentTests extends ApplicationBaseTest {
 	private void samlTest(String[] triggeredScanners, String[] ignoredSamlErrorDescriptions){
 		exampleSamlApp.setIgnoredErrorDescriptions(ignoredSamlErrorDescriptions);
 
-		SamlClientConfig samlClientConfig = samlConfig.getClient(EXAMPLE_SAML_CLIENT_ID).deepCopy();
+		SamlClientConfig samlClientConfig = samlConfig.getClient(EXAMPLE_SAML_CLIENT.clientId()).deepCopy();
 		samlClientConfig.setScanners(Arrays.asList(triggeredScanners));
 		IssuerConfig issuerConfig = samlConfig.getIssuer().deepCopy();
 		var result = samlAssessment.run(issuerConfig, samlClientConfig);
@@ -188,7 +188,7 @@ class AssessmentTests extends ApplicationBaseTest {
 
 	@Test
 	void SamlTest_NoVulnerabilities() {
-		SamlClientConfig samlClientConfig = samlConfig.getClient(EXAMPLE_SAML_CLIENT_ID).deepCopy();
+		SamlClientConfig samlClientConfig = samlConfig.getClient(EXAMPLE_SAML_CLIENT.clientId()).deepCopy();
 		IssuerConfig samlIssuerConfig = samlConfig.getIssuer().deepCopy();
 		var result = samlAssessment.run(samlIssuerConfig, samlClientConfig);
 		LOG.info(result.asJson());

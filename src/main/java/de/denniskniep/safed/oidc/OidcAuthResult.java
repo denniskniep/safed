@@ -6,7 +6,7 @@ import de.denniskniep.safed.common.scans.AuthResult;
 import de.denniskniep.safed.oidc.auth.OidcAuthenticationRequest;
 import de.denniskniep.safed.oidc.auth.flows.OidcFlowResult;
 import de.denniskniep.safed.oidc.config.OidcClientConfig;
-import de.denniskniep.safed.common.auth.Page;
+import de.denniskniep.safed.common.scans.Page;
 
 public class OidcAuthResult implements AuthResult {
 

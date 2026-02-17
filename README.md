@@ -12,7 +12,9 @@ High level Flow:
 
 ## Codemap
 Entrypoint: `src/main/java/de/denniskniep/safed/SafedCli.java`
+
 SAML Scanners: `src/main/java/de/denniskniep/safed/saml/scans/scanner`
+
 OIDC Scanners: `src/main/java/de/denniskniep/safed/oidc/scans/scanner`
 
 ## Development
@@ -43,7 +45,9 @@ http://keycloak:8080
 #### Clients
 
 * Example Saml App (`./dev/example-saml-001/`): http://localhost:8081/
-* Example OIDC App (`./dev/example-oidc-002/`): http://localhost:8082/
+* Example OIDC App - Code Flow`./dev/example-oidc-002/`): http://localhost:8082/
+* Example OIDC App - Hybrid Flow(`./dev/example-oidc-002/`): http://localhost:8083/
+* Example OIDC App - Implicit Flow (`./dev/example-oidc-002/`): http://localhost:8084/
 * Grafana OIDC (`.dev/apps/grafana-oidc`): http://localhost:3001/
 
 ## Testing

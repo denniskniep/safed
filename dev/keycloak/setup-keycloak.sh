@@ -110,6 +110,6 @@ while IFS= read -r -d '' config_file; do
        echo "Client ${clientId} not found, creating one!"
        post "/clients" "${client}"
     fi
-done < <(find ${SCRIPT_DIR}/../apps -type f -path "*/config/client.json" -print0)
+done < <(find ${SCRIPT_DIR}/../ -type f -path "*/config/client*.json" -print0)
 
 echo "Finished Keycloak Setup"

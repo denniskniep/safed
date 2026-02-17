@@ -17,8 +17,8 @@ public class UrlAndStatusCodeVerification implements ScanResultVerificationStrat
         ScanResultStatus status;
         List<String> evidences = new ArrayList<>();
 
-        if(StringUtils.equalsIgnoreCase(firstPositiveAuthResult.getResponsePage().getUrl(), scanAuthResult.getResponsePage().getUrl())
-                && firstPositiveAuthResult.getResponsePage().getHttpResponse().getStatus() == scanAuthResult.getResponsePage().getHttpResponse().getStatus()){
+        if(StringUtils.equalsIgnoreCase(firstPositiveAuthResult.getResponsePage().url(), scanAuthResult.getResponsePage().url())
+                && firstPositiveAuthResult.getResponsePage().httpResponse().getStatus() == scanAuthResult.getResponsePage().httpResponse().getStatus()){
 
             status = ScanResultStatus.VULNERABLE;
             evidences.add("[" + status +"] " + extractUrlAndStatusCode(firstPositiveAuthResult) + " == " + extractUrlAndStatusCode(scanAuthResult));
@@ -33,6 +33,6 @@ public class UrlAndStatusCodeVerification implements ScanResultVerificationStrat
     }
 
     private String extractUrlAndStatusCode(AuthResult authResult) {
-        return authResult.getResponsePage().getUrl() + " -> "+ authResult.getResponsePage().getHttpResponse().getStatus();
+        return authResult.getResponsePage().url() + " -> "+ authResult.getResponsePage().httpResponse().getStatus();
     }
 }

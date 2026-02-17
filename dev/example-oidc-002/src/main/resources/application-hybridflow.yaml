@@ -1,0 +1,24 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: ExampleOidcApp
+    title: Example Oidc App - Hybrid Flow
+
+  security:
+    oauth2:
+      client:
+        registration:
+          example-oidc-002-hybridflow:
+            # todo: pkce!
+            client-id: example-oidc-002-hybridflow
+            client-secret: 6N5fnpxRJ18fmu9qOVGZwYN5hA6P2gDx
+            redirect-uri: http://localhost:8083/oauth/hybrid
+            scope:
+              - openid
+              - profile
+              - email
+        provider:
+          example-oidc-002-hybridflow:
+            issuer-uri: http://keycloak:8080/realms/demo

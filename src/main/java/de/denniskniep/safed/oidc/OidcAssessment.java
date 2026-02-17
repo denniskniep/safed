@@ -15,7 +15,7 @@ import de.denniskniep.safed.common.scans.ScanResult;
 import de.denniskniep.safed.common.scans.ScanResultStatus;
 import de.denniskniep.safed.common.verifications.ScanResultVerificationStrategy;
 import org.apache.commons.lang3.StringUtils;
-import de.denniskniep.safed.common.auth.Page;
+import de.denniskniep.safed.common.scans.Page;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

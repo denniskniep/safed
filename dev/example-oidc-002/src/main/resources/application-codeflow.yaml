@@ -1,0 +1,23 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: ExampleOidcApp
+    title: Example Oidc App - Authorization Code Flow
+
+  security:
+    oauth2:
+      client:
+        registration:
+          example-oidc-002-codeflow:
+            # todo: pkce!
+            client-id: example-oidc-002-codeflow
+            client-secret: 6N5fnpxRJ18fmu9qOVGZwYN5hA6P2gDx
+            scope:
+              - openid
+              - profile
+              - email
+        provider:
+          example-oidc-002-codeflow:
+            issuer-uri: http://keycloak:8080/realms/demo

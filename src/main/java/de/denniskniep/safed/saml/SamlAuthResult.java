@@ -7,7 +7,7 @@ import de.denniskniep.safed.saml.auth.SamlResponseResult;
 import de.denniskniep.safed.saml.config.SamlClientConfig;
 import de.denniskniep.safed.saml.data.SamlAuthData;
 import de.denniskniep.safed.saml.data.SamlRequestData;
-import de.denniskniep.safed.common.auth.Page;
+import de.denniskniep.safed.common.scans.Page;
 
 public class SamlAuthResult implements AuthResult {
 

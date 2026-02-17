@@ -65,6 +65,6 @@ public class DiffVerification implements ScanResultVerificationStrategy  {
     }
 
     private String extractVisibleText(AuthResult authResult){
-        return authResult.getResponsePage().getVisibleText();
+        return authResult.getResponsePage().visibleText();
     }
 }

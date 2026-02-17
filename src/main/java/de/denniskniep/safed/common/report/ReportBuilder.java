@@ -61,7 +61,7 @@ public class ReportBuilder {
     private InitialScanReport asInitialScanReport(ScanResult scanResult){
         InitialScanReport initialScanReport = new InitialScanReport();
 
-        initialScanReport.setVisibleText(scanResult.getAuthResult().getResponsePage().getVisibleText());
+        initialScanReport.setVisibleText(scanResult.getAuthResult().getResponsePage().visibleText());
 
         List<String> trafficLog = new ArrayList<>();
         for(var t : scanResult.getAuthResult().getAuthenticationLog().getTraffic()){

@@ -26,13 +26,9 @@ public abstract class ApplicationBaseTest {
 
     protected static final Logger LOG = LoggerFactory.getLogger(ApplicationBaseTest.class);
 
-    protected static final String EXAMPLE_SAML_CLIENT_ID = "example-saml-001";
-    protected static final String EXAMPLE_SAML_SERVICE_NAME = "example_saml_001";
-    protected static final Integer EXAMPLE_SAML_SERVICE_PORT = 8081;
-
-    protected static final String EXAMPLE_OIDC_CLIENT_ID = "example-oidc-002";
-    protected static final String EXAMPLE_OIDC_SERVICE_NAME = "example_oidc_002";
-    protected static final Integer EXAMPLE_OIDC_SERVICE_PORT = 8082;
+    protected static final ExampleAppData EXAMPLE_SAML_CLIENT = new ExampleAppData("example_saml_001", 8081, "example-saml-001");
+    protected static final ExampleAppData EXAMPLE_OIDC_CODE_FLOW = new ExampleAppData("example_oidc_002_codeflow", 8082, "example-oidc-002-codeflow");
+    protected static final ExampleAppData EXAMPLE_OIDC_HYBRID_FLOW = new ExampleAppData("example_oidc_002_hybridflow", 8083, "example-oidc-002-hybridflow");
 
     protected static final String KEYCLOAK_SERVICE_NAME = "keycloak";
     protected static final String KEYCLOAK_SIDEKICK_SERVICE_NAME = "keycloak_sidekick";
@@ -40,37 +36,47 @@ public abstract class ApplicationBaseTest {
     protected final ComposeContainer ENVIRONMENT;
 
     protected final ExampleApp exampleSamlApp;
-    protected final ExampleApp exampleOidcApp;
+    protected final ExampleApp exampleOidcCodeFlowApp;
+    protected final ExampleApp exampleOidcHybridFlowApp;
 
     public ApplicationBaseTest(String port) {
-
         ENVIRONMENT = new ComposeContainer(
                 new File("./docker-compose.dev.yaml"),
                 new File("./docker-compose.dev-examples.yaml")
         )
                 .withStartupTimeout(Duration.of(120, ChronoUnit.MINUTES))
                 .waitingFor(KEYCLOAK_SIDEKICK_SERVICE_NAME, Wait.forLogMessage("Finished Keycloak Setup\n", 1))
-                .waitingFor(EXAMPLE_SAML_SERVICE_NAME, Wait.forLogMessage(".*Started ExampleSamlApp.*", 1))
-                .waitingFor(EXAMPLE_OIDC_SERVICE_NAME, Wait.forLogMessage(".*Started ExampleOidcApplication.*", 1))
-                .withLogConsumer(EXAMPLE_SAML_SERVICE_NAME, new Slf4jLogConsumer(LOG).withPrefix(EXAMPLE_SAML_SERVICE_NAME))
-                .withLogConsumer(EXAMPLE_OIDC_SERVICE_NAME, new Slf4jLogConsumer(LOG).withPrefix(EXAMPLE_OIDC_SERVICE_NAME))
+                .waitingFor(EXAMPLE_SAML_CLIENT.serviceName(), Wait.forLogMessage(".*Started ExampleSamlApp.*", 1))
+                .waitingFor(EXAMPLE_OIDC_CODE_FLOW.serviceName(), Wait.forLogMessage(".*Started ExampleOidcApplication.*", 1))
+                .waitingFor(EXAMPLE_OIDC_HYBRID_FLOW.serviceName(), Wait.forLogMessage(".*Started ExampleOidcApplication.*", 1))
+                .withLogConsumer(EXAMPLE_SAML_CLIENT.serviceName(), new Slf4jLogConsumer(LOG).withPrefix(EXAMPLE_SAML_CLIENT.serviceName()))
+                .withLogConsumer(EXAMPLE_OIDC_CODE_FLOW.serviceName(), new Slf4jLogConsumer(LOG).withPrefix(EXAMPLE_OIDC_CODE_FLOW.serviceName()))
+                .withLogConsumer(EXAMPLE_OIDC_HYBRID_FLOW.serviceName(), new Slf4jLogConsumer(LOG).withPrefix(EXAMPLE_OIDC_HYBRID_FLOW.serviceName()))
                 .withLogConsumer(KEYCLOAK_SERVICE_NAME, new Slf4jLogConsumer(LOG).withPrefix(KEYCLOAK_SERVICE_NAME))
-                .withServices("postgres", KEYCLOAK_SERVICE_NAME, "keycloak_orig", KEYCLOAK_SIDEKICK_SERVICE_NAME, EXAMPLE_SAML_SERVICE_NAME, EXAMPLE_OIDC_SERVICE_NAME)
+                .withServices("postgres", KEYCLOAK_SERVICE_NAME, "keycloak_orig", KEYCLOAK_SIDEKICK_SERVICE_NAME, EXAMPLE_SAML_CLIENT.serviceName(), EXAMPLE_OIDC_CODE_FLOW.serviceName(), EXAMPLE_OIDC_HYBRID_FLOW.serviceName())
                 .withEnv("SAFED_APP_PORT", port)
-                .withExposedService(EXAMPLE_SAML_SERVICE_NAME, EXAMPLE_SAML_SERVICE_PORT)
-                .withExposedService(EXAMPLE_OIDC_SERVICE_NAME, EXAMPLE_OIDC_SERVICE_PORT);
+                .withExposedService(EXAMPLE_SAML_CLIENT.serviceName(), EXAMPLE_SAML_CLIENT.servicePort())
+                .withExposedService(EXAMPLE_OIDC_CODE_FLOW.serviceName(), EXAMPLE_OIDC_CODE_FLOW.servicePort())
+                .withExposedService(EXAMPLE_OIDC_HYBRID_FLOW.serviceName(), EXAMPLE_OIDC_HYBRID_FLOW.servicePort());
 
         ENVIRONMENT.start();
 
-        exampleSamlApp = new ExampleApp(ENVIRONMENT.getServiceHost(EXAMPLE_SAML_SERVICE_NAME, EXAMPLE_SAML_SERVICE_PORT), ENVIRONMENT.getServicePort(EXAMPLE_SAML_SERVICE_NAME, EXAMPLE_SAML_SERVICE_PORT));
-        exampleOidcApp = new ExampleApp(ENVIRONMENT.getServiceHost(EXAMPLE_OIDC_SERVICE_NAME, EXAMPLE_OIDC_SERVICE_PORT), ENVIRONMENT.getServicePort(EXAMPLE_OIDC_SERVICE_NAME, EXAMPLE_OIDC_SERVICE_PORT));
+        exampleSamlApp = ExampleApp.from(ENVIRONMENT, EXAMPLE_SAML_CLIENT);
+        exampleOidcCodeFlowApp = ExampleApp.from(ENVIRONMENT, EXAMPLE_OIDC_CODE_FLOW);
+        exampleOidcHybridFlowApp = ExampleApp.from(ENVIRONMENT, EXAMPLE_OIDC_HYBRID_FLOW);
+    }
+
+    public record ExampleAppData(String serviceName, Integer servicePort, String clientId) {
     }
 
     public static class ExampleApp {
-
         private final HttpClient httpClient;
         private final String host;
         private final Integer port;
+
+        public static ExampleApp from (ComposeContainer environment, ExampleAppData data) {
+           return new ExampleApp(environment.getServiceHost(data.serviceName(), data.servicePort()),environment.getServicePort(data.serviceName(), data.servicePort()));
+        }
 
         public ExampleApp(String host, Integer port) {
             this.host = host;
