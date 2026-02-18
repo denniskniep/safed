@@ -1,6 +1,6 @@
 package de.denniskniep.safed.common.scans;
 
-import de.denniskniep.safed.common.auth.RequestDataWithBody;
+import de.denniskniep.safed.common.auth.browser.RequestDataWithBody;
 import org.openqa.selenium.Cookie;
 import org.openqa.selenium.bidi.network.ResponseData;
 

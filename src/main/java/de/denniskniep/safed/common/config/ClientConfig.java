@@ -64,7 +64,7 @@ public abstract class ClientConfig {
         this.scanners = scanners;
     }
 
-    protected abstract ClientConfig deepCopy();
+    public abstract ClientConfig deepCopy();
 
     public SignatureAlgorithm getSignatureAlgorithm() {
         return signatureAlgorithm;

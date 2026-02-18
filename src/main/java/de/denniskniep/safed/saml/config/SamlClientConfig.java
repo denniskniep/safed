@@ -1,7 +1,7 @@
 package de.denniskniep.safed.saml.config;
 
 import de.denniskniep.safed.common.config.ClientConfig;
-import de.denniskniep.safed.utils.Serialization;
+import de.denniskniep.safed.common.utils.Serialization;
 import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
 import org.keycloak.saml.common.util.XmlKeyInfoKeyNameTransformer;
 

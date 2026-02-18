@@ -1,5 +1,7 @@
 package de.denniskniep.examplesaml.saml.admin;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.saml2.core.Saml2Error;
 import org.springframework.stereotype.Service;
 
@@ -10,11 +12,13 @@ import java.util.regex.Pattern;
 
 @Service
 public class SamlValidationService {
+    private static final Logger LOG = LoggerFactory.getLogger(SamlValidationService.class);
 
     private List<String> ignoredSamlErrorDescriptions = new ArrayList<>();
     private List<String> lastErrorDescriptions = new ArrayList<>();
 
     public void setIgnoredSamlErrorDescriptions(List<String> ignoredSamlErrorDescriptions) {
+        LOG.info("setIgnoredOidcErrorDescriptions: '{}'", String.join("','", ignoredSamlErrorDescriptions));
         this.ignoredSamlErrorDescriptions = ignoredSamlErrorDescriptions;
         this.lastErrorDescriptions = new ArrayList<>();
     }

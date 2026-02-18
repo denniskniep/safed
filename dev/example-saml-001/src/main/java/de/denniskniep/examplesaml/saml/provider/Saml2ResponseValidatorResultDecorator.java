@@ -48,11 +48,11 @@ public class Saml2ResponseValidatorResultDecorator {
         var filteredErrors = samlValidationService.applyIgnoredErrorDescriptions(original.getErrors());
 
         StringWriter sw = new StringWriter();
-        sw.append("SAML Validation Errors (Apply "+filteredErrors.size()+"/"+allErrors.size() + "):");
+        sw.append(filteredErrors.size() +" SAML Validation Errors (raised "+filteredErrors.size()+"/"+allErrors.size() + "):");
         for (Saml2Error error : allErrors) {
             var present = filteredErrors.stream().anyMatch(e -> StringUtils.equals(error.getDescription(), e.getDescription()));
             sw.write("\n");
-            sw.write((!present ? "[ignored] " : "") + error.getErrorCode() + ": " + error.getDescription());
+            sw.write((!present ? "[error ignored] " : "[error raised]") + error.getErrorCode() + ": " + error.getDescription());
         }
         LOG.info(sw.toString());
 

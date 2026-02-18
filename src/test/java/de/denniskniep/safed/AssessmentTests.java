@@ -13,13 +13,18 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 @SpringBootTest(classes = {SafedApplication.class}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -45,24 +50,31 @@ class AssessmentTests extends ApplicationBaseTest {
 	@BeforeEach
 	protected void testSetUp() {
 		exampleOidcCodeFlowApp.setIgnoredErrorDescriptions(new String[]{});
+		exampleOidcHybridFlowApp.setIgnoredErrorDescriptions(new String[]{});
+		exampleOidcImplicitFlowApp.setIgnoredErrorDescriptions(new String[]{});
 		exampleSamlApp.setIgnoredErrorDescriptions(new String[]{});
 	}
 
-	private void oidcTest(String[] triggeredScanners, String[] ignoredErrorDescriptions){
+	private void oidcTest(String clientId, String[] triggeredScanners, String[] ignoredErrorDescriptions){
 		exampleOidcCodeFlowApp.setIgnoredErrorDescriptions(ignoredErrorDescriptions);
+		exampleOidcHybridFlowApp.setIgnoredErrorDescriptions(ignoredErrorDescriptions);
+		exampleOidcImplicitFlowApp.setIgnoredErrorDescriptions(ignoredErrorDescriptions);
 
-		OidcClientConfig oidcClientConfig = oidcConfig.getClient(EXAMPLE_OIDC_CODE_FLOW.clientId()).deepCopy();
+		OidcClientConfig oidcClientConfig = (OidcClientConfig)oidcConfig.getClient(clientId).deepCopy();
 		oidcClientConfig.setScanners(Arrays.asList(triggeredScanners));
 		IssuerConfig issuerConfig = oidcConfig.getIssuer().deepCopy();
 		var result = oidcAssessment.run(issuerConfig, oidcClientConfig);
 
 		LOG.info(result.asJson());
 
-		List<String> lastSeenErrorDescriptions = exampleOidcCodeFlowApp.getLastSeenErrorDescriptions();
+		List<String> lastSeenErrorDescriptions = new ArrayList<>();
+		lastSeenErrorDescriptions.addAll(exampleOidcCodeFlowApp.getLastSeenErrorDescriptions());
+		lastSeenErrorDescriptions.addAll(exampleOidcHybridFlowApp.getLastSeenErrorDescriptions());
+		lastSeenErrorDescriptions.addAll(exampleOidcImplicitFlowApp.getLastSeenErrorDescriptions());
 		if(lastSeenErrorDescriptions.isEmpty()){
 			LOG.info("No errors occurred in app (after ignoreFilter was applied)");
 		}else{
-            LOG.info("Following errors occurred in app (after ignoreFilter was applied): \n{}", String.join("\n", lastSeenErrorDescriptions));
+			LOG.info("Following errors occurred in app (after ignoreFilter was applied): \n{}", String.join("\n", lastSeenErrorDescriptions));
 		}
 
 		Assertions.assertEquals(ScanResultStatus.VULNERABLE, result.getStatus());
@@ -74,10 +86,19 @@ class AssessmentTests extends ApplicationBaseTest {
 		Assertions.assertEquals(triggeredScanners.length, result.getFindings().size(), "Expected that " + triggeredScanners.length + " scanners find vulnerabilities, but it was " + result.getFindings().size());
 	}
 
+	private static Stream<Arguments> oidcClientIds() {
+		return Stream.of(
+				Arguments.of(EXAMPLE_OIDC_CODE_FLOW.clientId()),
+				Arguments.of(EXAMPLE_OIDC_HYBRID_FLOW.clientId()),
+				Arguments.of(EXAMPLE_OIDC_IMPLICIT_FLOW.clientId())
+		);
+	}
 
-	@Test
-	void OidcTest_NoVulnerabilities() {
-		OidcClientConfig oidcClientConfig = oidcConfig.getClient(EXAMPLE_OIDC_CODE_FLOW.clientId()).deepCopy();
+
+	@ParameterizedTest
+	@MethodSource("oidcClientIds")
+	void OidcTest_NoVulnerabilities(String clientId) {
+		OidcClientConfig oidcClientConfig = (OidcClientConfig)oidcConfig.getClient(clientId).deepCopy();
 		IssuerConfig issuerConfig = oidcConfig.getIssuer().deepCopy();
 		var result = oidcAssessment.run(issuerConfig, oidcClientConfig);
 		LOG.info(result.asJson());
@@ -86,9 +107,11 @@ class AssessmentTests extends ApplicationBaseTest {
 		Assertions.assertEquals(0, result.getFindings().size());
 	}
 
-	@Test
-	void OidcTest_BreakSignature_Scanner() {
+	@ParameterizedTest
+	@MethodSource("oidcClientIds")
+	void OidcTest_BreakSignature_Scanner(String clientId) {
 		oidcTest(
+				clientId,
 				new String[]{
 					"BreakSignatureOidcScanner"
 				},
@@ -98,9 +121,11 @@ class AssessmentTests extends ApplicationBaseTest {
 			);
 	}
 
-	@Test
-	void OidcTest_ExpiredBeforeIssue_Scanner() {
+	@ParameterizedTest
+	@MethodSource("oidcClientIds")
+	void OidcTest_ExpiredBeforeIssue_Scanner(String clientId) {
 		oidcTest(
+				clientId,
 				new String[]{
 					"ExpiredBeforeIssuedOidcScanner"
 				},
@@ -110,9 +135,11 @@ class AssessmentTests extends ApplicationBaseTest {
 		);
 	}
 
-	@Test
-	void OidcTest_Expired_Scanner() {
+	@ParameterizedTest
+	@MethodSource("oidcClientIds")
+	void OidcTest_Expired_Scanner(String clientId) {
 		oidcTest(
+				clientId,
 				new String[]{
 					"ExpiredOidcScanner"
 				},
@@ -123,9 +150,11 @@ class AssessmentTests extends ApplicationBaseTest {
 		);
 	}
 
-	@Test
-	void OidcTest_FutureNotBefore_Scanner() {
+	@ParameterizedTest
+	@MethodSource("oidcClientIds")
+	void OidcTest_FutureNotBefore_Scanner(String clientId) {
 		oidcTest(
+				clientId,
 				new String[]{
 						"FutureNotBeforeOidcScanner"
 				},
@@ -135,9 +164,11 @@ class AssessmentTests extends ApplicationBaseTest {
 		);
 	}
 
-	@Test
-	void OidcTest_NoneAlgAndNoSignature_Scanner() {
+	@ParameterizedTest
+	@MethodSource("oidcClientIds")
+	void OidcTest_NoneAlgAndNoSignature_Scanner(String clientId) {
 		oidcTest(
+				clientId,
 				new String[]{
 					"NoneAlgOidcScanner",
 				},
@@ -147,9 +178,11 @@ class AssessmentTests extends ApplicationBaseTest {
 		);
 	}
 
-	@Test
-	void OidcTest_NoSignatureOidcScanner_Scanner() {
+	@ParameterizedTest
+	@MethodSource("oidcClientIds")
+	void OidcTest_NoSignatureOidcScanner_Scanner(String clientId) {
 		oidcTest(
+				clientId,
 				new String[]{
 						"NoSignatureOidcScanner"
 				},

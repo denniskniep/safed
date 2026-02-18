@@ -1,7 +1,3 @@
 1. containerize and test selenium inside
-2. refactor namings (auth/idp; auth/client)
-3. One logic for (SAml/OIDC)assesment
-4. Cookies validator
-5. custom chain of verifications per client
-6. OIDC hybrid flow
-7. refactor base class to interface
+2. Cookies validator
+3. custom chain of verifications per client

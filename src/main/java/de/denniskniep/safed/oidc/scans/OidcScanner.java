@@ -1,37 +1,43 @@
 package de.denniskniep.safed.oidc.scans;
 
-import de.denniskniep.safed.common.config.IssuerConfig;
-import de.denniskniep.safed.common.scans.ScanResult;
-import de.denniskniep.safed.oidc.auth.CustomJwtBuilder;
-import de.denniskniep.safed.oidc.auth.RawJwt;
-import de.denniskniep.safed.oidc.auth.flows.JwtInterceptor;
-import de.denniskniep.safed.oidc.auth.OidcAuthenticationRequest;
-import de.denniskniep.safed.oidc.auth.flows.TokenInterceptors;
-import de.denniskniep.safed.oidc.backend.TokenResponse;
-import de.denniskniep.safed.oidc.config.OidcClientConfig;
+import de.denniskniep.safed.common.scans.Scanner;
+import de.denniskniep.safed.oidc.auth.server.CustomJwtBuilder;
+import de.denniskniep.safed.oidc.auth.server.RawJwt;
+import de.denniskniep.safed.oidc.auth.server.BackchannelInterceptor;
+import de.denniskniep.safed.oidc.auth.server.JwtInterceptor;
+import de.denniskniep.safed.oidc.auth.browser.OidcAuthenticationRequest;
+import de.denniskniep.safed.oidc.auth.server.TokenInterceptors;
+import de.denniskniep.safed.oidc.auth.server.endpoints.TokenRequest;
+import de.denniskniep.safed.oidc.auth.server.endpoints.TokenResponse;
+import de.denniskniep.safed.oidc.auth.server.endpoints.UserInfoRequest;
+import de.denniskniep.safed.oidc.auth.server.endpoints.UserInfoResponse;
 import io.jsonwebtoken.JwtBuilder;
 
-public interface OidcScanner {
+import java.util.Optional;
 
-    void init(ScanResult firstPositiveScan, ScanResult secondPositiveScan, ScanResult thirdPositiveScan);
+public interface OidcScanner extends Scanner {
 
-    // 1. Config Phase
-    OidcClientConfig getOidcClientConfig(OidcClientConfig oidcClientConfig);
-    IssuerConfig getIssuerConfig(IssuerConfig issuerConfig);
 
+
+    // 2. Incoming Request
     OidcAuthenticationRequest getOidcRequestData(OidcAuthenticationRequest oidcRequestData);
 
     // 3. Token Building Phase
     JwtBuilder beforeIdTokenSigning(CustomJwtBuilder builder);
     RawJwt afterIdTokenSigning(RawJwt token);
+    String afterIdTokenEncoding(String token);
 
     JwtBuilder beforeAccessTokenSigning(CustomJwtBuilder builder);
     RawJwt afterAccessTokenSigning(RawJwt token);
+    String afterAccessTokenEncoding(String token);
 
     JwtBuilder beforeRefreshTokenSigning(CustomJwtBuilder builder);
     RawJwt afterRefreshTokenSigning(RawJwt token);
+    String afterRefreshTokenEncoding(String token);
 
-    TokenResponse getTokenResponse(TokenResponse tokenResponse);
+    // 4. Backend Requests
+    Optional<TokenResponse> onCodeToToken(TokenRequest request, Optional<TokenResponse> response);
+    Optional<UserInfoResponse> onUserInfoRequest(UserInfoRequest request, Optional<UserInfoResponse> response);
 
     default TokenInterceptors getTokenInterceptors(){
         var scanner = this;
@@ -46,6 +52,11 @@ public interface OidcScanner {
                     public RawJwt afterSigning(RawJwt token) {
                         return scanner.afterIdTokenSigning(token);
                     }
+
+                    @Override
+                    public String afterEncoding(String token) {
+                        return scanner.afterIdTokenEncoding(token);
+                    }
                 },
                 new JwtInterceptor() {
                     @Override
@@ -56,6 +67,11 @@ public interface OidcScanner {
                     @Override
                     public RawJwt afterSigning(RawJwt token) {
                         return scanner.afterAccessTokenSigning(token);
+                    }
+
+                    @Override
+                    public String afterEncoding(String token) {
+                        return scanner.afterAccessTokenEncoding(token);
                     }
                 },
                 new JwtInterceptor() {
@@ -68,7 +84,27 @@ public interface OidcScanner {
                     public RawJwt afterSigning(RawJwt token) {
                         return scanner.afterRefreshTokenSigning(token);
                     }
+
+                    @Override
+                    public String afterEncoding(String token) {
+                        return scanner.afterRefreshTokenEncoding(token);
+                    }
                 }
         );
+    }
+
+    default BackchannelInterceptor getBackchannelInterceptor(){
+        var scanner = this;
+        return new BackchannelInterceptor() {
+            @Override
+            public Optional<TokenResponse> onCodeToToken(TokenRequest request, Optional<TokenResponse> response) {
+                return scanner.onCodeToToken(request, response);
+            }
+
+            @Override
+            public Optional<UserInfoResponse> onUserInfoRequest(UserInfoRequest request, Optional<UserInfoResponse> response) {
+                return  scanner.onUserInfoRequest(request, response);
+            }
+        };
     }
 }

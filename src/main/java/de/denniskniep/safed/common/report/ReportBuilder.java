@@ -11,13 +11,15 @@ public class ReportBuilder {
 
     private final ScanResult firstScan;
     private final ScanResult secondScan;
-    private ScanResult positiveScan;
-    private HashMap<String, ScanResult> scanResults;
+    private final ScanResult isVulnerableScan;
+    private final ScanResult isOkScan;
+    private final HashMap<String, ScanResult> scanResults;
 
-    public ReportBuilder(ScanResult firstScan, ScanResult secondScan, ScanResult positiveScan, HashMap<String, ScanResult> scanResults) {
+    public ReportBuilder(ScanResult firstScan, ScanResult secondScan, ScanResult isVulnerableScan, ScanResult isOkScan, HashMap<String, ScanResult> scanResults) {
         this.firstScan = firstScan;
         this.secondScan = secondScan;
-        this.positiveScan = positiveScan;
+        this.isVulnerableScan = isVulnerableScan;
+        this.isOkScan = isOkScan;
         this.scanResults = scanResults;
     }
 
@@ -26,9 +28,13 @@ public class ReportBuilder {
         report.setFirstScan(asInitialScanReport(firstScan));
         report.setSecondScan(asInitialScanReport(secondScan));
 
-        ScanResultReport positiveScanReport = asScanResultReport(positiveScan);
-        positiveScanReport.setStatus(null);
-        report.setPositiveScan(positiveScanReport);
+        ScanResultReport isVulnerableScanReport = asScanResultReport(isVulnerableScan);
+        isVulnerableScanReport.setStatus(null);
+        report.setIsVulnerableTestScan(isVulnerableScanReport);
+
+        ScanResultReport isOkScanReport = asScanResultReport(isOkScan);
+        isOkScanReport.setStatus(null);
+        report.setIsOkTestScan(isOkScanReport);
 
         ScanResultStatus status = ScanResultStatus.OK;
         for(var scanResult : scanResults.entrySet()){

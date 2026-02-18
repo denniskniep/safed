@@ -1,18 +1,19 @@
 package de.denniskniep.safed.common.report;
 
 import de.denniskniep.safed.common.scans.ScanResultStatus;
-import de.denniskniep.safed.utils.Serialization;
+import de.denniskniep.safed.common.utils.Serialization;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import java.util.HashMap;
 import java.util.Map;
 
-@JsonPropertyOrder({"status", "firstScan", "secondScan", "positiveScan", "findings", "noFindings" })
+@JsonPropertyOrder({"status", "firstScan", "secondScan", "isVulnerableTestScan", "isOkTestScan", "findings", "noFindings" })
 public class Report {
 
     private InitialScanReport firstScan;
     private InitialScanReport secondScan;
-    private ScanResultReport positiveScan;
+    private ScanResultReport isVulnerableTestScan;
+    private ScanResultReport isOkTestScan;
     private ScanResultStatus status;
     private final Map<String, ScanResultReport> noFindings = new HashMap<>();
     private final Map<String, ScanResultReport> findings = new HashMap<>();
@@ -33,12 +34,20 @@ public class Report {
         this.secondScan = secondScan;
     }
 
-    public ScanResultReport getPositiveScan() {
-        return positiveScan;
+    public ScanResultReport getIsVulnerableTestScan() {
+        return isVulnerableTestScan;
     }
 
-    public void setPositiveScan(ScanResultReport positiveScan) {
-        this.positiveScan = positiveScan;
+    public void setIsVulnerableTestScan(ScanResultReport isVulnerableTestScan) {
+        this.isVulnerableTestScan = isVulnerableTestScan;
+    }
+
+    public ScanResultReport getIsOkTestScan() {
+        return isOkTestScan;
+    }
+
+    public void setIsOkTestScan(ScanResultReport isOkTestScan) {
+        this.isOkTestScan = isOkTestScan;
     }
 
     public ScanResultStatus getStatus() {

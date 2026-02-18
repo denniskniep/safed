@@ -36,7 +36,6 @@ public class SamlValidationController {
     @PostMapping(value = "ignoredErrorDescriptions", produces = "application/json")
     public @ResponseBody void setIgnoredSamlErrorDescriptions(@RequestBody List<String> errorDescriptions) {
         samlValidationService.setIgnoredSamlErrorDescriptions(errorDescriptions);
-        LOG.info("Set ignored errorDescriptions: {}", String.join(",", errorDescriptions));
     }
 }
 

@@ -1,5 +1,6 @@
 package de.denniskniep.safed.saml.scans.scanner;
 
+import de.denniskniep.safed.saml.scans.SamlBaseScanner;
 import de.denniskniep.safed.saml.scans.SamlResponseDocument;
 import org.springframework.stereotype.Service;
 

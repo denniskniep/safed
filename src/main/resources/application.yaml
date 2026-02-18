@@ -19,9 +19,15 @@ oidc:
       claims:
         - name: role
           values:
-            - default-roles-demo
-            - offline_access
-            - uma_authorization
+            - admin
+    example-oidc-002-hybridflow:
+      client-id: example-oidc-002-hybridflow
+      sign-in-url: "http://localhost:8083/"
+      redirect-url: "http://localhost:8083/oauth/hybrid"
+    example-oidc-002-implicitflow:
+      client-id: example-oidc-002-implicitflow
+      sign-in-url: "http://localhost:8084/"
+      redirect-url: "http://localhost:8084/oauth/implicit"
     grafana-oidc:
       client-id: grafana-oidc
       sign-in-url: "http://localhost:3001/login/generic_oauth"

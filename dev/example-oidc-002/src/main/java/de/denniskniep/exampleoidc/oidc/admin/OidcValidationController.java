@@ -36,6 +36,5 @@ public class OidcValidationController {
     @PostMapping(value = "ignoredErrorDescriptions", produces = "application/json")
     public @ResponseBody void setIgnoredOidcErrorDescriptions(@RequestBody List<String> errorDescriptions) {
         oidcValidationService.setIgnoredOidcErrorDescriptions(errorDescriptions);
-        LOG.info("Set ignored errorDescriptions: {}", String.join(",", errorDescriptions));
     }
 }

@@ -1,8 +1,9 @@
 package de.denniskniep.safed.saml.scans.scanner;
 
 import de.denniskniep.safed.saml.SamlAuthResult;
-import de.denniskniep.safed.saml.data.SamlRequestData;
+import de.denniskniep.safed.saml.auth.browser.SamlRequestData;
 import de.denniskniep.safed.common.scans.ScanResult;
+import de.denniskniep.safed.saml.scans.SamlBaseScanner;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -12,7 +13,7 @@ public class ReplayFirstPositiveSamlResponse extends SamlBaseScanner {
     private String firstPositiveSamlRelayState;
 
     @Override
-    public void init(ScanResult firstPositiveScan, ScanResult secondPositiveScan, ScanResult thirdPositiveScan) {
+    public void init(ScanResult firstPositiveScan, ScanResult secondPositiveScan, ScanResult thirdPositiveScan, ScanResult fourthScanFailure) {
         firstPositiveSamlResponse = firstPositiveScan.getAuthResult(SamlAuthResult.class).getSamlResponseResult().getSamlResponse();
         firstPositiveSamlRelayState = firstPositiveScan.getAuthResult(SamlAuthResult.class).getSamlResponseResult().getRelayState();
     }

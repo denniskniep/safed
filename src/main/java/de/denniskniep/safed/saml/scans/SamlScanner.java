@@ -1,18 +1,11 @@
 package de.denniskniep.safed.saml.scans;
 
-import de.denniskniep.safed.common.config.IssuerConfig;
-import de.denniskniep.safed.common.scans.ScanResult;
-import de.denniskniep.safed.saml.config.SamlClientConfig;
-import de.denniskniep.safed.saml.data.SamlAuthData;
-import de.denniskniep.safed.saml.data.SamlRequestData;
+import de.denniskniep.safed.common.scans.Scanner;
+import de.denniskniep.safed.saml.config.SamlAuthData;
+import de.denniskniep.safed.saml.auth.browser.SamlRequestData;
 
-public interface SamlScanner {
+public interface SamlScanner extends Scanner {
 
-    void init(ScanResult firstPositiveScan, ScanResult secondPositiveScan, ScanResult thirdPositiveScan);
-
-    // 1. Config Phase
-    SamlClientConfig getSamlClientConfig(SamlClientConfig samlClientConfig);
-    IssuerConfig getSamlIssuerConfig(IssuerConfig issuerConfig);
     SamlAuthData getAuthData(SamlAuthData samlAuthData);
 
     // 2. After SamlRequest

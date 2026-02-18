@@ -5,3 +5,5 @@ Ideas:
 * Different Destination
 * No assertions / NoInResponseTo / NoRelayState
 * Invalid Asserting Signature!
+* Document signing vs. assertion signing
+* Expiration also on Assertion dates

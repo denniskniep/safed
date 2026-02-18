@@ -1,6 +1,6 @@
 package de.denniskniep.safed.common.config;
 
-import de.denniskniep.safed.utils.Serialization;
+import de.denniskniep.safed.common.utils.Serialization;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.net.URL;

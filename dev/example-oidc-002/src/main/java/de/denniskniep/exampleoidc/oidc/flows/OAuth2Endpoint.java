@@ -56,7 +56,7 @@ public class OAuth2Endpoint {
         }catch(Exception e){
             return ResponseEntity
                     .status(HttpStatus.FOUND)
-                    .header(HttpHeaders.LOCATION, "login?error")
+                    .header(HttpHeaders.LOCATION, "/login?error")
                     .build();
         }
 

@@ -1,6 +1,7 @@
 package de.denniskniep.safed.saml.scans.scanner;
 
 import de.denniskniep.safed.common.config.IssuerConfig;
+import de.denniskniep.safed.saml.scans.SamlBaseScanner;
 import org.springframework.stereotype.Service;
 
 import java.net.MalformedURLException;
@@ -11,9 +12,9 @@ import java.net.URL;
 public class OtherIssuer extends SamlBaseScanner {
 
     @Override
-    public IssuerConfig getSamlIssuerConfig(IssuerConfig samlIssuerConfig) {
-        samlIssuerConfig.setId(getIssuerUrl());
-        return samlIssuerConfig;
+    public IssuerConfig getIssuerConfig(IssuerConfig issuerConfig) {
+        issuerConfig.setId(getIssuerUrl());
+        return issuerConfig;
     }
 
     private URL getIssuerUrl(){

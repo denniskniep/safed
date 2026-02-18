@@ -1,12 +1,12 @@
 package de.denniskniep.safed.saml;
 
-import de.denniskniep.safed.common.auth.AuthenticationLog;
+import de.denniskniep.safed.common.auth.browser.AuthenticationLog;
 import de.denniskniep.safed.common.config.IssuerConfig;
 import de.denniskniep.safed.common.scans.AuthResult;
-import de.denniskniep.safed.saml.auth.SamlResponseResult;
+import de.denniskniep.safed.saml.auth.server.SamlResponseResult;
 import de.denniskniep.safed.saml.config.SamlClientConfig;
-import de.denniskniep.safed.saml.data.SamlAuthData;
-import de.denniskniep.safed.saml.data.SamlRequestData;
+import de.denniskniep.safed.saml.config.SamlAuthData;
+import de.denniskniep.safed.saml.auth.browser.SamlRequestData;
 import de.denniskniep.safed.common.scans.Page;
 
 public class SamlAuthResult implements AuthResult {

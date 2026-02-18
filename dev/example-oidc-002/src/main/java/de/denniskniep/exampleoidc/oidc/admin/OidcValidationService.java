@@ -1,5 +1,7 @@
 package de.denniskniep.exampleoidc.oidc.admin;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.stereotype.Service;
 
@@ -11,10 +13,13 @@ import java.util.regex.Pattern;
 @Service
 public class OidcValidationService {
 
+    private static final Logger LOG = LoggerFactory.getLogger(OidcValidationService.class);
+
     private List<String> ignoredOidcErrorDescriptions = new ArrayList<>();
     private List<String> lastErrorDescriptions = new ArrayList<>();
 
     public void setIgnoredOidcErrorDescriptions(List<String> ignoredOidcErrorDescriptions) {
+        LOG.info("setIgnoredOidcErrorDescriptions: '{}'", String.join("','", ignoredOidcErrorDescriptions));
         this.ignoredOidcErrorDescriptions = ignoredOidcErrorDescriptions;
         this.lastErrorDescriptions = new ArrayList<>();
     }

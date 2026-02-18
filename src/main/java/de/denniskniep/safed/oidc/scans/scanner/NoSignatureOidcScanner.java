@@ -1,6 +1,7 @@
 package de.denniskniep.safed.oidc.scans.scanner;
 
-import de.denniskniep.safed.oidc.auth.RawJwt;
+import de.denniskniep.safed.oidc.auth.server.RawJwt;
+import de.denniskniep.safed.oidc.scans.OidcBaseScanner;
 import org.springframework.stereotype.Service;
 
 @Service

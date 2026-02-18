@@ -161,13 +161,13 @@ public class CustomJwtDecoder implements JwtDecoder {
         var filteredErrors = oidcValidationService.applyIgnoredErrorDescriptions(allErrors);
 
         StringWriter sw = new StringWriter();
-        sw.append("JWT Validation Errors. (Apply " + filteredErrors.size() + " out of " + allErrors.size() + "):");
+        sw.append(filteredErrors.size() +" JWT Validation Errors (raised " + filteredErrors.size() + " out of " + allErrors.size() + "):");
         for (OAuth2Error error : allErrors) {
             var present = filteredErrors.stream().anyMatch(e ->
                     error.getDescription() != null && error.getDescription().equals(e.getDescription())
             );
             sw.write("\n");
-            sw.write((!present ? "[ignored] " : "") + error.getErrorCode() + ": " + error.getDescription());
+            sw.write((!present ? "[error ignored] " : "[error raised]") + error.getErrorCode() + ": " + error.getDescription());
         }
         LOG.info(sw.toString());
 

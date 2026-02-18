@@ -29,6 +29,7 @@ public abstract class ApplicationBaseTest {
     protected static final ExampleAppData EXAMPLE_SAML_CLIENT = new ExampleAppData("example_saml_001", 8081, "example-saml-001");
     protected static final ExampleAppData EXAMPLE_OIDC_CODE_FLOW = new ExampleAppData("example_oidc_002_codeflow", 8082, "example-oidc-002-codeflow");
     protected static final ExampleAppData EXAMPLE_OIDC_HYBRID_FLOW = new ExampleAppData("example_oidc_002_hybridflow", 8083, "example-oidc-002-hybridflow");
+    protected static final ExampleAppData EXAMPLE_OIDC_IMPLICIT_FLOW = new ExampleAppData("example_oidc_002_implicitflow", 8084, "example-oidc-002-implicitflow");
 
     protected static final String KEYCLOAK_SERVICE_NAME = "keycloak";
     protected static final String KEYCLOAK_SIDEKICK_SERVICE_NAME = "keycloak_sidekick";
@@ -38,6 +39,7 @@ public abstract class ApplicationBaseTest {
     protected final ExampleApp exampleSamlApp;
     protected final ExampleApp exampleOidcCodeFlowApp;
     protected final ExampleApp exampleOidcHybridFlowApp;
+    protected final ExampleApp exampleOidcImplicitFlowApp;
 
     public ApplicationBaseTest(String port) {
         ENVIRONMENT = new ComposeContainer(
@@ -49,21 +51,25 @@ public abstract class ApplicationBaseTest {
                 .waitingFor(EXAMPLE_SAML_CLIENT.serviceName(), Wait.forLogMessage(".*Started ExampleSamlApp.*", 1))
                 .waitingFor(EXAMPLE_OIDC_CODE_FLOW.serviceName(), Wait.forLogMessage(".*Started ExampleOidcApplication.*", 1))
                 .waitingFor(EXAMPLE_OIDC_HYBRID_FLOW.serviceName(), Wait.forLogMessage(".*Started ExampleOidcApplication.*", 1))
+                .waitingFor(EXAMPLE_OIDC_IMPLICIT_FLOW.serviceName(), Wait.forLogMessage(".*Started ExampleOidcApplication.*", 1))
                 .withLogConsumer(EXAMPLE_SAML_CLIENT.serviceName(), new Slf4jLogConsumer(LOG).withPrefix(EXAMPLE_SAML_CLIENT.serviceName()))
                 .withLogConsumer(EXAMPLE_OIDC_CODE_FLOW.serviceName(), new Slf4jLogConsumer(LOG).withPrefix(EXAMPLE_OIDC_CODE_FLOW.serviceName()))
                 .withLogConsumer(EXAMPLE_OIDC_HYBRID_FLOW.serviceName(), new Slf4jLogConsumer(LOG).withPrefix(EXAMPLE_OIDC_HYBRID_FLOW.serviceName()))
+                .withLogConsumer(EXAMPLE_OIDC_IMPLICIT_FLOW.serviceName(), new Slf4jLogConsumer(LOG).withPrefix(EXAMPLE_OIDC_IMPLICIT_FLOW.serviceName()))
                 .withLogConsumer(KEYCLOAK_SERVICE_NAME, new Slf4jLogConsumer(LOG).withPrefix(KEYCLOAK_SERVICE_NAME))
-                .withServices("postgres", KEYCLOAK_SERVICE_NAME, "keycloak_orig", KEYCLOAK_SIDEKICK_SERVICE_NAME, EXAMPLE_SAML_CLIENT.serviceName(), EXAMPLE_OIDC_CODE_FLOW.serviceName(), EXAMPLE_OIDC_HYBRID_FLOW.serviceName())
+                .withServices("postgres", KEYCLOAK_SERVICE_NAME, "keycloak_orig", KEYCLOAK_SIDEKICK_SERVICE_NAME, EXAMPLE_SAML_CLIENT.serviceName(), EXAMPLE_OIDC_CODE_FLOW.serviceName(), EXAMPLE_OIDC_HYBRID_FLOW.serviceName(), EXAMPLE_OIDC_IMPLICIT_FLOW.serviceName())
                 .withEnv("SAFED_APP_PORT", port)
                 .withExposedService(EXAMPLE_SAML_CLIENT.serviceName(), EXAMPLE_SAML_CLIENT.servicePort())
                 .withExposedService(EXAMPLE_OIDC_CODE_FLOW.serviceName(), EXAMPLE_OIDC_CODE_FLOW.servicePort())
-                .withExposedService(EXAMPLE_OIDC_HYBRID_FLOW.serviceName(), EXAMPLE_OIDC_HYBRID_FLOW.servicePort());
+                .withExposedService(EXAMPLE_OIDC_HYBRID_FLOW.serviceName(), EXAMPLE_OIDC_HYBRID_FLOW.servicePort())
+                .withExposedService(EXAMPLE_OIDC_IMPLICIT_FLOW.serviceName(), EXAMPLE_OIDC_IMPLICIT_FLOW.servicePort());
 
         ENVIRONMENT.start();
 
         exampleSamlApp = ExampleApp.from(ENVIRONMENT, EXAMPLE_SAML_CLIENT);
         exampleOidcCodeFlowApp = ExampleApp.from(ENVIRONMENT, EXAMPLE_OIDC_CODE_FLOW);
         exampleOidcHybridFlowApp = ExampleApp.from(ENVIRONMENT, EXAMPLE_OIDC_HYBRID_FLOW);
+        exampleOidcImplicitFlowApp = ExampleApp.from(ENVIRONMENT, EXAMPLE_OIDC_IMPLICIT_FLOW);
     }
 
     public record ExampleAppData(String serviceName, Integer servicePort, String clientId) {

@@ -1,7 +1,7 @@
 package de.denniskniep.safed.oidc.config;
 
 import de.denniskniep.safed.common.config.ClientConfig;
-import de.denniskniep.safed.utils.Serialization;
+import de.denniskniep.safed.common.utils.Serialization;
 
 import java.util.Arrays;
 import java.util.List;
@@ -28,7 +28,7 @@ public class OidcClientConfig extends ClientConfig {
     }
 
     @Override
-    public OidcClientConfig deepCopy(){
+    public ClientConfig deepCopy() {
         return Serialization.DeepCopy(this, OidcClientConfig.class);
     }
 }
