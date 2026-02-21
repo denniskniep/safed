@@ -27,6 +27,9 @@ public class OidcConfig {
     }
 
     public OidcClientConfig getClient(String clientId) {
+        if(clients == null){
+            return null;
+        }
         return clients.get(clientId);
     }
 

@@ -5,15 +5,14 @@ import de.denniskniep.safed.common.config.IssuerConfig;
 import de.denniskniep.safed.common.report.Report;
 import de.denniskniep.safed.common.report.ReportBuilder;
 import de.denniskniep.safed.common.scans.*;
-import de.denniskniep.safed.common.verifications.ScanResultVerificationStrategy;
+import de.denniskniep.safed.common.scans.Scanner;
+import de.denniskniep.safed.common.verifications.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public abstract class Assessment<T extends Scanner, C extends ClientConfig> {
     private static final Logger LOG = LoggerFactory.getLogger(Assessment.class);
@@ -45,6 +44,7 @@ public abstract class Assessment<T extends Scanner, C extends ClientConfig> {
     }
 
     public Report run(IssuerConfig issuerConfig, C clientConfig) {
+        List<String> errors = new ArrayList<>();
         LOG.info("Start initial tests");
         // First scan with successful login
         firstScanSuccess = runScan(issuerConfig, clientConfig, successScanner);
@@ -60,7 +60,7 @@ public abstract class Assessment<T extends Scanner, C extends ClientConfig> {
         // The third scan with a successful login does not have that drift on purpose!
         // As no error occur and the user is normally logged in, we expect that to be classified as VULNERABLE
         if (thirdScanSuccess.getStatus() == ScanResultStatus.OK) {
-            throw new RuntimeException("Third scan must always be classified as VULNERABLE!");
+            errors.add("Third scan must always be classified as VULNERABLE!");
         }
 
         // The fourth scan with a failing login should have a significant drift in the response
@@ -68,8 +68,9 @@ public abstract class Assessment<T extends Scanner, C extends ClientConfig> {
         if (fourthScanFailure.getStatus() == ScanResultStatus.VULNERABLE) {
             // For a manipulated OIDCResponse we expect a significant drift in the response
             // The third scan with positive login does not have that on purpose!
-            throw new RuntimeException("Fourth scan must always be classified as OK!");
+            errors.add("Fourth scan must always be classified as OK!");
         }
+
 
         LOG.info("End initial tests");
         var scanResults = new HashMap<String, ScanResult>();
@@ -85,7 +86,7 @@ public abstract class Assessment<T extends Scanner, C extends ClientConfig> {
             LOG.trace("Scanner {} finished with status: {}.\nFollowing evidences collected:\n{}", scanner.getClass().getSimpleName(), scanResult.getStatus(), String.join("\n", scanResult.getEvidences()));
         }
 
-        ReportBuilder reportBuilder = new ReportBuilder(firstScanSuccess, secondScanSuccess, thirdScanSuccess, fourthScanFailure, scanResults);
+        ReportBuilder reportBuilder = new ReportBuilder(firstScanSuccess, secondScanSuccess, thirdScanSuccess, fourthScanFailure, scanResults, errors);
         return reportBuilder.Build();
     }
 
@@ -97,27 +98,42 @@ public abstract class Assessment<T extends Scanner, C extends ClientConfig> {
 
         AuthResult authResult = scan(issuerConfig, clientConfig, scanner);
 
-        var verificationStrategy = findVerificationStrategyBy(clientConfig.getScanResultVerificationStrategy());
+        // All VerificationStrategies are used to gather infos
+        var allVerificationStrategies = createVerificationStrategy(scanResultVerificationStrategies.keySet());
+        List<String> infos = allVerificationStrategies.extractInfos(authResult);
 
         if (firstScanSuccess == null || secondScanSuccess == null) {
-            return new ScanResult(authResult, ScanResultStatus.OK, List.of());
+            return new ScanResult(authResult, ScanResultStatus.OK, infos);
         }
 
-        if (thirdScanSuccess == null) {
-            return verificationStrategy.evaluateScanResult(firstScanSuccess.getAuthResult(), secondScanSuccess.getAuthResult(), authResult);
-        }
-
-        if (fourthScanFailure == null) {
-            return verificationStrategy.evaluateScanResult(firstScanSuccess.getAuthResult(), secondScanSuccess.getAuthResult(), authResult);
-        }
-
-        return verificationStrategy.evaluateScanResult(firstScanSuccess.getAuthResult(), secondScanSuccess.getAuthResult(), authResult);
-
+        var selectedVerificationStrategies = createVerificationStrategy(clientConfig.getVerificationStrategies());
+        var scanResult = selectedVerificationStrategies.evaluateScanResult(firstScanSuccess.getAuthResult(), secondScanSuccess.getAuthResult(), authResult);
+        var infosAndEvidences = new ArrayList<>(infos);
+        infosAndEvidences.addAll(scanResult.getEvidences());
+        return new ScanResult(scanResult.getAuthResult(), scanResult.getStatus(), infosAndEvidences);
     }
 
     protected abstract AuthResult scan(IssuerConfig oidcIssuerConfig, C clientConfig, T scanner);
 
-    private ScanResultVerificationStrategy findVerificationStrategyBy(String name) {
+    private ScanResultVerificationStrategy createVerificationStrategy(Collection<String> verificationStrategyNames) {
+        if (verificationStrategyNames == null || verificationStrategyNames.isEmpty()) {
+            verificationStrategyNames = List.of(
+                    DiffVerification.class.getSimpleName(),
+                    UrlAndStatusCodeVerification.class.getSimpleName(),
+                    CookieVerification.class.getSimpleName()
+            );
+        }
+
+       List<ScanResultVerificationStrategy> verificationStrategies = new ArrayList<>();
+       for (var name : verificationStrategyNames) {
+           verificationStrategies.add(findVerificationStrategyByName(name));
+       }
+
+       return new AnyMatchVerification(verificationStrategies);
+
+    }
+
+    private ScanResultVerificationStrategy findVerificationStrategyByName(String name) {
         String normalizedName = "";
         for (var n : scanResultVerificationStrategies.keySet()) {
             if (StringUtils.equalsIgnoreCase(name, n)) {

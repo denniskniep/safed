@@ -10,7 +10,8 @@
   "alwaysDisplayInConsole": false,
   "clientAuthenticatorType": "client-secret",
   "redirectUris": [
-    "http://localhost:8081/*"
+    "http://localhost:8081/*",
+    "http://examplesaml001:8081/*"
   ],
   "webOrigins": [
     "http://localhost:8081"

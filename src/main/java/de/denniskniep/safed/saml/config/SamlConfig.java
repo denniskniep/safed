@@ -27,6 +27,9 @@ public class SamlConfig {
     }
 
     public SamlClientConfig getClient(String clientId) {
+        if(clients == null){
+            return null;
+        }
         return clients.get(clientId);
     }
 

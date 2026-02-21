@@ -1,5 +1,5 @@
 services:
-  example_saml_001:
+  examplesaml001:
     build:
       context: ./dev/example-saml-001
     restart: always
@@ -15,7 +15,7 @@ services:
       - "8081:8081"
     networks: [ "safed-net" ]
 
-  example_oidc_002_codeflow:
+  exampleoidc002codeflow:
     build:
       context: ./dev/example-oidc-002
     restart: always
@@ -31,7 +31,7 @@ services:
       - "8082:8082"
     networks: [ "safed-net" ]
 
-  example_oidc_002_hybridflow:
+  exampleoidc002hybridflow:
     build:
       context: ./dev/example-oidc-002
     restart: always
@@ -48,7 +48,7 @@ services:
     networks: [ "safed-net" ]
 
 
-  example_oidc_002_implicitflow:
+  exampleoidc002implicitflow:
     build:
       context: ./dev/example-oidc-002
     restart: always

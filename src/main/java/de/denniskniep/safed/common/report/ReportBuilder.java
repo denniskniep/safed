@@ -14,13 +14,15 @@ public class ReportBuilder {
     private final ScanResult isVulnerableScan;
     private final ScanResult isOkScan;
     private final HashMap<String, ScanResult> scanResults;
+    private final List<String> errors;
 
-    public ReportBuilder(ScanResult firstScan, ScanResult secondScan, ScanResult isVulnerableScan, ScanResult isOkScan, HashMap<String, ScanResult> scanResults) {
+    public ReportBuilder(ScanResult firstScan, ScanResult secondScan, ScanResult isVulnerableScan, ScanResult isOkScan, HashMap<String, ScanResult> scanResults, List<String> errors) {
         this.firstScan = firstScan;
         this.secondScan = secondScan;
         this.isVulnerableScan = isVulnerableScan;
         this.isOkScan = isOkScan;
         this.scanResults = scanResults;
+        this.errors = errors;
     }
 
     public Report Build(){
@@ -29,11 +31,9 @@ public class ReportBuilder {
         report.setSecondScan(asInitialScanReport(secondScan));
 
         ScanResultReport isVulnerableScanReport = asScanResultReport(isVulnerableScan);
-        isVulnerableScanReport.setStatus(null);
         report.setIsVulnerableTestScan(isVulnerableScanReport);
 
         ScanResultReport isOkScanReport = asScanResultReport(isOkScan);
-        isOkScanReport.setStatus(null);
         report.setIsOkTestScan(isOkScanReport);
 
         ScanResultStatus status = ScanResultStatus.OK;
@@ -45,13 +45,18 @@ public class ReportBuilder {
                 report.addFinding(scanResult.getKey(), asScanResultReport(scanResult.getValue()));
             }
         }
+        if(!errors.isEmpty()){
+            status = ScanResultStatus.FAILED;
+            report.setErrors(errors);
+        }
         report.setStatus(status);
+
+
         return report;
     }
 
     private ScanResultReport asScanResultReport(ScanResult scanResult){
         ScanResultReport scanResultReport = new ScanResultReport();
-
         scanResultReport.setStatus(scanResult.getStatus());
         scanResultReport.setEvidences(scanResult.getEvidences());
 
@@ -67,13 +72,12 @@ public class ReportBuilder {
     private InitialScanReport asInitialScanReport(ScanResult scanResult){
         InitialScanReport initialScanReport = new InitialScanReport();
 
-        initialScanReport.setVisibleText(scanResult.getAuthResult().getResponsePage().visibleText());
-
         List<String> trafficLog = new ArrayList<>();
         for(var t : scanResult.getAuthResult().getAuthenticationLog().getTraffic()){
             trafficLog.add(t.asShortLog());
         }
         initialScanReport.setTrafficLog(trafficLog);
+        initialScanReport.setEvidences(scanResult.getEvidences());
         initialScanReport.setCreatedAt(scanResult.getCreatedAtFormatted());
         return initialScanReport;
     }

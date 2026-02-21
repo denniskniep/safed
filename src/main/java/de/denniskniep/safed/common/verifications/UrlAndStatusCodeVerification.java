@@ -13,6 +13,11 @@ import java.util.List;
 public class UrlAndStatusCodeVerification implements ScanResultVerificationStrategy {
 
     @Override
+    public List<String> extractInfos(AuthResult scanAuthResult) {
+        return List.of();
+    }
+
+    @Override
     public ScanResult evaluateScanResult(AuthResult firstPositiveAuthResult, AuthResult secondPositiveAuthResult, AuthResult scanAuthResult) {
         ScanResultStatus status;
         List<String> evidences = new ArrayList<>();

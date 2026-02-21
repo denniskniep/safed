@@ -12,6 +12,7 @@ import org.openqa.selenium.bidi.Event;
 import org.openqa.selenium.bidi.HasBiDi;
 import org.openqa.selenium.bidi.module.Network;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeDriverService;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.devtools.HasDevTools;
 import org.openqa.selenium.support.ui.ExpectedCondition;
@@ -19,6 +20,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.URL;
@@ -90,14 +92,16 @@ public abstract class BrowserAuthenticationFlow<T> implements AutoCloseable {
         options.addArguments("--disable-extensions");
         options.addArguments("--user-data-dir=" + tmpProfile.toAbsolutePath());
         options.addArguments("--remote-debugging-port=" + getRandomPort());
-        options.addArguments("--auto-open-devtools-for-tabs");
+        //options.addArguments("--auto-open-devtools-for-tabs");
+        options.addArguments("--window-size=1920,1080");
         options.enableBiDi();
 
         driver = new ChromeDriver(options);
+
         driver.switchTo().newWindow(WindowType.TAB);
 
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
-        driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(5));
+        driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(60));
     }
 
     private JavascriptExecutor getDriverAsJavascriptExecutor(){
@@ -133,7 +137,7 @@ public abstract class BrowserAuthenticationFlow<T> implements AutoCloseable {
 
             driver.get(relyingPartySignInUrl.toString());
 
-            var timeout = Duration.ofSeconds(30);
+            var timeout = Duration.ofSeconds(60);
             var pollingEvery = Duration.ofMillis(500);
             WebDriverWait wait = new WebDriverWait(driver, timeout, pollingEvery);
             wait.until(webDriver -> captureRequest.getCapturedRequest().isPresent());

@@ -5,12 +5,21 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import java.util.List;
 
-@JsonPropertyOrder({ "createdAt", "trafficLog"})
+@JsonPropertyOrder({ "createdAt", "evidences", "trafficLog"})
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class InitialScanReport {
     private String createdAt;
+    private List<String> evidences;
     private List<String> trafficLog;
-    private String visibleText;
+
+
+    public List<String> getEvidences() {
+        return evidences;
+    }
+
+    public void setEvidences(List<String> evidences) {
+        this.evidences = evidences;
+    }
 
     public String getCreatedAt() {
         return createdAt;
@@ -26,13 +35,5 @@ public class InitialScanReport {
 
     public void setTrafficLog(List<String> trafficLog) {
         this.trafficLog = trafficLog;
-    }
-
-    public String getVisibleText() {
-        return visibleText;
-    }
-
-    public void setVisibleText(String visibleText) {
-        this.visibleText = visibleText;
     }
 }

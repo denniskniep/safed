@@ -1,0 +1,20 @@
+services:
+  safed:
+    build:
+      context: ./
+    depends_on:
+      - keycloak
+    environment:
+      KEYCLOAK_URL: "http://keycloak:8080"
+      SPRING_PROFILES_ACTIVE: dockertest
+      SAML_ISSUER_SIGNING_X509_CERT_PEM_FILE_PATH: "/tmp/signing_cert.pem"
+      SAML_ISSUER_SIGNING_PRIVATE_KEY_PEM_FILE_PATH: "/tmp/signing_key.pem"
+    volumes:
+      - "./dev/keycloak/wait-for-keycloak.sh:/tmp/wait-for-keycloak.sh"
+      - "./dev/keycloak/signing_cert.pem:/tmp/signing_cert.pem"
+      - "./dev/keycloak/signing_key.pem:/tmp/signing_key.pem"
+    entrypoint: "sh -c"
+    command: ["/tmp/wait-for-keycloak.sh && java -Duser.timezone=UTC -jar /app/app.jar example-saml-001"]
+    ports:
+      - "8070:8070"
+    networks: [ "safed-net" ]

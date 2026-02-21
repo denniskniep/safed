@@ -26,13 +26,13 @@ public abstract class ApplicationBaseTest {
 
     protected static final Logger LOG = LoggerFactory.getLogger(ApplicationBaseTest.class);
 
-    protected static final ExampleAppData EXAMPLE_SAML_CLIENT = new ExampleAppData("example_saml_001", 8081, "example-saml-001");
-    protected static final ExampleAppData EXAMPLE_OIDC_CODE_FLOW = new ExampleAppData("example_oidc_002_codeflow", 8082, "example-oidc-002-codeflow");
-    protected static final ExampleAppData EXAMPLE_OIDC_HYBRID_FLOW = new ExampleAppData("example_oidc_002_hybridflow", 8083, "example-oidc-002-hybridflow");
-    protected static final ExampleAppData EXAMPLE_OIDC_IMPLICIT_FLOW = new ExampleAppData("example_oidc_002_implicitflow", 8084, "example-oidc-002-implicitflow");
+    protected static final ExampleAppData EXAMPLE_SAML_CLIENT = new ExampleAppData("examplesaml001", 8081, "example-saml-001");
+    protected static final ExampleAppData EXAMPLE_OIDC_CODE_FLOW = new ExampleAppData("exampleoidc002codeflow", 8082, "example-oidc-002-codeflow");
+    protected static final ExampleAppData EXAMPLE_OIDC_HYBRID_FLOW = new ExampleAppData("exampleoidc002hybridflow", 8083, "example-oidc-002-hybridflow");
+    protected static final ExampleAppData EXAMPLE_OIDC_IMPLICIT_FLOW = new ExampleAppData("exampleoidc002implicitflow", 8084, "example-oidc-002-implicitflow");
 
     protected static final String KEYCLOAK_SERVICE_NAME = "keycloak";
-    protected static final String KEYCLOAK_SIDEKICK_SERVICE_NAME = "keycloak_sidekick";
+    protected static final String KEYCLOAK_SIDEKICK_SERVICE_NAME = "keycloaksidekick";
 
     protected final ComposeContainer ENVIRONMENT;
 
@@ -57,7 +57,7 @@ public abstract class ApplicationBaseTest {
                 .withLogConsumer(EXAMPLE_OIDC_HYBRID_FLOW.serviceName(), new Slf4jLogConsumer(LOG).withPrefix(EXAMPLE_OIDC_HYBRID_FLOW.serviceName()))
                 .withLogConsumer(EXAMPLE_OIDC_IMPLICIT_FLOW.serviceName(), new Slf4jLogConsumer(LOG).withPrefix(EXAMPLE_OIDC_IMPLICIT_FLOW.serviceName()))
                 .withLogConsumer(KEYCLOAK_SERVICE_NAME, new Slf4jLogConsumer(LOG).withPrefix(KEYCLOAK_SERVICE_NAME))
-                .withServices("postgres", KEYCLOAK_SERVICE_NAME, "keycloak_orig", KEYCLOAK_SIDEKICK_SERVICE_NAME, EXAMPLE_SAML_CLIENT.serviceName(), EXAMPLE_OIDC_CODE_FLOW.serviceName(), EXAMPLE_OIDC_HYBRID_FLOW.serviceName(), EXAMPLE_OIDC_IMPLICIT_FLOW.serviceName())
+                .withServices("postgres", KEYCLOAK_SERVICE_NAME, "keycloakorig", KEYCLOAK_SIDEKICK_SERVICE_NAME, EXAMPLE_SAML_CLIENT.serviceName(), EXAMPLE_OIDC_CODE_FLOW.serviceName(), EXAMPLE_OIDC_HYBRID_FLOW.serviceName(), EXAMPLE_OIDC_IMPLICIT_FLOW.serviceName())
                 .withEnv("SAFED_APP_PORT", port)
                 .withExposedService(EXAMPLE_SAML_CLIENT.serviceName(), EXAMPLE_SAML_CLIENT.servicePort())
                 .withExposedService(EXAMPLE_OIDC_CODE_FLOW.serviceName(), EXAMPLE_OIDC_CODE_FLOW.servicePort())

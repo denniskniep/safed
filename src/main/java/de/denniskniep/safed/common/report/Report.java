@@ -4,10 +4,12 @@ import de.denniskniep.safed.common.scans.ScanResultStatus;
 import de.denniskniep.safed.common.utils.Serialization;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-@JsonPropertyOrder({"status", "firstScan", "secondScan", "isVulnerableTestScan", "isOkTestScan", "findings", "noFindings" })
+@JsonPropertyOrder({"status", "errors", "firstScan", "secondScan", "isVulnerableTestScan", "isOkTestScan", "findings", "noFindings" })
 public class Report {
 
     private InitialScanReport firstScan;
@@ -15,8 +17,10 @@ public class Report {
     private ScanResultReport isVulnerableTestScan;
     private ScanResultReport isOkTestScan;
     private ScanResultStatus status;
+    private List<String> errors = new ArrayList<>();
     private final Map<String, ScanResultReport> noFindings = new HashMap<>();
     private final Map<String, ScanResultReport> findings = new HashMap<>();
+
 
     public InitialScanReport getFirstScan() {
         return firstScan;
@@ -76,5 +80,12 @@ public class Report {
 
     public String asJson() {
         return Serialization.AsPrettyJson(this);
+    }
+
+    public void setErrors(List<String> errors) {
+        this.errors = errors;
+    }
+    public List<String> getErrors() {
+        return errors;
     }
 }

@@ -3,18 +3,28 @@ package de.denniskniep.safed.common.verifications;
 import de.denniskniep.safed.common.scans.AuthResult;
 import de.denniskniep.safed.common.scans.ScanResult;
 import de.denniskniep.safed.common.scans.ScanResultStatus;
-import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Service
 public class AnyMatchVerification implements ScanResultVerificationStrategy {
 
     private final List<ScanResultVerificationStrategy> verifications;
 
-    public AnyMatchVerification(CookieVerification cookieVerification, DiffVerification diffVerification, ContentVerification contentVerification, UrlAndStatusCodeVerification urlAndStatusCodeVerification) {
-        this.verifications = List.of(cookieVerification, diffVerification, contentVerification, urlAndStatusCodeVerification);
+    public AnyMatchVerification(List<ScanResultVerificationStrategy> verifications){
+        this.verifications = verifications;
+    }
+
+    public List<String> extractInfos(AuthResult scanAuthResult) {
+        List<String> infos = new ArrayList<>();
+        for(var verificationStrategy : verifications){
+            for(var info : verificationStrategy.extractInfos(scanAuthResult)){
+                if(!infos.contains(info)){
+                    infos.add(info);
+                }
+            }
+        }
+        return infos;
     }
 
     @Override

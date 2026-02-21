@@ -17,6 +17,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
@@ -31,15 +33,19 @@ import java.util.Base64;
 
 public class KeyProvider {
 
-    public static KeyWrapper loadSigningKey(ClientConfig clientConfig, IssuerConfig issuerConfig) {
-        String privateRsaKeyPem;
-        String certificatePem;
+    private static String loadFromFile(String filePath){
+        Path relativePath = Paths.get(filePath);
+        Path absolutePath = relativePath.toAbsolutePath();
         try {
-            certificatePem = loadContentFromFilePath(issuerConfig.getSigningX509CertPemFilePath());
-            privateRsaKeyPem = loadContentFromFilePath(issuerConfig.getSigningPrivateKeyPemFilePath());
+            return loadContentFromFilePath("file://" + absolutePath);
         } catch (IOException e) {
-            throw new RuntimeException("Can not load signing keys", e);
+            throw new RuntimeException("Can not load signing cert configPath: '"+ filePath + "' absPath:'"+absolutePath+"'", e);
         }
+    }
+
+    public static KeyWrapper loadSigningKey(ClientConfig clientConfig, IssuerConfig issuerConfig) {
+        String privateRsaKeyPem = loadFromFile(issuerConfig.getSigningPrivateKeyPemFilePath());
+        String certificatePem = loadFromFile(issuerConfig.getSigningX509CertPemFilePath());
 
         PrivateKey privateKey = privateKeyFromPem(privateRsaKeyPem);
         PublicKey publicKey = KeyUtils.extractPublicKey(privateKey);
@@ -68,7 +74,7 @@ public class KeyProvider {
         try {
             certFactory = CertificateFactory.getInstance("X.509");
         } catch (CertificateException e) {
-            throw new RuntimeException("Can not ", e);
+            throw new RuntimeException("Can not use X.509", e);
         }
 
         try(var stream = new ByteArrayInputStream(certDecoded)) {

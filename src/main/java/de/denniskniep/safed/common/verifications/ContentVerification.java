@@ -12,6 +12,13 @@ import java.util.List;
 public class ContentVerification implements ScanResultVerificationStrategy {
 
     @Override
+    public List<String> extractInfos(AuthResult scanAuthResult) {
+        return List.of(
+            "[INFO] VisibleText:\n" + extractVisibleText(scanAuthResult)
+        );
+    }
+
+    @Override
     public ScanResult evaluateScanResult(AuthResult firstPositiveAuthResult, AuthResult secondPositiveAuthResult, AuthResult scanAuthResult) {
 
             Integer normalDistance = new LevenshteinDistance(1000).apply(extractVisibleText(firstPositiveAuthResult), extractVisibleText(secondPositiveAuthResult));
@@ -25,8 +32,7 @@ public class ContentVerification implements ScanResultVerificationStrategy {
                status = ScanResultStatus.VULNERABLE;
             }
             var evidences = List.of(
-                    "[INFO] Content:\n" + extractVisibleText(scanAuthResult),
-                    "[" + status + "] Normal distance between successful authentications: "+ normalDistance + " and distance of scan: " + scanDistance + " -> deviation of "+deviation+" (<="+ threshold+" -> vulnerable)"
+                "[" + status + "] Normal distance between successful authentications: "+ normalDistance + " and distance of scan: " + scanDistance + " -> deviation of "+deviation+" (<="+ threshold+" -> vulnerable)"
             );
             return new ScanResult(scanAuthResult, status, evidences);
     }

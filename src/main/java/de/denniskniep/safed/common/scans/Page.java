@@ -6,7 +6,12 @@ import org.openqa.selenium.bidi.network.ResponseData;
 
 import java.util.Set;
 
-public record Page(String url, String title, String source, String visibleText, Set<Cookie> cookies,
-                   RequestDataWithBody httpRequest, ResponseData httpResponse) {
-
+public record Page(
+        String url,
+        String title,
+        String source,
+        String visibleText,
+        Set<Cookie> cookies,
+        RequestDataWithBody httpRequest,
+        ResponseData httpResponse) {
 }

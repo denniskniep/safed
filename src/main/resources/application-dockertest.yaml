@@ -1,0 +1,11 @@
+saml:
+  clients:
+    example-saml-001:
+      client-id: example-saml-001
+      sign-in-url: "http://examplesaml001:8081/"
+      redirect-url: "http://examplesaml001:8081/login/saml2/sso/example-saml-001"
+  issuer:
+    id: http://keycloak:8080/realms/demo
+    endpointUrl: http://keycloak:8080/realms/demo/protocol/saml
+    signing-private-key-pem-file-path: "./dev/keycloak/signing_key.pem"
+    signing-x509-cert-pem-file-path: "./dev/keycloak/signing_cert.pem"

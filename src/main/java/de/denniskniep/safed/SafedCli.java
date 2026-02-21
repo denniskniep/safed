@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBooleanProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -21,8 +22,8 @@ import java.net.MalformedURLException;
 import java.util.Arrays;
 import java.util.Optional;
 
+@ConditionalOnBooleanProperty(value = "safed.run-cli", matchIfMissing = true)
 @Component
-@Profile("!test")
 public class SafedCli implements CommandLineRunner {
     private final SamlConfig samlConfig;
     private final SamlAssessment samlAssessment;

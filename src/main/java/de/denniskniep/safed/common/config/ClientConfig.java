@@ -11,9 +11,9 @@ public abstract class ClientConfig {
     private String clientId;
     private URL redirectUrl;
     private URL signInUrl;
-    private String scanResultVerificationStrategy = AnyMatchVerification.class.getSimpleName();;
     private List<ClaimConfig> claims = new ArrayList<>();
     private List<String> scanners;
+    private List<String> verificationStrategies;
     private SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.RSA_SHA256;
 
     public String getClientId() {
@@ -40,12 +40,12 @@ public abstract class ClientConfig {
         this.signInUrl = signInUrl;
     }
 
-    public String getScanResultVerificationStrategy() {
-        return scanResultVerificationStrategy;
+    public List<String> getVerificationStrategies() {
+        return verificationStrategies;
     }
 
-    public void setScanResultVerificationStrategy(String scanResultVerificationStrategy) {
-        this.scanResultVerificationStrategy = scanResultVerificationStrategy;
+    public void setVerificationStrategies(List<String> verificationStrategies) {
+        this.verificationStrategies = verificationStrategies;
     }
 
     public List<ClaimConfig> getClaims() {

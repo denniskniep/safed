@@ -12,6 +12,14 @@ import java.util.List;
 
 @Service
 public class DiffVerification implements ScanResultVerificationStrategy  {
+
+    @Override
+    public List<String> extractInfos(AuthResult scanAuthResult) {
+        return List.of(
+                "[INFO] VisibleText:\n" + extractVisibleText(scanAuthResult)
+        );
+    }
+
     @Override
     public ScanResult evaluateScanResult(AuthResult firstPositiveAuthResult, AuthResult secondPositiveAuthResult, AuthResult scanAuthResult) {
 
@@ -50,7 +58,6 @@ public class DiffVerification implements ScanResultVerificationStrategy  {
             );
 
             return new ScanResult(scanAuthResult, status, evidences);
-
     }
 
 
