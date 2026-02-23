@@ -1,6 +1,6 @@
 package de.denniskniep.safed.saml.scans.scanner;
 
-import de.denniskniep.safed.common.config.IssuerConfig;
+import de.denniskniep.safed.saml.config.SamlClientConfig;
 import de.denniskniep.safed.saml.scans.SamlBaseScanner;
 import org.springframework.stereotype.Service;
 
@@ -12,9 +12,9 @@ import java.net.URL;
 public class OtherIssuer extends SamlBaseScanner {
 
     @Override
-    public IssuerConfig getIssuerConfig(IssuerConfig issuerConfig) {
-        issuerConfig.setId(getIssuerUrl());
-        return issuerConfig;
+    public SamlClientConfig getSamlClientConfig(SamlClientConfig samlClientConfig) {
+        samlClientConfig.setIssuerId(getIssuerUrl());
+        return samlClientConfig;
     }
 
     private URL getIssuerUrl(){

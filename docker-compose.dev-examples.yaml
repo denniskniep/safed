@@ -47,7 +47,6 @@ services:
       - "8083:8083"
     networks: [ "safed-net" ]
 
-
   exampleoidc002implicitflow:
     build:
       context: ./dev/example-oidc-002
@@ -62,4 +61,20 @@ services:
     command: ["/tmp/wait-for-keycloak.sh && java -Duser.timezone=UTC -jar /app/example.jar --spring.profiles.active=implicitflow"]
     ports:
       - "8084:8084"
+    networks: [ "safed-net" ]
+
+  examplemtls:
+    build:
+      context: ./dev/example-mtls-003
+    restart: always
+    depends_on:
+      - keycloak
+    environment:
+      KEYCLOAK_URL: "http://keycloak:8080"
+    volumes:
+      - "./dev/keycloak/wait-for-keycloak.sh:/tmp/wait-for-keycloak.sh"
+    entrypoint: "sh -c"
+    command: ["/tmp/wait-for-keycloak.sh && java -Duser.timezone=UTC -jar /app/example.jar"]
+    ports:
+      - "8085:8085"
     networks: [ "safed-net" ]

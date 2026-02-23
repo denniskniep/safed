@@ -1,7 +1,6 @@
 package de.denniskniep.safed.common.utils;
 
 import de.denniskniep.safed.common.config.ClientConfig;
-import de.denniskniep.safed.common.config.IssuerConfig;
 import org.keycloak.common.util.KeyUtils;
 import org.keycloak.crypto.KeyStatus;
 import org.keycloak.crypto.KeyType;
@@ -43,9 +42,9 @@ public class KeyProvider {
         }
     }
 
-    public static KeyWrapper loadSigningKey(ClientConfig clientConfig, IssuerConfig issuerConfig) {
-        String privateRsaKeyPem = loadFromFile(issuerConfig.getSigningPrivateKeyPemFilePath());
-        String certificatePem = loadFromFile(issuerConfig.getSigningX509CertPemFilePath());
+    public static KeyWrapper loadSigningKey(ClientConfig clientConfig) {
+        String privateRsaKeyPem = loadFromFile(clientConfig.getSigningPrivateKeyPemFilePath());
+        String certificatePem = loadFromFile(clientConfig.getSigningX509CertPemFilePath());
 
         PrivateKey privateKey = privateKeyFromPem(privateRsaKeyPem);
         PublicKey publicKey = KeyUtils.extractPublicKey(privateKey);

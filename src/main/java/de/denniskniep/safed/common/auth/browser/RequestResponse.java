@@ -1,5 +1,6 @@
 package de.denniskniep.safed.common.auth.browser;
 
+import org.htmlunit.util.StringUtils;
 import org.openqa.selenium.bidi.network.RequestData;
 import org.openqa.selenium.bidi.network.ResponseData;
 import org.openqa.selenium.bidi.network.ResponseDetails;
@@ -7,19 +8,9 @@ import org.openqa.selenium.bidi.network.ResponseDetails;
 import java.time.Duration;
 import java.time.Instant;
 
-public class RequestResponse {
-    private final Instant instant;
-    private final String context;
-    private final ResponseDetails responseDetails;
-
+public record RequestResponse(Instant created, String context, ResponseDetails responseDetails) {
     public RequestResponse(String context, ResponseDetails responseDetails) {
-        this.instant = Instant.now();
-        this.context = context;
-        this.responseDetails = responseDetails;
-    }
-
-    public String getContext() {
-        return context;
+        this(Instant.now(), context, responseDetails);
     }
 
     public RequestData getRequest() {
@@ -30,12 +21,8 @@ public class RequestResponse {
         return responseDetails.getResponseData();
     }
 
-    public Instant getInstant() {
-        return instant;
-    }
-
     public Duration completedSince() {
-        return Duration.between(instant, Instant.now());
+        return Duration.between(created, Instant.now());
     }
 
     @Override
@@ -43,7 +30,7 @@ public class RequestResponse {
         return asShortLog();
     }
 
-    public String asShortLog(){
-        return "["+context+"] " + getRequest().getMethod() + " " + getRequest().getUrl() + " -> " + getResponse().getStatus();
+    public String asShortLog() {
+        return (StringUtils.isBlank(context) ? "" : "[" + context + "]") + getRequest().getMethod() + " " + getRequest().getUrl() + " -> " + getResponse().getStatus();
     }
 }

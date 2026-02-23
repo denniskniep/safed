@@ -1,0 +1,80 @@
+package de.denniskniep.examplemtls.mtls.admin;
+
+import de.denniskniep.examplemtls.security.x509.MtlsError;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.regex.Pattern;
+
+@Service
+public class ValidationService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ValidationService.class);
+
+    private List<String> ignoredOidcErrorDescriptions = new ArrayList<>();
+    private List<String> lastErrorDescriptions = new ArrayList<>();
+
+    public void setIgnoredOidcErrorDescriptions(List<String> ignoredOidcErrorDescriptions) {
+        LOG.info("setIgnoredOidcErrorDescriptions: '{}'", String.join("','", ignoredOidcErrorDescriptions));
+        this.ignoredOidcErrorDescriptions = ignoredOidcErrorDescriptions;
+        this.lastErrorDescriptions = new ArrayList<>();
+    }
+
+    public List<String> getIgnoredOidcErrorDescriptions() {
+        return this.ignoredOidcErrorDescriptions;
+    }
+
+    public List<MtlsError> applyIgnoredErrorDescriptions(Collection<MtlsError> errors) {
+        var allIgnoredDescriptionsArePresent = ignoredOidcErrorDescriptions
+                .stream()
+                .allMatch(pattern -> patternMatchesAnyError(errors, pattern));
+
+        if (!allIgnoredDescriptionsArePresent) {
+            return errors.stream().toList();
+        }
+
+        var filteredErrors = errors
+                .stream()
+                .filter(e -> !errorMatchesAnyPattern(e))
+                .toList();
+
+        this.lastErrorDescriptions = filteredErrors.stream().map(MtlsError::message).toList();
+        return filteredErrors;
+    }
+
+    private boolean patternMatchesAnyError(Collection<MtlsError> errors, String ignoredPattern) {
+        if (errors == null || errors.isEmpty() || ignoredPattern == null) {
+            return false;
+        }
+
+        for (MtlsError error : errors) {
+            if (Pattern.matches(ignoredPattern, error.message())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean errorMatchesAnyPattern(MtlsError error) {
+        if (error == null || ignoredOidcErrorDescriptions == null || ignoredOidcErrorDescriptions.isEmpty()) {
+            return false;
+        }
+
+        for (String ignoredPattern : ignoredOidcErrorDescriptions) {
+            if (Pattern.matches(ignoredPattern, error.message())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public List<String> getLastSeenErrorDescriptions() {
+        return this.lastErrorDescriptions;
+    }
+}

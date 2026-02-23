@@ -1,19 +1,63 @@
 package de.denniskniep.safed.common.config;
 
-import de.denniskniep.safed.common.verifications.AnyMatchVerification;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.keycloak.saml.SignatureAlgorithm;
 
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class ClientConfig {
+public abstract class ClientConfig extends ScannerConfig {
     private String clientId;
     private URL redirectUrl;
     private URL signInUrl;
     private List<ClaimConfig> claims = new ArrayList<>();
-    private List<String> scanners;
-    private List<String> verificationStrategies;
+    private URL issuerId;
+    private URL issuerEndpointUrl;
+    private String signingPrivateKeyPemFilePath;
+    private String signingX509CertPemFilePath;
+
+    public URL getIssuerId() {
+        return issuerId;
+    }
+
+    public void setIssuerId(URL issuerId) {
+        this.issuerId = issuerId;
+    }
+    /*
+    @JsonIgnore
+    public URL getBaseUrl() {
+        try {
+            return issuerId.toURI().resolve("/").toURL();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }*/
+
+    public URL getIssuerEndpointUrl() {
+        return issuerEndpointUrl;
+    }
+
+    public void setIssuerEndpointUrl(URL issuerEndpointUrl) {
+        this.issuerEndpointUrl = issuerEndpointUrl;
+    }
+
+    public String getSigningPrivateKeyPemFilePath() {
+        return signingPrivateKeyPemFilePath;
+    }
+
+    public void setSigningPrivateKeyPemFilePath(String signingPrivateKeyPemFilePath) {
+        this.signingPrivateKeyPemFilePath = signingPrivateKeyPemFilePath;
+    }
+
+    public String getSigningX509CertPemFilePath() {
+        return signingX509CertPemFilePath;
+    }
+
+    public void setSigningX509CertPemFilePath(String signingX509CertPemFilePath) {
+        this.signingX509CertPemFilePath = signingX509CertPemFilePath;
+    }
+
     private SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.RSA_SHA256;
 
     public String getClientId() {
@@ -40,14 +84,6 @@ public abstract class ClientConfig {
         this.signInUrl = signInUrl;
     }
 
-    public List<String> getVerificationStrategies() {
-        return verificationStrategies;
-    }
-
-    public void setVerificationStrategies(List<String> verificationStrategies) {
-        this.verificationStrategies = verificationStrategies;
-    }
-
     public List<ClaimConfig> getClaims() {
         return claims;
     }
@@ -56,15 +92,6 @@ public abstract class ClientConfig {
         this.claims = claims;
     }
 
-    public List<String> getScanners() {
-        return scanners;
-    }
-
-    public void setScanners(List<String> scanners) {
-        this.scanners = scanners;
-    }
-
-    public abstract ClientConfig deepCopy();
 
     public SignatureAlgorithm getSignatureAlgorithm() {
         return signatureAlgorithm;

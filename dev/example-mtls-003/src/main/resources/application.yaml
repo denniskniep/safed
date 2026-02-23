@@ -1,0 +1,31 @@
+server:
+  port: 8085
+  ssl:
+    enabled: true
+    # Server's keystore (contains server's private key + certificate)
+    key-store: classpath:certs/server.p12
+    key-store-password: supersecure
+    key-store-type: PKCS12
+    key-alias: server
+
+    client-auth: want
+
+    # Protocol settings
+    protocol: TLS
+    enabled-protocols: TLSv1.2, TLSv1.3
+
+logging:
+  level:
+    org.springframework.security: INFO
+    org.springframework.web.client.RestTemplate: INFO
+
+spring:
+  application:
+    name: ExampleMtlsApp
+    title: Example mTLS App
+
+mtls:
+  # Path to CA certificate for validating client certificates
+  ca-certificate-path: classpath:certs/client_ca.crt
+  # Expected subject/CN in client certificates (optional - leave empty to accept any)
+  expected-subject-cn: "MyClient"

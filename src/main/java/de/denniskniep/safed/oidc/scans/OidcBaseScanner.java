@@ -1,7 +1,6 @@
 package de.denniskniep.safed.oidc.scans;
 
-import de.denniskniep.safed.common.config.ClientConfig;
-import de.denniskniep.safed.common.config.IssuerConfig;
+import de.denniskniep.safed.common.config.ScannerConfig;
 import de.denniskniep.safed.common.scans.ScanResult;
 import de.denniskniep.safed.oidc.auth.server.CustomJwtBuilder;
 import de.denniskniep.safed.oidc.auth.browser.OidcAuthenticationRequest;
@@ -26,13 +25,8 @@ public class OidcBaseScanner implements OidcScanner {
     }
 
     @Override
-    public ClientConfig getClientConfig(ClientConfig clientConfig) {
-        return getOidcClientConfig((OidcClientConfig)clientConfig);
-    }
-
-    @Override
-    public IssuerConfig getIssuerConfig(IssuerConfig issuerConfig) {
-        return issuerConfig;
+    public ScannerConfig getScannerConfig(ScannerConfig scannerConfig) {
+        return getOidcClientConfig((OidcClientConfig)scannerConfig);
     }
 
     @Override

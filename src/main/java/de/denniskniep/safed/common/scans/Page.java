@@ -1,5 +1,6 @@
 package de.denniskniep.safed.common.scans;
 
+import de.denniskniep.safed.common.auth.browser.AuthenticationLog;
 import de.denniskniep.safed.common.auth.browser.RequestDataWithBody;
 import org.openqa.selenium.Cookie;
 import org.openqa.selenium.bidi.network.ResponseData;
@@ -12,6 +13,7 @@ public record Page(
         String source,
         String visibleText,
         Set<Cookie> cookies,
+        AuthenticationLog authenticationLog,
         RequestDataWithBody httpRequest,
         ResponseData httpResponse) {
 }

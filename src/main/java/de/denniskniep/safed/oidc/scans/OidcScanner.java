@@ -17,8 +17,6 @@ import java.util.Optional;
 
 public interface OidcScanner extends Scanner {
 
-
-
     // 2. Incoming Request
     OidcAuthenticationRequest getOidcRequestData(OidcAuthenticationRequest oidcRequestData);
 

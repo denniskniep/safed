@@ -14,6 +14,17 @@ public class AuthenticationLog {
         return traffic;
     }
 
+    public RequestResponse add(ResponseDetails responseDetails){
+       return add("",  responseDetails);
+    }
+
+    public void addAll(String context, List<RequestResponse> requestResponses){
+        for (RequestResponse r : requestResponses) {
+            RequestResponse requestResponse = new RequestResponse(r.created(), context, r.responseDetails());
+            traffic.add(requestResponse);
+        }
+    }
+
     public RequestResponse add(String context, ResponseDetails responseDetails){
         RequestResponse requestResponse = new RequestResponse(context, responseDetails);
         traffic.add(requestResponse);

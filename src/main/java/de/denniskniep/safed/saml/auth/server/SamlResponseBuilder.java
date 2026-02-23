@@ -1,6 +1,5 @@
 package de.denniskniep.safed.saml.auth.server;
 
-import de.denniskniep.safed.common.config.IssuerConfig;
 import de.denniskniep.safed.common.utils.KeyProvider;
 import de.denniskniep.safed.saml.config.SamlClientConfig;
 import de.denniskniep.safed.saml.config.SamlAuthData;
@@ -38,7 +37,7 @@ public class SamlResponseBuilder {
         return attribute;
     }
 
-    public SamlResponseResult create(IssuerConfig issuerConfig, SamlClientConfig clientConfig, SamlRequestData request, SamlAuthData samlAuthData) {
+    public SamlResponseResult create(SamlClientConfig clientConfig, SamlRequestData request, SamlAuthData samlAuthData) {
 
         // References:
         // SamlProtocol.authenticated
@@ -48,7 +47,7 @@ public class SamlResponseBuilder {
         SAML2LoginResponseBuilder builder = new SAML2LoginResponseBuilder()
                 .requestID(request.getId()) // InResponseTo
                 .destination(clientConfig.getRedirectUrl().toExternalForm())
-                .issuer(issuerConfig.getId().toExternalForm())
+                .issuer(clientConfig.getIssuerId().toExternalForm())
                 .assertionExpiration(clientConfig.getAssertionLifespanInMinutes())
                 .subjectExpiration(clientConfig.getAssertionLifespanInMinutes())
                 .sessionExpiration(clientConfig.getSessionLifespanInMinutes())
@@ -101,7 +100,7 @@ public class SamlResponseBuilder {
         bindingBuilder.relayState(request.getRelayState());
 
         if (clientConfig.requireSignDocument() || clientConfig.requireSignAssertion()) {
-            KeyWrapper keyPair = KeyProvider.loadSigningKey(clientConfig, issuerConfig);
+            KeyWrapper keyPair = KeyProvider.loadSigningKey(clientConfig);
             String keyName = clientConfig.getKeyNameTransformer().getKeyName(keyPair.getKid(), keyPair.getCertificate());
             bindingBuilder.canonicalizationMethod(clientConfig.getCanonicalizationMethod().toString());
             bindingBuilder.signatureAlgorithm(clientConfig.getSignatureAlgorithm());

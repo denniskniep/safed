@@ -1,6 +1,5 @@
 package de.denniskniep.safed;
 
-import de.denniskniep.safed.common.config.IssuerConfig;
 import de.denniskniep.safed.oidc.OidcAssessment;
 import de.denniskniep.safed.oidc.config.OidcClientConfig;
 import de.denniskniep.safed.oidc.config.OidcConfig;
@@ -15,7 +14,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBooleanProperty;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.net.MalformedURLException;
@@ -29,11 +27,9 @@ public class SafedCli implements CommandLineRunner {
     private final SamlAssessment samlAssessment;
     private final OidcConfig oidcConfig;
     private final OidcAssessment oidcAssessment;
+    private final ApplicationContext applicationContext;
 
-    private ApplicationContext applicationContext;
-
-    private static final Logger LOG = LoggerFactory
-            .getLogger(SafedCli.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SafedCli.class);
 
     @Autowired
     public SafedCli(ApplicationContext applicationContext, SamlConfig samlConfig, SamlAssessment samlAssessment, OidcConfig oidcConfig, OidcAssessment oidcAssessment) {
@@ -54,15 +50,13 @@ public class SafedCli implements CommandLineRunner {
 
         SamlClientConfig samlClientConfig = samlConfig.getClient(clientId);
         if(samlClientConfig != null) {
-            IssuerConfig issuerConfig = samlConfig.getIssuer();
-            Report report = samlAssessment.run(issuerConfig, samlClientConfig);
+            Report report = samlAssessment.run(samlClientConfig);
             LOG.info(report.asJson());
         }
 
         OidcClientConfig oidcClientConfig = oidcConfig.getClient(clientId);
         if(oidcClientConfig != null) {
-            IssuerConfig issuerConfig = oidcConfig.getIssuer();
-            Report report = oidcAssessment.run(issuerConfig, oidcClientConfig);
+            Report report = oidcAssessment.run(oidcClientConfig);
             LOG.info(report.asJson());
         }
 

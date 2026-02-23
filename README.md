@@ -1,23 +1,47 @@
 ## Summary
-SAFED is the abbreviation for "**S**ecurity **A**ssessment for **Fed**erations"
-
-This application checks how secure applications handle federated logins via OIDC, OAuth or SAML. 
+SAFED (**S**ecurity **A**ssessment for **Fed**erations) is a security testing tool that checks how securely applications handle federated logins via OIDC, OAuth, and SAML. 
+It works by intercepting and manipulating federation requests to simulate attacks, then comparing results against a baseline.
 
 ## How it works
+### High level Flow
+1. **Baseline Gathering**: Execute 2 successful federation requests to establish normal behavior
+2. **Checking Baseline**: Validates that baseline is successful and control test fails
+3. **Scanner Execution**: Run all attack scanners that manipulate federation requests
+4. **Comparison & Verification**: Compare scanner results against baseline using verification strategies
+5. **Report Generation**: Classify results as "VULNERABLE" (attack succeeded) or "OK" (attack blocked)
+The assessments are started by CommandLineRunner `src/main/java/de/denniskniep/safed/SafedCli.java`. 
+`src/main/java/de/denniskniep/safed/common/assessment/Assessment.java` orchestrated the assessment.
 
-High level Flow:
-1. Process three normal federation requests for gathering a baseline of successful login responses.
-2. Run the scanners, which manipulate the federation requests like an attacker would do.
-3. Compare the result of the scanner against the baseline. Expectation is that the attempt of the scanner results in an error/denied response, which differs from the successful response. 
+### Federation Automation
+Selenium-based Chrome automation with BiDi network interception (`src/main/java/de/denniskniep/safed/common/auth/browser/BrowserAuthenticationFlow.java`)
+- Uses headless Chrome with isolated profile per run
+- BiDi protocol captures network requests/responses
+- Phase 1 (Initialize): Captures federation request from IdP
+- Phase 2 (Answer): Submits manipulated federation response
+- Handle Backchannel requests if required (see `OidcController`)
 
-## CodeMap
-Entrypoint: `src/main/java/de/denniskniep/safed/SafedCli.java`
+### Scanner
+The scanners allow pluggable manipulation of federation configs, requests, responses, etc.
 
-SAML Scanners: `src/main/java/de/denniskniep/safed/saml/scans/scanner`
+Scanners can be found here:
+- SAML Scanners: `src/main/java/de/denniskniep/safed/saml/scans/scanner/`
+- OIDC Scanners: `src/main/java/de/denniskniep/safed/oidc/scans/scanner/`
 
-OIDC Scanners: `src/main/java/de/denniskniep/safed/oidc/scans/scanner`
+
+### Verification Strategies
+Multiple verification strategies determine if an attack succeeded, by comparing baseline results with scan results (`src/main/java/de/denniskniep/safed/common/verifications`)
+- `DiffVerification` - Compares visible text differences between baseline and scan
+- `UrlAndStatusCodeVerification` - Compares final URL and HTTP status code
+
 
 ## Development
+### Adding New Scanners
+* Create scanner class extending SamlScanner or OidcScanner
+* Annotate with @Service
+* Override relevant hook methods to manipulate requests/responses
+
+The Scanner is auto-discovered and included in assessments.
+
 ### Environment
 Add to `/etc/hosts`
 ```

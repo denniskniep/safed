@@ -1,6 +1,5 @@
 package de.denniskniep.safed;
 
-import de.denniskniep.safed.common.config.IssuerConfig;
 import de.denniskniep.safed.common.report.ScanResultReport;
 import de.denniskniep.safed.common.scans.ScanResultStatus;
 import de.denniskniep.safed.oidc.OidcAssessment;
@@ -62,8 +61,7 @@ class AssessmentTests extends ApplicationBaseTest {
 
 		OidcClientConfig oidcClientConfig = (OidcClientConfig)oidcConfig.getClient(clientId).deepCopy();
 		oidcClientConfig.setScanners(Arrays.asList(triggeredScanners));
-		IssuerConfig issuerConfig = oidcConfig.getIssuer().deepCopy();
-		var result = oidcAssessment.run(issuerConfig, oidcClientConfig);
+		var result = oidcAssessment.run(oidcClientConfig);
 
 		LOG.info(result.asJson());
 
@@ -99,8 +97,7 @@ class AssessmentTests extends ApplicationBaseTest {
 	@MethodSource("oidcClientIds")
 	void OidcTest_NoVulnerabilities(String clientId) {
 		OidcClientConfig oidcClientConfig = (OidcClientConfig)oidcConfig.getClient(clientId).deepCopy();
-		IssuerConfig issuerConfig = oidcConfig.getIssuer().deepCopy();
-		var result = oidcAssessment.run(issuerConfig, oidcClientConfig);
+		var result = oidcAssessment.run(oidcClientConfig);
 		LOG.info(result.asJson());
 
 		Assertions.assertEquals(ScanResultStatus.OK, result.getStatus());
@@ -197,8 +194,7 @@ class AssessmentTests extends ApplicationBaseTest {
 
 		SamlClientConfig samlClientConfig = samlConfig.getClient(EXAMPLE_SAML_CLIENT.clientId()).deepCopy();
 		samlClientConfig.setScanners(Arrays.asList(triggeredScanners));
-		IssuerConfig issuerConfig = samlConfig.getIssuer().deepCopy();
-		var result = samlAssessment.run(issuerConfig, samlClientConfig);
+		var result = samlAssessment.run(samlClientConfig);
 
 		LOG.info(result.asJson());
 
@@ -222,8 +218,7 @@ class AssessmentTests extends ApplicationBaseTest {
 	@Test
 	void SamlTest_NoVulnerabilities() {
 		SamlClientConfig samlClientConfig = samlConfig.getClient(EXAMPLE_SAML_CLIENT.clientId()).deepCopy();
-		IssuerConfig samlIssuerConfig = samlConfig.getIssuer().deepCopy();
-		var result = samlAssessment.run(samlIssuerConfig, samlClientConfig);
+		var result = samlAssessment.run(samlClientConfig);
 		LOG.info(result.asJson());
 
 		Assertions.assertEquals(ScanResultStatus.OK, result.getStatus());

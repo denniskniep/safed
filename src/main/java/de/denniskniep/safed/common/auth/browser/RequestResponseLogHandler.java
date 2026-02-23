@@ -6,18 +6,16 @@ import java.util.function.Consumer;
 
 public class RequestResponseLogHandler implements Consumer<ResponseDetails> {
     private final AuthenticationLog authenticationLog;
-    private String context;
     private boolean log = true;
 
-    public RequestResponseLogHandler(AuthenticationLog authenticationLog, String context) {
+    public RequestResponseLogHandler(AuthenticationLog authenticationLog) {
         this.authenticationLog = authenticationLog;
-        this.context = context;
     }
 
     @Override
     public void accept(ResponseDetails responseDetails) {
         if(log){
-            authenticationLog.add(this.context, responseDetails);
+            authenticationLog.add(responseDetails);
         }
     }
 

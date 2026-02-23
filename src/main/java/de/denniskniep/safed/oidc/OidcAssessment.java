@@ -1,7 +1,6 @@
 package de.denniskniep.safed.oidc;
 
 import de.denniskniep.safed.common.assessment.Assessment;
-import de.denniskniep.safed.common.config.IssuerConfig;
 import de.denniskniep.safed.common.scans.AuthResult;
 import de.denniskniep.safed.oidc.auth.browser.OidcBrowserAuthenticationFlow;
 import de.denniskniep.safed.oidc.auth.browser.OidcAuthenticationRequest;
@@ -25,18 +24,18 @@ public class OidcAssessment extends Assessment<OidcScanner, OidcClientConfig> {
     }
 
     @Override
-    protected AuthResult scan(IssuerConfig issuerConfig, OidcClientConfig clientConfig, OidcScanner scanner) {
-        try (OidcBrowserAuthenticationFlow oidcAuthentication = new OidcBrowserAuthenticationFlow(issuerConfig.getEndpointUrl())){
+    protected AuthResult scan(OidcClientConfig clientConfig, OidcScanner scanner) {
+        try (OidcBrowserAuthenticationFlow oidcAuthentication = new OidcBrowserAuthenticationFlow(clientConfig.getIssuerEndpointUrl())){
             OidcAuthenticationRequest oidcRequestData = oidcAuthentication.initialize(clientConfig.getSignInUrl());
             oidcRequestData = scanner.getOidcRequestData(oidcRequestData.deepCopy());
 
-            var oidcFlow = new OidcFlow(issuerConfig, clientConfig, oidcRequestData, scanner.getTokenInterceptors(), scanner.getBackchannelInterceptor());
+            var oidcFlow = new OidcFlow(clientConfig, oidcRequestData, scanner.getTokenInterceptors(), scanner.getBackchannelInterceptor());
 
             oidcService.registerBackChannelResponse(oidcFlow);
             Page responsePage = oidcAuthentication.answerWith(oidcFlow.buildWebRequest());
             oidcService.unregisterBackChannelResponse(oidcFlow);
 
-            return new OidcAuthResult(issuerConfig, clientConfig, oidcRequestData, oidcAuthentication.getAuthenticationLog(), responsePage);
+            return new OidcAuthResult(clientConfig, oidcRequestData, oidcAuthentication.getAuthenticationLog(), responsePage);
         }
     }
 }

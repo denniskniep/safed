@@ -1,7 +1,6 @@
 package de.denniskniep.safed.common.assessment;
 
-import de.denniskniep.safed.common.config.ClientConfig;
-import de.denniskniep.safed.common.config.IssuerConfig;
+import de.denniskniep.safed.common.config.ScannerConfig;
 import de.denniskniep.safed.common.report.Report;
 import de.denniskniep.safed.common.report.ReportBuilder;
 import de.denniskniep.safed.common.scans.*;
@@ -14,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 
-public abstract class Assessment<T extends Scanner, C extends ClientConfig> {
+public abstract class Assessment<T extends Scanner, C extends ScannerConfig> {
     private static final Logger LOG = LoggerFactory.getLogger(Assessment.class);
 
     private final T successScanner;
@@ -43,17 +42,17 @@ public abstract class Assessment<T extends Scanner, C extends ClientConfig> {
         this.scanResultVerificationStrategies = scanResultVerificationStrategies;
     }
 
-    public Report run(IssuerConfig issuerConfig, C clientConfig) {
+    public Report run(C scannerConfig) {
         List<String> errors = new ArrayList<>();
         LOG.info("Start initial tests");
         // First scan with successful login
-        firstScanSuccess = runScan(issuerConfig, clientConfig, successScanner);
+        firstScanSuccess = runScan(scannerConfig, successScanner);
         // Second scan with successful login, but maybe changes in the page content from login to login
-        secondScanSuccess = runScan(issuerConfig, clientConfig, successScanner);
+        secondScanSuccess = runScan(scannerConfig, successScanner);
         // Third scan with successful login - means VULNERABLE
-        thirdScanSuccess = runScan(issuerConfig, clientConfig, successScanner);
+        thirdScanSuccess = runScan(scannerConfig, successScanner);
         // Fourth scan with failed login - means OK
-        fourthScanFailure = runScan(issuerConfig, clientConfig, failureScanner);
+        fourthScanFailure = runScan(scannerConfig, failureScanner);
 
 
         // For a manipulated OIDCResponse we expect a significant drift in the response
@@ -75,13 +74,13 @@ public abstract class Assessment<T extends Scanner, C extends ClientConfig> {
         LOG.info("End initial tests");
         var scanResults = new HashMap<String, ScanResult>();
         for (var scanner : scanners) {
-            if (clientConfig.getScanners() != null && !clientConfig.getScanners().contains(scanner.getClass().getSimpleName())) {
+            if (scannerConfig.getScanners() != null && !scannerConfig.getScanners().contains(scanner.getClass().getSimpleName())) {
                 LOG.info("Skip scanning with {}", scanner.getClass().getSimpleName());
                 continue;
             }
 
             LOG.info("Start scanning with {}", scanner.getClass().getSimpleName());
-            var scanResult = runScan(issuerConfig, clientConfig, scanner);
+            var scanResult = runScan(scannerConfig, scanner);
             scanResults.put(scanner.getClass().getSimpleName(), scanResult);
             LOG.trace("Scanner {} finished with status: {}.\nFollowing evidences collected:\n{}", scanner.getClass().getSimpleName(), scanResult.getStatus(), String.join("\n", scanResult.getEvidences()));
         }
@@ -90,13 +89,12 @@ public abstract class Assessment<T extends Scanner, C extends ClientConfig> {
         return reportBuilder.Build();
     }
 
-    private ScanResult runScan(IssuerConfig inputIssuerConfig, C inputClientConfig, T scanner) {
+    private ScanResult runScan(C inputScannerConfig, T scanner) {
         scanner.init(firstScanSuccess, secondScanSuccess, thirdScanSuccess, fourthScanFailure);
 
-        IssuerConfig issuerConfig = scanner.getIssuerConfig(inputIssuerConfig.deepCopy());
-        C clientConfig = (C)scanner.getClientConfig(inputClientConfig.deepCopy());
+        C scannerConfig = (C)scanner.getScannerConfig((C)inputScannerConfig.deepCopy());
 
-        AuthResult authResult = scan(issuerConfig, clientConfig, scanner);
+        AuthResult authResult = scan(scannerConfig, scanner);
 
         // All VerificationStrategies are used to gather infos
         var allVerificationStrategies = createVerificationStrategy(scanResultVerificationStrategies.keySet());
@@ -106,14 +104,14 @@ public abstract class Assessment<T extends Scanner, C extends ClientConfig> {
             return new ScanResult(authResult, ScanResultStatus.OK, infos);
         }
 
-        var selectedVerificationStrategies = createVerificationStrategy(clientConfig.getVerificationStrategies());
+        var selectedVerificationStrategies = createVerificationStrategy(scannerConfig.getVerificationStrategies());
         var scanResult = selectedVerificationStrategies.evaluateScanResult(firstScanSuccess.getAuthResult(), secondScanSuccess.getAuthResult(), authResult);
         var infosAndEvidences = new ArrayList<>(infos);
         infosAndEvidences.addAll(scanResult.getEvidences());
         return new ScanResult(scanResult.getAuthResult(), scanResult.getStatus(), infosAndEvidences);
     }
 
-    protected abstract AuthResult scan(IssuerConfig oidcIssuerConfig, C clientConfig, T scanner);
+    protected abstract AuthResult scan(C scannerConfig, T scanner);
 
     private ScanResultVerificationStrategy createVerificationStrategy(Collection<String> verificationStrategyNames) {
         if (verificationStrategyNames == null || verificationStrategyNames.isEmpty()) {

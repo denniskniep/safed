@@ -1,6 +1,5 @@
 package de.denniskniep.safed.oidc.config;
 
-import de.denniskniep.safed.common.config.IssuerConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -11,16 +10,6 @@ import java.util.Map;
 public class OidcConfig {
 
     private Map<String, OidcClientConfig> clients;
-
-    private IssuerConfig issuer;
-
-    public IssuerConfig getIssuer() {
-        return issuer;
-    }
-
-    public void setIssuer(IssuerConfig issuer) {
-        this.issuer = issuer;
-    }
 
     public Map<String, OidcClientConfig> getClients() {
         return clients;

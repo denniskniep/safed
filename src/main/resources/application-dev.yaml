@@ -1,35 +1,45 @@
 oidc:
   clients:
     example-oidc-002-codeflow:
+      issuer-id: http://keycloak:8080/realms/demo
+      issuer-endpoint-url: http://keycloak:8080/realms/demo/protocol/openid-connect/auth
+      signing-private-key-pem-file-path: "./dev/keycloak/signing_key.pem"
+      signing-x509-cert-pem-file-path: "./dev/keycloak/signing_cert.pem"
       client-id: example-oidc-002-codeflow
       sign-in-url: "http://localhost:8082/"
       redirect-url: "http://localhost:8082/login/oauth2/code/example-oidc-002-codeflow"
     example-oidc-002-hybridflow:
+      issuer-id: http://keycloak:8080/realms/demo
+      issuer-endpoint-url: http://keycloak:8080/realms/demo/protocol/openid-connect/auth
+      signing-private-key-pem-file-path: "./dev/keycloak/signing_key.pem"
+      signing-x509-cert-pem-file-path: "./dev/keycloak/signing_cert.pem"
       client-id: example-oidc-002-hybridflow
       sign-in-url: "http://localhost:8083/"
       redirect-url: "http://localhost:8083/oauth/hybrid"
     example-oidc-002-implicitflow:
+      issuer-id: http://keycloak:8080/realms/demo
+      issuer-endpoint-url: http://keycloak:8080/realms/demo/protocol/openid-connect/auth
+      signing-private-key-pem-file-path: "./dev/keycloak/signing_key.pem"
+      signing-x509-cert-pem-file-path: "./dev/keycloak/signing_cert.pem"
       client-id: example-oidc-002-implicitflow
       sign-in-url: "http://localhost:8084/"
       redirect-url: "http://localhost:8084/oauth/implicit"
     grafana-oidc:
+      issuer-id: http://keycloak:8080/realms/demo
+      issuer-endpoint-url: http://keycloak:8080/realms/demo/protocol/openid-connect/auth
+      signing-private-key-pem-file-path: "./dev/keycloak/signing_key.pem"
+      signing-x509-cert-pem-file-path: "./dev/keycloak/signing_cert.pem"
       client-id: grafana-oidc
       sign-in-url: "http://localhost:3001/login/generic_oauth"
       redirect-url: "http://localhost:3001/login/generic_oauth"
-  issuer:
-    id: http://keycloak:8080/realms/demo
-    endpointUrl: http://keycloak:8080/realms/demo/protocol/openid-connect/auth
-    signing-private-key-pem-file-path: "./dev/keycloak/signing_key.pem"
-    signing-x509-cert-pem-file-path: "./dev/keycloak/signing_cert.pem"
 
 saml:
   clients:
     example-saml-001:
+      issuer-id: http://keycloak:8080/realms/demo
+      issuer-endpoint-url: http://keycloak:8080/realms/demo/protocol/saml
+      signing-private-key-pem-file-path: "./dev/keycloak/signing_key.pem"
+      signing-x509-cert-pem-file-path: "./dev/keycloak/signing_cert.pem"
       client-id: example-saml-001
       sign-in-url: "http://localhost:8081/"
       redirect-url: "http://localhost:8081/login/saml2/sso/example-saml-001"
-  issuer:
-    id: http://keycloak:8080/realms/demo
-    endpointUrl: http://keycloak:8080/realms/demo/protocol/saml
-    signing-private-key-pem-file-path: "./dev/keycloak/signing_key.pem"
-    signing-x509-cert-pem-file-path: "./dev/keycloak/signing_cert.pem"

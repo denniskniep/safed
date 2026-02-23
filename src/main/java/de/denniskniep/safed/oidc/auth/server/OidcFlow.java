@@ -2,7 +2,6 @@ package de.denniskniep.safed.oidc.auth.server;
 
 import de.denniskniep.safed.common.auth.browser.HttpRequest;
 import de.denniskniep.safed.common.config.ClaimConfig;
-import de.denniskniep.safed.common.config.IssuerConfig;
 import de.denniskniep.safed.common.utils.KeyProvider;
 import de.denniskniep.safed.oidc.auth.browser.OidcAuthenticationRequest;
 import de.denniskniep.safed.oidc.auth.server.endpoints.TokenRequest;
@@ -27,7 +26,6 @@ public class OidcFlow implements FrontChannelRequest, BackchannelHandler {
 
     protected static final String PREFIX = "1337b33f";
 
-    protected final IssuerConfig issuerConfig;
     protected final OidcClientConfig clientConfig;
     protected final OidcAuthenticationRequest requestData;
     private final BackchannelInterceptor backchannelInterceptor;
@@ -39,10 +37,9 @@ public class OidcFlow implements FrontChannelRequest, BackchannelHandler {
     protected final String code;
 
 
-    public OidcFlow(IssuerConfig issuerConfig, OidcClientConfig clientConfig, OidcAuthenticationRequest requestData, TokenInterceptors tokenInterceptors, BackchannelInterceptor backchannelInterceptor) {
+    public OidcFlow(OidcClientConfig clientConfig, OidcAuthenticationRequest requestData, TokenInterceptors tokenInterceptors, BackchannelInterceptor backchannelInterceptor) {
         this.backchannelInterceptor = backchannelInterceptor;
-        this.signingKey = KeyProvider.loadSigningKey(clientConfig, issuerConfig);
-        this.issuerConfig = issuerConfig;
+        this.signingKey = KeyProvider.loadSigningKey(clientConfig);
         this.clientConfig = clientConfig;
         this.requestData = requestData;
         this.tokenInterceptors = tokenInterceptors;
@@ -131,7 +128,7 @@ public class OidcFlow implements FrontChannelRequest, BackchannelHandler {
         }
 
         params.put("state", requestData.getState());
-        params.put("iss", issuerConfig.getId().toString());
+        params.put("iss", clientConfig.getIssuerId().toString());
         return params;
     }
 
@@ -181,7 +178,7 @@ public class OidcFlow implements FrontChannelRequest, BackchannelHandler {
                 .claim(PREFIX, PREFIX) // token payload starts always with "eyIxMzM3YjMzZiI6IjEzMzdiMzNmIi"
                 .id(id)
                 .claim("typ", typ)
-                .issuer(issuerConfig.getId().toString())
+                .issuer(clientConfig.getIssuerId().toString())
                 .subject(clientConfig.getSubject())
                 .claim("azp", clientConfig.getClientId())
                 .issuedAt(Date.from(Instant.now()))
