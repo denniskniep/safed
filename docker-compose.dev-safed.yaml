@@ -13,8 +13,10 @@ services:
       - "./dev/keycloak/wait-for-keycloak.sh:/tmp/wait-for-keycloak.sh"
       - "./dev/keycloak/signing_cert.pem:/tmp/signing_cert.pem"
       - "./dev/keycloak/signing_key.pem:/tmp/signing_key.pem"
+      - "./dev/example-mtls-003/src/main/resources/certs/client.key:/tmp/client.key"
+      - "./dev/example-mtls-003/src/main/resources/certs/client.crt:/tmp/client.crt"
     entrypoint: "sh -c"
-    command: ["/tmp/wait-for-keycloak.sh && java -Duser.timezone=UTC -jar /app/app.jar example-saml-001"]
+    command: ["/tmp/wait-for-keycloak.sh && java -Duser.timezone=UTC -jar /app/app.jar example-mtls-003"]
     ports:
       - "8070:8070"
     networks: [ "safed-net" ]

@@ -21,6 +21,7 @@ RUN echo "deb ${CHROMIUM_DEB_SITE}/ sid main" >/etc/apt/sources.list.d/debian.li
   && wget -qO- https://ftp-master.debian.org/keys/archive-key-12-security.asc | gpg --dearmor > /etc/apt/trusted.gpg.d/debian-archive-security-keyring.gpg \
   && for d in bin lib lib32 lib64 libo32 libx32 sbin; do dpkg-divert --package base-files --no-rename --remove /$d; done \
   && apt-get update -qqy \
+  && apt-get -qqy install libnss3-tools \
   && if [ "${CHROMIUM_VERSION}" = "latest" ]; \
       then apt-get -qqy --no-install-recommends install chromium-common chromium chromium-l10n chromium-driver; \
      else mkdir -p /tmp/chromium \

@@ -3,8 +3,15 @@ saml:
     example-saml-001:
       issuer-id: http://keycloak:8080/realms/demo
       issuer-endpoint-url: http://keycloak:8080/realms/demo/protocol/saml
-      signing-private-key-pem-file-path: "./dev/keycloak/signing_key.pem"
-      signing-x509-cert-pem-file-path: "./dev/keycloak/signing_cert.pem"
+      signing-private-key-pem-file-path: "/tmp/signing_key.pem"
+      signing-x509-cert-pem-file-path: "/tmp/signing_cert.pem"
       client-id: example-saml-001
       sign-in-url: "http://examplesaml001:8081/"
       redirect-url: "http://examplesaml001:8081/login/saml2/sso/example-saml-001"
+mtls:
+  clients:
+    example-mtls-003:
+      sign-in-url: "https://examplemtls:8085/"
+      client-cert-private-key-pem-file-path: "/tmp/client.key"
+      client-cert-x509-cert-pem-file-path: "/tmp/client.crt"
+      ignore-ssl-errors: true

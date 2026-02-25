@@ -11,6 +11,6 @@ public class MtlsBaseScanner implements MtlsScanner {
 
     @Override
     public ScannerConfig getScannerConfig(ScannerConfig scannerConfig) {
-        return null;
+        return scannerConfig;
     }
 }

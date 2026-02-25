@@ -10,20 +10,20 @@ import java.util.Map;
 @ConfigurationProperties("mtls")
 public class MtlsConfig {
 
-    private Map<String, SamlClientConfig> clients;
+    private Map<String, MtlsClientConfig> clients;
 
-    public Map<String, SamlClientConfig> getClients() {
+    public Map<String, MtlsClientConfig> getClients() {
         return clients;
     }
 
-    public SamlClientConfig getClient(String clientId) {
+    public MtlsClientConfig getClient(String clientId) {
         if(clients == null){
             return null;
         }
         return clients.get(clientId);
     }
 
-    public void setClients(Map<String, SamlClientConfig> clients) {
+    public void setClients(Map<String, MtlsClientConfig> clients) {
         this.clients = clients;
     }
 }

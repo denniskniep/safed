@@ -24,15 +24,6 @@ public abstract class ClientConfig extends ScannerConfig {
     public void setIssuerId(URL issuerId) {
         this.issuerId = issuerId;
     }
-    /*
-    @JsonIgnore
-    public URL getBaseUrl() {
-        try {
-            return issuerId.toURI().resolve("/").toURL();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }*/
 
     public URL getIssuerEndpointUrl() {
         return issuerEndpointUrl;

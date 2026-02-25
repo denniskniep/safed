@@ -1,5 +1,8 @@
 package de.denniskniep.safed;
 
+import de.denniskniep.safed.mtls.MtlsAssessment;
+import de.denniskniep.safed.mtls.config.MtlsClientConfig;
+import de.denniskniep.safed.mtls.config.MtlsConfig;
 import de.denniskniep.safed.oidc.OidcAssessment;
 import de.denniskniep.safed.oidc.config.OidcClientConfig;
 import de.denniskniep.safed.oidc.config.OidcConfig;
@@ -27,17 +30,21 @@ public class SafedCli implements CommandLineRunner {
     private final SamlAssessment samlAssessment;
     private final OidcConfig oidcConfig;
     private final OidcAssessment oidcAssessment;
+    private final MtlsAssessment mtlsAssessment;
     private final ApplicationContext applicationContext;
 
     private static final Logger LOG = LoggerFactory.getLogger(SafedCli.class);
+    private final MtlsConfig mtlsConfig;
 
     @Autowired
-    public SafedCli(ApplicationContext applicationContext, SamlConfig samlConfig, SamlAssessment samlAssessment, OidcConfig oidcConfig, OidcAssessment oidcAssessment) {
+    public SafedCli(ApplicationContext applicationContext, SamlConfig samlConfig, SamlAssessment samlAssessment, OidcConfig oidcConfig, OidcAssessment oidcAssessment, MtlsAssessment mtlsAssessment, MtlsConfig mtlsConfig) {
         this.applicationContext = applicationContext;
         this.samlConfig = samlConfig;
         this.samlAssessment = samlAssessment;
         this.oidcConfig = oidcConfig;
         this.oidcAssessment = oidcAssessment;
+        this.mtlsAssessment = mtlsAssessment;
+        this.mtlsConfig = mtlsConfig;
     }
 
     @Override
@@ -60,7 +67,13 @@ public class SafedCli implements CommandLineRunner {
             LOG.info(report.asJson());
         }
 
-        if(samlClientConfig == null && oidcClientConfig == null){
+        MtlsClientConfig mtlsClientConfig = mtlsConfig.getClient(clientId);
+        if(mtlsClientConfig != null) {
+            Report report = mtlsAssessment.run(mtlsClientConfig);
+            LOG.info(report.asJson());
+        }
+
+        if(samlClientConfig == null && oidcClientConfig == null && mtlsClientConfig == null){
             throw new RuntimeException("Provided ClientId not found!");
         }
 

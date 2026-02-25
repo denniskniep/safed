@@ -92,7 +92,7 @@ public abstract class Assessment<T extends Scanner, C extends ScannerConfig> {
     private ScanResult runScan(C inputScannerConfig, T scanner) {
         scanner.init(firstScanSuccess, secondScanSuccess, thirdScanSuccess, fourthScanFailure);
 
-        C scannerConfig = (C)scanner.getScannerConfig((C)inputScannerConfig.deepCopy());
+        C scannerConfig = (C)scanner.getScannerConfig(inputScannerConfig.deepCopy());
 
         AuthResult authResult = scan(scannerConfig, scanner);
 
