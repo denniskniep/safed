@@ -50,4 +50,8 @@ mtls:
       sign-in-url: "https://localhost:8085/"
       client-cert-private-key-pem-file-path: "./dev/example-mtls-003/src/main/resources/certs/client.key"
       client-cert-x509-cert-pem-file-path: "./dev/example-mtls-003/src/main/resources/certs/client.crt"
-      ignore-ssl-errors: true
+      trusted-root-cAs:
+        - "./dev/example-mtls-003/src/main/resources/certs/server.crt"
+      extraHeaders:
+        X-Username: testuser
+

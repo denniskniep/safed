@@ -14,7 +14,7 @@ FROM eclipse-temurin:21-jre-jammy
 USER root
 
 # Install Chromium
-ARG CHROMIUM_VERSION="latest"
+ARG CHROMIUM_VERSION="145.0.7632.116"
 ARG CHROMIUM_DEB_SITE="http://deb.debian.org/debian"
 RUN echo "deb ${CHROMIUM_DEB_SITE}/ sid main" >/etc/apt/sources.list.d/debian.list \
   && wget -qO- https://ftp-master.debian.org/keys/archive-key-12.asc | gpg --dearmor > /etc/apt/trusted.gpg.d/debian-archive-keyring.gpg \

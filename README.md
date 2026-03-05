@@ -2,6 +2,11 @@
 SAFED (**S**ecurity **A**ssessment for **Fed**erations) is a security testing tool that checks how securely applications handle federated logins via OIDC, OAuth, and SAML. 
 It works by intercepting and manipulating federation requests to simulate attacks, then comparing results against a baseline.
 
+## Target Audience
+* You are running an IDP (Identity Provider) and want to make sure that all connected applications are federated securely!
+* You are developing or using an application and want to make sure that the application can be connected securely to an IDP (e.g. execute it one time or continuously in a CI/CD Pipeline). 
+* Maybe more use cases ?!
+
 ## How it works
 ### High level Flow
 1. **Baseline Gathering**: Execute 2 successful federation requests to establish normal behavior
@@ -9,10 +14,11 @@ It works by intercepting and manipulating federation requests to simulate attack
 3. **Scanner Execution**: Run all attack scanners that manipulate federation requests
 4. **Comparison & Verification**: Compare scanner results against baseline using verification strategies
 5. **Report Generation**: Classify results as "VULNERABLE" (attack succeeded) or "OK" (attack blocked)
-The assessments are started by CommandLineRunner `src/main/java/de/denniskniep/safed/SafedCli.java`. 
-`src/main/java/de/denniskniep/safed/common/assessment/Assessment.java` orchestrated the assessment.
 
-### Federation Automation
+The assessments are started by CommandLineRunner `src/main/java/de/denniskniep/safed/SafedCli.java`. 
+The class `src/main/java/de/denniskniep/safed/common/assessment/Assessment.java` is responsible to orchestrates the assessment.
+
+### Federation Automation (OIDC / SAML)
 Selenium-based Chrome automation with BiDi network interception (`src/main/java/de/denniskniep/safed/common/auth/browser/BrowserAuthenticationFlow.java`)
 - Uses headless Chrome with isolated profile per run
 - BiDi protocol captures network requests/responses
@@ -26,6 +32,7 @@ The scanners allow pluggable manipulation of federation configs, requests, respo
 Scanners can be found here:
 - SAML Scanners: `src/main/java/de/denniskniep/safed/saml/scans/scanner/`
 - OIDC Scanners: `src/main/java/de/denniskniep/safed/oidc/scans/scanner/`
+- Mtls Scanners: `src/main/java/de/denniskniep/safed/mtls/scans/scanner`
 
 
 ### Verification Strategies
@@ -33,16 +40,37 @@ Multiple verification strategies determine if an attack succeeded, by comparing 
 - `DiffVerification` - Compares visible text differences between baseline and scan
 - `UrlAndStatusCodeVerification` - Compares final URL and HTTP status code
 
-
 ## Development
+### Build & Test
+```bash
+mvn clean install
+```
+
+Tests use TestContainers to spin up the full development environment:
+```bash
+mvn test
+```
+
+Individual test class:
+```bash
+mvn test -Dtest=AssessmentTests
+```
+
+Individual test method:
+```bash
+mvn test -Dtest=AssessmentTests#OidcTest_NoVulnerabilities
+```
+
 ### Adding New Scanners
-* Create scanner class extending SamlScanner or OidcScanner
+* Create scanner class extending SamlScanner, OidcScanner or MtlsScanner
 * Annotate with @Service
 * Override relevant hook methods to manipulate requests/responses
 
 The Scanner is auto-discovered and included in assessments.
 
 ### Environment
+Execute the following steps to prepare your development environment:
+
 Add to `/etc/hosts`
 ```
 127.0.0.1 keycloak
@@ -53,18 +81,18 @@ Start development environment
 sudo docker compose -f docker-compose.dev.yaml -f docker-compose.dev-examples.yaml -f docker-compose.dev-apps.yaml up --build
 ```
 
-### Examples
+### Examples Applications
+The example applications are located here: `dev/`.
+They are used during development and testing.
 
-Make a client vulnerable on purpose. As example ignore validation errors that detects an invalid signature.
+You can make a client vulnerable on purpose, by calling an API Endpoint. 
+As example ignore validation errors that detects an invalid signature.
 The list of ignored error descriptions are regular expression.
 ```
 curl -X POST http://localhost:8083/admin/validation/ignoredErrorDescriptions -H 'Content-type: application/json' -d '[".*Invalid signature"]'
 ```
 
-You can look into the tests to get useful regular expressions
-`src/test/java/de/denniskniep/safed/AssessmentTests.java`
-
-Or you run a scanner and check afterward the seen error descriptions
+You can run a scanner and check afterward the seen error descriptions and then you can derive the regular expression from those.
 ```
 curl http://localhost:8083/admin/validation/lastSeenErrorDescriptions
 ```
@@ -88,6 +116,7 @@ http://keycloak:8080
 * Example OIDC App - Code Flow`./dev/example-oidc-002/`): http://localhost:8082/
 * Example OIDC App - Hybrid Flow(`./dev/example-oidc-002/`): http://localhost:8083/
 * Example OIDC App - Implicit Flow (`./dev/example-oidc-002/`): http://localhost:8084/
+* Example Mtls App (`./dev/example-mtls-003/`): http://localhost:8085/
 * Grafana OIDC (`.dev/apps/grafana-oidc`): http://localhost:3001/
 
 #### Envoy Proxy
@@ -97,5 +126,5 @@ The reason is that SAFED can answer backchannel requests by apps exchanging code
 
 ## Automated Testing
 
-Running Tests will start TestContainer.
+Running Tests will start TestContainers.
 TestContainer starts exact same environment as described in [Development](#development).

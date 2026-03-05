@@ -3,20 +3,20 @@ package de.denniskniep.safed.mtls;
 import de.denniskniep.safed.common.auth.browser.AuthenticationLog;
 import de.denniskniep.safed.common.scans.AuthResult;
 import de.denniskniep.safed.common.scans.Page;
-import de.denniskniep.safed.mtls.config.MtlsClientConfig;
+import de.denniskniep.safed.mtls.config.MtlsAppConfig;
 
 public class MtlsAuthResult implements AuthResult {
-    MtlsClientConfig clientConfig;
+    MtlsAppConfig clientConfig;
     AuthenticationLog authenticationLog;
     Page responsePage;
 
-    public MtlsAuthResult(MtlsClientConfig clientConfig, AuthenticationLog authenticationLog, Page responsePage) {
+    public MtlsAuthResult(MtlsAppConfig clientConfig, AuthenticationLog authenticationLog, Page responsePage) {
         this.clientConfig = clientConfig;
         this.authenticationLog = authenticationLog;
         this.responsePage = responsePage;
     }
 
-    public MtlsClientConfig getClientConfig() {
+    public MtlsAppConfig getClientConfig() {
         return clientConfig;
     }
 

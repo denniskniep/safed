@@ -2,11 +2,16 @@ package de.denniskniep.safed;
 
 import de.denniskniep.safed.common.report.ScanResultReport;
 import de.denniskniep.safed.common.scans.ScanResultStatus;
+import de.denniskniep.safed.mtls.MtlsAssessment;
+import de.denniskniep.safed.mtls.config.MtlsAppConfig;
+import de.denniskniep.safed.mtls.config.MtlsConfig;
+import de.denniskniep.safed.mtls.scans.scanner.NoClientCertScanner;
+import de.denniskniep.safed.mtls.scans.scanner.InvalidCAScanner;
 import de.denniskniep.safed.oidc.OidcAssessment;
-import de.denniskniep.safed.oidc.config.OidcClientConfig;
+import de.denniskniep.safed.oidc.config.OidcAppConfig;
 import de.denniskniep.safed.oidc.config.OidcConfig;
 import de.denniskniep.safed.saml.SamlAssessment;
-import de.denniskniep.safed.saml.config.SamlClientConfig;
+import de.denniskniep.safed.saml.config.SamlAppConfig;
 import de.denniskniep.safed.saml.config.SamlConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,6 +47,12 @@ class AssessmentTests extends ApplicationBaseTest {
 	@Autowired
 	private SamlConfig samlConfig;
 
+    @Autowired
+	private MtlsAssessment mtlsAssessment;
+
+	@Autowired
+	private MtlsConfig mtlsConfig;
+
 	public AssessmentTests(@LocalServerPort int port) {
 		super(Integer.toString(port));
 	}
@@ -52,6 +63,7 @@ class AssessmentTests extends ApplicationBaseTest {
 		exampleOidcHybridFlowApp.setIgnoredErrorDescriptions(new String[]{});
 		exampleOidcImplicitFlowApp.setIgnoredErrorDescriptions(new String[]{});
 		exampleSamlApp.setIgnoredErrorDescriptions(new String[]{});
+		exampleMtlsApp.setIgnoredErrorDescriptions(new String[]{});
 	}
 
 	private void oidcTest(String clientId, String[] triggeredScanners, String[] ignoredErrorDescriptions){
@@ -59,9 +71,9 @@ class AssessmentTests extends ApplicationBaseTest {
 		exampleOidcHybridFlowApp.setIgnoredErrorDescriptions(ignoredErrorDescriptions);
 		exampleOidcImplicitFlowApp.setIgnoredErrorDescriptions(ignoredErrorDescriptions);
 
-		OidcClientConfig oidcClientConfig = (OidcClientConfig)oidcConfig.getClient(clientId).deepCopy();
+		OidcAppConfig oidcClientConfig = (OidcAppConfig)oidcConfig.getClient(clientId).deepCopy();
 		oidcClientConfig.setScanners(Arrays.asList(triggeredScanners));
-		var result = oidcAssessment.run(oidcClientConfig);
+		var result = oidcAssessment.run(clientId, oidcClientConfig);
 
 		LOG.info(result.asJson());
 
@@ -96,8 +108,8 @@ class AssessmentTests extends ApplicationBaseTest {
 	@ParameterizedTest
 	@MethodSource("oidcClientIds")
 	void OidcTest_NoVulnerabilities(String clientId) {
-		OidcClientConfig oidcClientConfig = (OidcClientConfig)oidcConfig.getClient(clientId).deepCopy();
-		var result = oidcAssessment.run(oidcClientConfig);
+		OidcAppConfig oidcClientConfig = (OidcAppConfig)oidcConfig.getClient(clientId).deepCopy();
+		var result = oidcAssessment.run(clientId, oidcClientConfig);
 		LOG.info(result.asJson());
 
 		Assertions.assertEquals(ScanResultStatus.OK, result.getStatus());
@@ -192,9 +204,9 @@ class AssessmentTests extends ApplicationBaseTest {
 	private void samlTest(String[] triggeredScanners, String[] ignoredSamlErrorDescriptions){
 		exampleSamlApp.setIgnoredErrorDescriptions(ignoredSamlErrorDescriptions);
 
-		SamlClientConfig samlClientConfig = samlConfig.getClient(EXAMPLE_SAML_CLIENT.clientId()).deepCopy();
+		SamlAppConfig samlClientConfig = samlConfig.getClient(EXAMPLE_SAML.clientId()).deepCopy();
 		samlClientConfig.setScanners(Arrays.asList(triggeredScanners));
-		var result = samlAssessment.run(samlClientConfig);
+		var result = samlAssessment.run(EXAMPLE_SAML.clientId(), samlClientConfig);
 
 		LOG.info(result.asJson());
 
@@ -217,8 +229,8 @@ class AssessmentTests extends ApplicationBaseTest {
 
 	@Test
 	void SamlTest_NoVulnerabilities() {
-		SamlClientConfig samlClientConfig = samlConfig.getClient(EXAMPLE_SAML_CLIENT.clientId()).deepCopy();
-		var result = samlAssessment.run(samlClientConfig);
+		SamlAppConfig samlClientConfig = samlConfig.getClient(EXAMPLE_SAML.clientId()).deepCopy();
+		var result = samlAssessment.run(EXAMPLE_SAML.clientId(), samlClientConfig);
 		LOG.info(result.asJson());
 
 		Assertions.assertEquals(ScanResultStatus.OK, result.getStatus());
@@ -359,6 +371,66 @@ class AssessmentTests extends ApplicationBaseTest {
 				},
 				new String[]{
 						".*Invalid status.*AuthnFailed.*"
+				}
+		);
+	}
+
+	@Test
+	void MtlsTest_NoVulnerabilities() {
+		MtlsAppConfig config = mtlsConfig.getClient(EXAMPLE_MTLS.clientId()).deepCopy();
+		var result = mtlsAssessment.run(EXAMPLE_MTLS.clientId(), config);
+		LOG.info(result.asJson());
+
+		Assertions.assertEquals(ScanResultStatus.OK, result.getStatus());
+		Assertions.assertEquals(0, result.getFindings().size());
+	}
+
+	private void mtlsTest(String[] triggeredScanners, String[] ignoredErrorDescriptions){
+		exampleMtlsApp.setIgnoredErrorDescriptions(ignoredErrorDescriptions);
+
+		MtlsAppConfig config = mtlsConfig.getClient(EXAMPLE_MTLS.clientId()).deepCopy();
+		config.setScanners(Arrays.asList(triggeredScanners));
+		var result = mtlsAssessment.run(EXAMPLE_MTLS.clientId(), config);
+
+		LOG.info(result.asJson());
+
+		List<String> lastSeenErrorDescriptions = exampleMtlsApp.getLastSeenErrorDescriptions();
+		if(lastSeenErrorDescriptions.isEmpty()){
+			LOG.info("No errors occurred in app (after ignoreFilter was applied)");
+		}else{
+			LOG.info("Following errors occurred in app (after ignoreFilter was applied): \n{}", String.join("\n", lastSeenErrorDescriptions));
+		}
+
+		Assertions.assertEquals(ScanResultStatus.VULNERABLE, result.getStatus());
+		for (var scanner : triggeredScanners) {
+			ScanResultReport finding = result.getFindings().get(scanner);
+			Assertions.assertNotNull(finding, "Expected that scanner " + scanner + " found a vulnerability");
+			Assertions.assertEquals(ScanResultStatus.VULNERABLE,finding.getStatus(), "Expected that scanner " + scanner + " found a vulnerability");
+		}
+		Assertions.assertEquals(triggeredScanners.length, result.getFindings().size(), "Expected that " + triggeredScanners.length + " scanners find vulnerabilities, but it was " + result.getFindings().size());
+	}
+
+	@Test
+	void MtlsTest_NoClientCert_Scanner() {
+		mtlsTest(
+				new String[]{
+						NoClientCertScanner.class.getSimpleName()
+				},
+				new String[]{
+						"No client certificate provided"
+				}
+		);
+	}
+
+	@Test
+	void MtlsTest_InvalidCA_Scanner() {
+		mtlsTest(
+				new String[]{
+						InvalidCAScanner.class.getSimpleName()
+				},
+				new String[]{
+						"Invalid certificate signature: Certificate is not signed by the configured CA.*",
+						"Certificate issuer mismatch. Expected issuer: CN=RootCA,OU=CA,O=Company,L=City,ST=State,C=DE, Found: C=DE,ST=State,L=City,O=Company,OU=CA,CN=FakeRootCA"
 				}
 		);
 	}

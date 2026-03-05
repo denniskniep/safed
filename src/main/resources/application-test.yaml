@@ -37,3 +37,14 @@ saml:
       client-id: example-saml-001
       sign-in-url: "http://localhost:8081/"
       redirect-url: "http://localhost:8081/login/saml2/sso/example-saml-001"
+
+mtls:
+  clients:
+    example-mtls-003:
+      sign-in-url: "https://localhost:8085/"
+      client-cert-private-key-pem-file-path: "./dev/example-mtls-003/src/main/resources/certs/client.key"
+      client-cert-x509-cert-pem-file-path: "./dev/example-mtls-003/src/main/resources/certs/client.crt"
+      trusted-root-cAs:
+        - "./dev/example-mtls-003/src/main/resources/certs/server.crt"
+      extraHeaders:
+        X-Username: testuser

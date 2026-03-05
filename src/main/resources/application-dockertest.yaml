@@ -15,3 +15,7 @@ mtls:
       client-cert-private-key-pem-file-path: "/tmp/client.key"
       client-cert-x509-cert-pem-file-path: "/tmp/client.crt"
       ignore-ssl-errors: true
+      trusted-root-cAs:
+        - "/tmp/server.crt"
+      extraHeaders:
+        X-Username: testuser

@@ -1,5 +1,6 @@
 package de.denniskniep.safed.common.report;
 
+import de.denniskniep.safed.common.config.AppConfig;
 import de.denniskniep.safed.common.scans.ScanResult;
 import de.denniskniep.safed.common.scans.ScanResultStatus;
 
@@ -9,6 +10,8 @@ import java.util.List;
 
 public class ReportBuilder {
 
+    private final String clientId;
+    private final long durationInMs;
     private final ScanResult firstScan;
     private final ScanResult secondScan;
     private final ScanResult isVulnerableScan;
@@ -16,7 +19,9 @@ public class ReportBuilder {
     private final HashMap<String, ScanResult> scanResults;
     private final List<String> errors;
 
-    public ReportBuilder(ScanResult firstScan, ScanResult secondScan, ScanResult isVulnerableScan, ScanResult isOkScan, HashMap<String, ScanResult> scanResults, List<String> errors) {
+    public ReportBuilder(String clientId, long durationInMs, ScanResult firstScan, ScanResult secondScan, ScanResult isVulnerableScan, ScanResult isOkScan, HashMap<String, ScanResult> scanResults, List<String> errors) {
+        this.clientId = clientId;
+        this.durationInMs = durationInMs;
         this.firstScan = firstScan;
         this.secondScan = secondScan;
         this.isVulnerableScan = isVulnerableScan;
@@ -27,6 +32,9 @@ public class ReportBuilder {
 
     public Report Build(){
         var report = new Report();
+        report.setClientId(clientId);
+        report.setDurationInMs(durationInMs);
+
         report.setFirstScan(asInitialScanReport(firstScan));
         report.setSecondScan(asInitialScanReport(secondScan));
 

@@ -9,20 +9,20 @@ import java.util.Map;
 @ConfigurationProperties("saml")
 public class SamlConfig {
 
-    private Map<String, SamlClientConfig> clients;
+    private Map<String, SamlAppConfig> clients;
 
-    public Map<String, SamlClientConfig> getClients() {
+    public Map<String, SamlAppConfig> getClients() {
         return clients;
     }
 
-    public SamlClientConfig getClient(String clientId) {
+    public SamlAppConfig getClient(String clientId) {
         if(clients == null){
             return null;
         }
         return clients.get(clientId);
     }
 
-    public void setClients(Map<String, SamlClientConfig> clients) {
+    public void setClients(Map<String, SamlAppConfig> clients) {
         this.clients = clients;
     }
 }

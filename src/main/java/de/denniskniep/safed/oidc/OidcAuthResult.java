@@ -3,23 +3,23 @@ package de.denniskniep.safed.oidc;
 import de.denniskniep.safed.common.auth.browser.AuthenticationLog;
 import de.denniskniep.safed.common.scans.AuthResult;
 import de.denniskniep.safed.oidc.auth.browser.OidcAuthenticationRequest;
-import de.denniskniep.safed.oidc.config.OidcClientConfig;
+import de.denniskniep.safed.oidc.config.OidcAppConfig;
 import de.denniskniep.safed.common.scans.Page;
 
 public class OidcAuthResult implements AuthResult {
-    OidcClientConfig clientConfig;
+    OidcAppConfig clientConfig;
     OidcAuthenticationRequest oidcRequestData;
     AuthenticationLog authenticationLog;
     Page responsePage;
 
-    public OidcAuthResult(OidcClientConfig clientConfig, OidcAuthenticationRequest oidcRequestData, AuthenticationLog authenticationLog, Page responsePage) {
+    public OidcAuthResult(OidcAppConfig clientConfig, OidcAuthenticationRequest oidcRequestData, AuthenticationLog authenticationLog, Page responsePage) {
         this.clientConfig = clientConfig;
         this.oidcRequestData = oidcRequestData;
         this.authenticationLog = authenticationLog;
         this.responsePage = responsePage;
     }
 
-    public OidcClientConfig getClientConfig() {
+    public OidcAppConfig getClientConfig() {
         return clientConfig;
     }
 

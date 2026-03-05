@@ -9,20 +9,20 @@ import java.util.Map;
 @ConfigurationProperties("oidc")
 public class OidcConfig {
 
-    private Map<String, OidcClientConfig> clients;
+    private Map<String, OidcAppConfig> clients;
 
-    public Map<String, OidcClientConfig> getClients() {
+    public Map<String, OidcAppConfig> getClients() {
         return clients;
     }
 
-    public OidcClientConfig getClient(String clientId) {
+    public OidcAppConfig getClient(String clientId) {
         if(clients == null){
             return null;
         }
         return clients.get(clientId);
     }
 
-    public void setClients(Map<String, OidcClientConfig> clients) {
+    public void setClients(Map<String, OidcAppConfig> clients) {
         this.clients = clients;
     }
 }

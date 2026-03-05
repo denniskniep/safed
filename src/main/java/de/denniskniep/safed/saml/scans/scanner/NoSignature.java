@@ -1,6 +1,6 @@
 package de.denniskniep.safed.saml.scans.scanner;
 
-import de.denniskniep.safed.saml.config.SamlClientConfig;
+import de.denniskniep.safed.saml.config.SamlAppConfig;
 import de.denniskniep.safed.saml.scans.SamlBaseScanner;
 import org.springframework.stereotype.Service;
 
@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 public class NoSignature extends SamlBaseScanner {
 
     @Override
-    public SamlClientConfig getSamlClientConfig(SamlClientConfig samlClientConfig) {
+    public SamlAppConfig getSamlClientConfig(SamlAppConfig samlClientConfig) {
         samlClientConfig.setSignAssertion(false);
         samlClientConfig.setSignDocument(false);
         return samlClientConfig;

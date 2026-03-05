@@ -1,6 +1,6 @@
 package de.denniskniep.safed.oidc.scans;
 
-import de.denniskniep.safed.common.config.ScannerConfig;
+import de.denniskniep.safed.common.config.AppConfig;
 import de.denniskniep.safed.common.scans.ScanResult;
 import de.denniskniep.safed.oidc.auth.server.CustomJwtBuilder;
 import de.denniskniep.safed.oidc.auth.browser.OidcAuthenticationRequest;
@@ -9,7 +9,7 @@ import de.denniskniep.safed.oidc.auth.server.endpoints.TokenRequest;
 import de.denniskniep.safed.oidc.auth.server.endpoints.TokenResponse;
 import de.denniskniep.safed.oidc.auth.server.endpoints.UserInfoRequest;
 import de.denniskniep.safed.oidc.auth.server.endpoints.UserInfoResponse;
-import de.denniskniep.safed.oidc.config.OidcClientConfig;
+import de.denniskniep.safed.oidc.config.OidcAppConfig;
 import io.jsonwebtoken.JwtBuilder;
 
 import java.util.Optional;
@@ -20,13 +20,13 @@ public class OidcBaseScanner implements OidcScanner {
     public void init(ScanResult firstPositiveScan, ScanResult secondPositiveScan, ScanResult thirdPositiveScan, ScanResult fourthScanFailure) {
     }
 
-    public OidcClientConfig getOidcClientConfig(OidcClientConfig oidcClientConfig) {
+    public OidcAppConfig getOidcClientConfig(OidcAppConfig oidcClientConfig) {
         return oidcClientConfig;
     }
 
     @Override
-    public ScannerConfig getScannerConfig(ScannerConfig scannerConfig) {
-        return getOidcClientConfig((OidcClientConfig)scannerConfig);
+    public AppConfig getScannerConfig(AppConfig scannerConfig) {
+        return getOidcClientConfig((OidcAppConfig)scannerConfig);
     }
 
     @Override

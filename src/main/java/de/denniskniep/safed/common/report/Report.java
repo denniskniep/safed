@@ -9,9 +9,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@JsonPropertyOrder({"status", "errors", "firstScan", "secondScan", "isVulnerableTestScan", "isOkTestScan", "findings", "noFindings" })
+@JsonPropertyOrder({"clientId", "durationInMs", "status", "errors", "firstScan", "secondScan", "isVulnerableTestScan", "isOkTestScan", "findings", "noFindings" })
 public class Report {
 
+    private String clientId;
+    private long durationInMs;
     private InitialScanReport firstScan;
     private InitialScanReport secondScan;
     private ScanResultReport isVulnerableTestScan;
@@ -87,5 +89,21 @@ public class Report {
     }
     public List<String> getErrors() {
         return errors;
+    }
+
+    public String getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
+    }
+
+    public long getDurationInMs() {
+        return durationInMs;
+    }
+
+    public void setDurationInMs(long durationInMs) {
+        this.durationInMs = durationInMs;
     }
 }

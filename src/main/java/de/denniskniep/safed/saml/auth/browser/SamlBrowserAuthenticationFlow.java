@@ -1,6 +1,7 @@
 package de.denniskniep.safed.saml.auth.browser;
 
 import de.denniskniep.safed.common.auth.browser.BrowserAuthenticationFlow;
+import de.denniskniep.safed.common.auth.browser.BrowserConfig;
 import de.denniskniep.safed.common.auth.browser.RequestDataWithBody;
 import org.apache.commons.lang3.StringUtils;
 import org.keycloak.dom.saml.v2.SAML2Object;
@@ -15,7 +16,8 @@ public class SamlBrowserAuthenticationFlow extends BrowserAuthenticationFlow<Sam
 
     private final URL idpSamlEndpointUrl;
 
-    public SamlBrowserAuthenticationFlow(URL idpSamlEndpointUrl) {
+    public SamlBrowserAuthenticationFlow(URL idpSamlEndpointUrl, BrowserConfig browserConfig) {
+        super(browserConfig);
         this.idpSamlEndpointUrl = idpSamlEndpointUrl;
     }
 

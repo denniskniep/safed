@@ -15,6 +15,7 @@ services:
       - "./dev/keycloak/signing_key.pem:/tmp/signing_key.pem"
       - "./dev/example-mtls-003/src/main/resources/certs/client.key:/tmp/client.key"
       - "./dev/example-mtls-003/src/main/resources/certs/client.crt:/tmp/client.crt"
+      - "./dev/example-mtls-003/src/main/resources/certs/server.crt:/tmp/server.crt"
     entrypoint: "sh -c"
     command: ["/tmp/wait-for-keycloak.sh && java -Duser.timezone=UTC -jar /app/app.jar example-mtls-003"]
     ports:

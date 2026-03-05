@@ -1,13 +1,12 @@
 package de.denniskniep.safed.common.config;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.keycloak.saml.SignatureAlgorithm;
 
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class ClientConfig extends ScannerConfig {
+public abstract class FederationAppConfig extends AppConfig {
     private String clientId;
     private URL redirectUrl;
     private URL signInUrl;

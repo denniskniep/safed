@@ -3,14 +3,14 @@ package de.denniskniep.safed.saml;
 import de.denniskniep.safed.common.auth.browser.AuthenticationLog;
 import de.denniskniep.safed.common.scans.AuthResult;
 import de.denniskniep.safed.saml.auth.server.SamlResponseResult;
-import de.denniskniep.safed.saml.config.SamlClientConfig;
+import de.denniskniep.safed.saml.config.SamlAppConfig;
 import de.denniskniep.safed.saml.config.SamlAuthData;
 import de.denniskniep.safed.saml.auth.browser.SamlRequestData;
 import de.denniskniep.safed.common.scans.Page;
 
 public class SamlAuthResult implements AuthResult {
 
-    SamlClientConfig clientConfig;
+    SamlAppConfig clientConfig;
     SamlAuthData samlAuthData;
     SamlRequestData samlRequestData;
 
@@ -18,7 +18,7 @@ public class SamlAuthResult implements AuthResult {
     AuthenticationLog authenticationLog;
     Page responsePage;
 
-    public SamlAuthResult(SamlClientConfig clientConfig, SamlAuthData samlAuthData, SamlRequestData samlRequestData, SamlResponseResult samlResponseResult, AuthenticationLog authenticationLog, Page responsePage) {
+    public SamlAuthResult(SamlAppConfig clientConfig, SamlAuthData samlAuthData, SamlRequestData samlRequestData, SamlResponseResult samlResponseResult, AuthenticationLog authenticationLog, Page responsePage) {
         this.clientConfig = clientConfig;
         this.samlAuthData = samlAuthData;
         this.samlRequestData = samlRequestData;
@@ -27,7 +27,7 @@ public class SamlAuthResult implements AuthResult {
         this.responsePage = responsePage;
     }
 
-    public SamlClientConfig getSamlClientConfig() {
+    public SamlAppConfig getSamlClientConfig() {
         return clientConfig;
     }
 

@@ -1,6 +1,6 @@
 package de.denniskniep.safed.common.utils;
 
-import de.denniskniep.safed.common.config.ClientConfig;
+import de.denniskniep.safed.common.config.FederationAppConfig;
 import org.keycloak.common.util.KeyUtils;
 import org.keycloak.crypto.KeyStatus;
 import org.keycloak.crypto.KeyType;
@@ -42,9 +42,9 @@ public class KeyProvider {
         }
     }
 
-    public static KeyWrapper loadSigningKey(ClientConfig clientConfig) {
-        String privateRsaKeyPem = loadFromFile(clientConfig.getSigningPrivateKeyPemFilePath());
-        String certificatePem = loadFromFile(clientConfig.getSigningX509CertPemFilePath());
+    public static KeyWrapper loadSigningKey(FederationAppConfig federationConfig) {
+        String privateRsaKeyPem = loadFromFile(federationConfig.getSigningPrivateKeyPemFilePath());
+        String certificatePem = loadFromFile(federationConfig.getSigningX509CertPemFilePath());
 
         PrivateKey privateKey = privateKeyFromPem(privateRsaKeyPem);
         PublicKey publicKey = KeyUtils.extractPublicKey(privateKey);
@@ -56,7 +56,7 @@ public class KeyProvider {
         key.setKid(KeyUtils.createKeyId(keyPair.getPublic()));
         key.setUse(KeyUse.SIG);
         key.setType(KeyType.RSA);
-        key.setAlgorithm(clientConfig.getSignatureAlgorithm().getJavaSignatureAlgorithm());
+        key.setAlgorithm(federationConfig.getSignatureAlgorithm().getJavaSignatureAlgorithm());
         key.setStatus(KeyStatus.ACTIVE);
         key.setPrivateKey(keyPair.getPrivate());
         key.setPublicKey(keyPair.getPublic());
@@ -65,7 +65,7 @@ public class KeyProvider {
         return key;
     }
 
-    private static X509Certificate certFromPem(String certificatePem){
+    public static X509Certificate certFromPem(String certificatePem){
         var certContent = certificatePem.replaceAll("\\n", "").replace("-----BEGIN CERTIFICATE-----", "").replace("-----END CERTIFICATE-----", "");
         var certDecoded = Base64.getDecoder().decode(certContent);
 
@@ -81,6 +81,11 @@ public class KeyProvider {
         } catch (CertificateException | IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static X509Certificate loadCertFromFile(String filePath) {
+        String certificatePem = loadFromFile(filePath);
+        return certFromPem(certificatePem);
     }
 
     private static String loadContentFromFilePath(String filePath) throws IOException {

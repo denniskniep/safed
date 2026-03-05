@@ -1,6 +1,6 @@
 package de.denniskniep.safed.common.assessment;
 
-import de.denniskniep.safed.common.config.ScannerConfig;
+import de.denniskniep.safed.common.config.AppConfig;
 import de.denniskniep.safed.common.report.Report;
 import de.denniskniep.safed.common.report.ReportBuilder;
 import de.denniskniep.safed.common.scans.*;
@@ -11,9 +11,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 
-public abstract class Assessment<T extends Scanner, C extends ScannerConfig> {
+public abstract class Assessment<T extends Scanner, C extends AppConfig> {
     private static final Logger LOG = LoggerFactory.getLogger(Assessment.class);
 
     private final T successScanner;
@@ -42,7 +44,16 @@ public abstract class Assessment<T extends Scanner, C extends ScannerConfig> {
         this.scanResultVerificationStrategies = scanResultVerificationStrategies;
     }
 
-    public Report run(C scannerConfig) {
+    protected void validate(C config){
+        if (config == null) {
+            throw new RuntimeException("scannerConfig is null");
+        }
+    }
+
+    public Report run(String clientId, C scannerConfig) {
+        var start = Instant.now();
+        validate(scannerConfig);
+
         List<String> errors = new ArrayList<>();
         LOG.info("Start initial tests");
         // First scan with successful login
@@ -85,7 +96,8 @@ public abstract class Assessment<T extends Scanner, C extends ScannerConfig> {
             LOG.trace("Scanner {} finished with status: {}.\nFollowing evidences collected:\n{}", scanner.getClass().getSimpleName(), scanResult.getStatus(), String.join("\n", scanResult.getEvidences()));
         }
 
-        ReportBuilder reportBuilder = new ReportBuilder(firstScanSuccess, secondScanSuccess, thirdScanSuccess, fourthScanFailure, scanResults, errors);
+        var duration =  Duration.between(start, Instant.now());
+        ReportBuilder reportBuilder = new ReportBuilder(clientId, duration.toMillis() , firstScanSuccess, secondScanSuccess, thirdScanSuccess, fourthScanFailure, scanResults, errors);
         return reportBuilder.Build();
     }
 

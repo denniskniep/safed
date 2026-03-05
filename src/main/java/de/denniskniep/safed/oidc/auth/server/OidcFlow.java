@@ -8,7 +8,7 @@ import de.denniskniep.safed.oidc.auth.server.endpoints.TokenRequest;
 import de.denniskniep.safed.oidc.auth.server.endpoints.TokenResponse;
 import de.denniskniep.safed.oidc.auth.server.endpoints.UserInfoRequest;
 import de.denniskniep.safed.oidc.auth.server.endpoints.UserInfoResponse;
-import de.denniskniep.safed.oidc.config.OidcClientConfig;
+import de.denniskniep.safed.oidc.config.OidcAppConfig;
 import org.apache.commons.collections4.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
@@ -26,7 +26,7 @@ public class OidcFlow implements FrontChannelRequest, BackchannelHandler {
 
     protected static final String PREFIX = "1337b33f";
 
-    protected final OidcClientConfig clientConfig;
+    protected final OidcAppConfig clientConfig;
     protected final OidcAuthenticationRequest requestData;
     private final BackchannelInterceptor backchannelInterceptor;
     private final TokenInterceptors tokenInterceptors;
@@ -37,7 +37,7 @@ public class OidcFlow implements FrontChannelRequest, BackchannelHandler {
     protected final String code;
 
 
-    public OidcFlow(OidcClientConfig clientConfig, OidcAuthenticationRequest requestData, TokenInterceptors tokenInterceptors, BackchannelInterceptor backchannelInterceptor) {
+    public OidcFlow(OidcAppConfig clientConfig, OidcAuthenticationRequest requestData, TokenInterceptors tokenInterceptors, BackchannelInterceptor backchannelInterceptor) {
         this.backchannelInterceptor = backchannelInterceptor;
         this.signingKey = KeyProvider.loadSigningKey(clientConfig);
         this.clientConfig = clientConfig;

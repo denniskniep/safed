@@ -1,6 +1,7 @@
 package de.denniskniep.safed.oidc.auth.browser;
 
 import de.denniskniep.safed.common.auth.browser.BrowserAuthenticationFlow;
+import de.denniskniep.safed.common.auth.browser.BrowserConfig;
 import de.denniskniep.safed.common.auth.browser.RequestDataWithBody;
 import org.apache.commons.lang3.StringUtils;
 
@@ -11,7 +12,8 @@ public class OidcBrowserAuthenticationFlow extends BrowserAuthenticationFlow<Oid
 
     private final URL idpOidcEndpointUrl;
 
-    public OidcBrowserAuthenticationFlow(URL idpOidcEndpointUrl) {
+    public OidcBrowserAuthenticationFlow(URL idpOidcEndpointUrl, BrowserConfig browserConfig) {
+        super(browserConfig);
         this.idpOidcEndpointUrl = idpOidcEndpointUrl;
     }
 

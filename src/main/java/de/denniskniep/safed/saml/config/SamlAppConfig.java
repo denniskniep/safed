@@ -1,11 +1,11 @@
 package de.denniskniep.safed.saml.config;
 
-import de.denniskniep.safed.common.config.ClientConfig;
+import de.denniskniep.safed.common.config.FederationAppConfig;
 import de.denniskniep.safed.common.utils.Serialization;
 import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
 import org.keycloak.saml.common.util.XmlKeyInfoKeyNameTransformer;
 
-public class SamlClientConfig extends ClientConfig {
+public class SamlAppConfig extends FederationAppConfig {
 
     private int assertionLifespanInMinutes = 1;
 
@@ -119,7 +119,7 @@ public class SamlClientConfig extends ClientConfig {
         this.keyNameTransformer = keyNameTransformer;
     }
 
-    public SamlClientConfig deepCopy(){
-        return Serialization.DeepCopy(this, SamlClientConfig.class);
+    public SamlAppConfig deepCopy(){
+        return Serialization.DeepCopy(this, SamlAppConfig.class);
     }
 }

@@ -1,6 +1,6 @@
 package de.denniskniep.safed.common.scans;
 
-import de.denniskniep.safed.common.config.ScannerConfig;
+import de.denniskniep.safed.common.config.AppConfig;
 
 public interface Scanner {
 
@@ -8,5 +8,5 @@ public interface Scanner {
     void init(ScanResult firstPositiveScan, ScanResult secondPositiveScan, ScanResult thirdPositiveScan, ScanResult fourthScanFailure);
 
     // 1. Config Phase
-    ScannerConfig getScannerConfig(ScannerConfig scannerConfig);
+    AppConfig getScannerConfig(AppConfig scannerConfig);
 }

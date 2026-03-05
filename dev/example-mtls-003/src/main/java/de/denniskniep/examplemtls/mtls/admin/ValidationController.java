@@ -8,25 +8,25 @@ import java.util.List;
 @RequestMapping("admin/validation")
 public class ValidationController {
 
-    private final ValidationService oidcValidationService;
+    private final ValidationService validationService;
 
-    public ValidationController(ValidationService oidcValidationService) {
-        this.oidcValidationService = oidcValidationService;
+    public ValidationController(ValidationService validationService) {
+        this.validationService = validationService;
     }
 
     @GetMapping(value = "ignoredErrorDescriptions", produces = "application/json")
     public @ResponseBody List<String> getIgnoredOidcErrorDescriptions() {
-        return oidcValidationService.getIgnoredOidcErrorDescriptions();
+        return validationService.getIgnoredOidcErrorDescriptions();
     }
 
 
     @GetMapping(value = "lastSeenErrorDescriptions", produces = "application/json")
     public @ResponseBody List<String> getLastSeenErrors() {
-        return oidcValidationService.getLastSeenErrorDescriptions();
+        return validationService.getLastSeenErrorDescriptions();
     }
 
     @PostMapping(value = "ignoredErrorDescriptions", produces = "application/json")
     public @ResponseBody void setIgnoredOidcErrorDescriptions(@RequestBody List<String> errorDescriptions) {
-        oidcValidationService.setIgnoredOidcErrorDescriptions(errorDescriptions);
+        validationService.setIgnoredOidcErrorDescriptions(errorDescriptions);
     }
 }

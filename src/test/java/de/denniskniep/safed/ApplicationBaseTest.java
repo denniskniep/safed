@@ -15,21 +15,29 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
 @Testcontainers
 public abstract class ApplicationBaseTest {
 
     protected static final Logger LOG = LoggerFactory.getLogger(ApplicationBaseTest.class);
 
-    protected static final ExampleAppData EXAMPLE_SAML_CLIENT = new ExampleAppData("examplesaml001", 8081, "example-saml-001");
-    protected static final ExampleAppData EXAMPLE_OIDC_CODE_FLOW = new ExampleAppData("exampleoidc002codeflow", 8082, "example-oidc-002-codeflow");
-    protected static final ExampleAppData EXAMPLE_OIDC_HYBRID_FLOW = new ExampleAppData("exampleoidc002hybridflow", 8083, "example-oidc-002-hybridflow");
-    protected static final ExampleAppData EXAMPLE_OIDC_IMPLICIT_FLOW = new ExampleAppData("exampleoidc002implicitflow", 8084, "example-oidc-002-implicitflow");
+    protected static final ExampleAppData EXAMPLE_SAML = new ExampleAppData("examplesaml001", 8081, "http", "example-saml-001");
+    protected static final ExampleAppData EXAMPLE_OIDC_CODE_FLOW = new ExampleAppData("exampleoidc002codeflow", 8082, "http","example-oidc-002-codeflow");
+    protected static final ExampleAppData EXAMPLE_OIDC_HYBRID_FLOW = new ExampleAppData("exampleoidc002hybridflow", 8083, "http","example-oidc-002-hybridflow");
+    protected static final ExampleAppData EXAMPLE_OIDC_IMPLICIT_FLOW = new ExampleAppData("exampleoidc002implicitflow", 8084, "http","example-oidc-002-implicitflow");
+    protected static final ExampleAppData EXAMPLE_MTLS = new ExampleAppData("examplemtls", 8085, "https","example-mtls-003");
 
     protected static final String KEYCLOAK_SERVICE_NAME = "keycloak";
     protected static final String KEYCLOAK_SIDEKICK_SERVICE_NAME = "keycloaksidekick";
@@ -37,6 +45,7 @@ public abstract class ApplicationBaseTest {
     protected final ComposeContainer ENVIRONMENT;
 
     protected final ExampleApp exampleSamlApp;
+    protected final ExampleApp exampleMtlsApp;
     protected final ExampleApp exampleOidcCodeFlowApp;
     protected final ExampleApp exampleOidcHybridFlowApp;
     protected final ExampleApp exampleOidcImplicitFlowApp;
@@ -48,46 +57,81 @@ public abstract class ApplicationBaseTest {
         )
                 .withStartupTimeout(Duration.of(120, ChronoUnit.MINUTES))
                 .waitingFor(KEYCLOAK_SIDEKICK_SERVICE_NAME, Wait.forLogMessage("Finished Keycloak Setup\n", 1))
-                .waitingFor(EXAMPLE_SAML_CLIENT.serviceName(), Wait.forLogMessage(".*Started ExampleSamlApp.*", 1))
+                .waitingFor(EXAMPLE_SAML.serviceName(), Wait.forLogMessage(".*Started ExampleSamlApp.*", 1))
+                .waitingFor(EXAMPLE_MTLS.serviceName(), Wait.forLogMessage(".*Started ExampleMtlsApp.*", 1))
                 .waitingFor(EXAMPLE_OIDC_CODE_FLOW.serviceName(), Wait.forLogMessage(".*Started ExampleOidcApplication.*", 1))
                 .waitingFor(EXAMPLE_OIDC_HYBRID_FLOW.serviceName(), Wait.forLogMessage(".*Started ExampleOidcApplication.*", 1))
                 .waitingFor(EXAMPLE_OIDC_IMPLICIT_FLOW.serviceName(), Wait.forLogMessage(".*Started ExampleOidcApplication.*", 1))
-                .withLogConsumer(EXAMPLE_SAML_CLIENT.serviceName(), new Slf4jLogConsumer(LOG).withPrefix(EXAMPLE_SAML_CLIENT.serviceName()))
+                .withLogConsumer(EXAMPLE_SAML.serviceName(), new Slf4jLogConsumer(LOG).withPrefix(EXAMPLE_SAML.serviceName()))
+                .withLogConsumer(EXAMPLE_MTLS.serviceName(), new Slf4jLogConsumer(LOG).withPrefix(EXAMPLE_MTLS.serviceName()))
                 .withLogConsumer(EXAMPLE_OIDC_CODE_FLOW.serviceName(), new Slf4jLogConsumer(LOG).withPrefix(EXAMPLE_OIDC_CODE_FLOW.serviceName()))
                 .withLogConsumer(EXAMPLE_OIDC_HYBRID_FLOW.serviceName(), new Slf4jLogConsumer(LOG).withPrefix(EXAMPLE_OIDC_HYBRID_FLOW.serviceName()))
                 .withLogConsumer(EXAMPLE_OIDC_IMPLICIT_FLOW.serviceName(), new Slf4jLogConsumer(LOG).withPrefix(EXAMPLE_OIDC_IMPLICIT_FLOW.serviceName()))
                 .withLogConsumer(KEYCLOAK_SERVICE_NAME, new Slf4jLogConsumer(LOG).withPrefix(KEYCLOAK_SERVICE_NAME))
-                .withServices("postgres", KEYCLOAK_SERVICE_NAME, "keycloakorig", KEYCLOAK_SIDEKICK_SERVICE_NAME, EXAMPLE_SAML_CLIENT.serviceName(), EXAMPLE_OIDC_CODE_FLOW.serviceName(), EXAMPLE_OIDC_HYBRID_FLOW.serviceName(), EXAMPLE_OIDC_IMPLICIT_FLOW.serviceName())
+                .withServices("postgres", KEYCLOAK_SERVICE_NAME, "keycloakorig", KEYCLOAK_SIDEKICK_SERVICE_NAME, EXAMPLE_SAML.serviceName(), EXAMPLE_MTLS.serviceName, EXAMPLE_OIDC_CODE_FLOW.serviceName(), EXAMPLE_OIDC_HYBRID_FLOW.serviceName(), EXAMPLE_OIDC_IMPLICIT_FLOW.serviceName())
                 .withEnv("SAFED_APP_PORT", port)
-                .withExposedService(EXAMPLE_SAML_CLIENT.serviceName(), EXAMPLE_SAML_CLIENT.servicePort())
+                .withExposedService(EXAMPLE_SAML.serviceName(), EXAMPLE_SAML.servicePort())
+                .withExposedService(EXAMPLE_MTLS.serviceName(), EXAMPLE_MTLS.servicePort())
                 .withExposedService(EXAMPLE_OIDC_CODE_FLOW.serviceName(), EXAMPLE_OIDC_CODE_FLOW.servicePort())
                 .withExposedService(EXAMPLE_OIDC_HYBRID_FLOW.serviceName(), EXAMPLE_OIDC_HYBRID_FLOW.servicePort())
                 .withExposedService(EXAMPLE_OIDC_IMPLICIT_FLOW.serviceName(), EXAMPLE_OIDC_IMPLICIT_FLOW.servicePort());
 
         ENVIRONMENT.start();
 
-        exampleSamlApp = ExampleApp.from(ENVIRONMENT, EXAMPLE_SAML_CLIENT);
+        exampleSamlApp = ExampleApp.from(ENVIRONMENT, EXAMPLE_SAML);
+        exampleMtlsApp = ExampleApp.from(ENVIRONMENT, EXAMPLE_MTLS);
         exampleOidcCodeFlowApp = ExampleApp.from(ENVIRONMENT, EXAMPLE_OIDC_CODE_FLOW);
         exampleOidcHybridFlowApp = ExampleApp.from(ENVIRONMENT, EXAMPLE_OIDC_HYBRID_FLOW);
         exampleOidcImplicitFlowApp = ExampleApp.from(ENVIRONMENT, EXAMPLE_OIDC_IMPLICIT_FLOW);
     }
 
-    public record ExampleAppData(String serviceName, Integer servicePort, String clientId) {
+    public record ExampleAppData(String serviceName, Integer servicePort, String schema, String clientId) {
     }
 
     public static class ExampleApp {
         private final HttpClient httpClient;
+        private final String schema;
         private final String host;
         private final Integer port;
 
-        public static ExampleApp from (ComposeContainer environment, ExampleAppData data) {
-           return new ExampleApp(environment.getServiceHost(data.serviceName(), data.servicePort()),environment.getServicePort(data.serviceName(), data.servicePort()));
+        public static ExampleApp from(ComposeContainer environment, ExampleAppData data) {
+            try {
+                return new ExampleApp(data.schema, environment.getServiceHost(data.serviceName(), data.servicePort()),environment.getServicePort(data.serviceName(), data.servicePort()));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
 
-        public ExampleApp(String host, Integer port) {
+        public ExampleApp(String schema, String host, Integer port) throws NoSuchAlgorithmException, KeyManagementException {
+            this.schema = schema;
             this.host = host;
             this.port = port;
-            this.httpClient  = HttpClient.newHttpClient();
+
+            if ("http".equals(schema)){
+                this.httpClient = HttpClient.newHttpClient();
+            }else{
+                // Create a trust manager that does not validate certificate chains
+                TrustManager[] trustAllCerts = new TrustManager[]{
+                        new X509TrustManager() {
+                            public X509Certificate[] getAcceptedIssuers() {
+                                return null;
+                            }
+                            public void checkClientTrusted(X509Certificate[] certs, String authType) {
+                            }
+                            public void checkServerTrusted(X509Certificate[] certs, String authType) {
+                            }
+                        }
+                };
+
+                // Install the all-trusting trust manager
+                SSLContext sslContext = SSLContext.getInstance("TLS");
+                sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+
+                // Create HttpClient with the custom SSL context
+                this.httpClient = HttpClient.newBuilder()
+                        .sslContext(sslContext)
+                        .build();
+            }
         }
 
         public void setIgnoredErrorDescriptions(String[] errorDescriptions) {
@@ -99,7 +143,7 @@ public abstract class ApplicationBaseTest {
         }
 
         private URI getExampleSamlServiceUri(String path) {
-            return URI.create("http://" + host + ":" + port + path);
+            return URI.create(schema + "://" + host + ":" + port + path);
         }
 
         protected <T> T invokeGetRequest(String path, TypeReference<T> responseClazz) {
@@ -169,7 +213,7 @@ public abstract class ApplicationBaseTest {
             }
 
             if (response.statusCode() != 200) {
-                throw new RuntimeException("Response code was not 200");
+                throw new RuntimeException("Executing POST '"+ path +"'. Response code was not 200." + response.body());
             }
         }
     }

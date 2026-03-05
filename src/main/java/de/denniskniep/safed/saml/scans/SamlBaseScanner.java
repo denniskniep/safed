@@ -1,8 +1,8 @@
 package de.denniskniep.safed.saml.scans;
 
 
-import de.denniskniep.safed.common.config.ScannerConfig;
-import de.denniskniep.safed.saml.config.SamlClientConfig;
+import de.denniskniep.safed.common.config.AppConfig;
+import de.denniskniep.safed.saml.config.SamlAppConfig;
 import de.denniskniep.safed.saml.config.SamlAuthData;
 import de.denniskniep.safed.saml.auth.browser.SamlRequestData;
 import de.denniskniep.safed.common.scans.ScanResult;
@@ -13,13 +13,13 @@ public class SamlBaseScanner implements SamlScanner {
     public void init(ScanResult firstPositiveScan, ScanResult secondPositiveScan, ScanResult thirdPositiveScan, ScanResult fourthScanFailure) {
     }
 
-    public SamlClientConfig getSamlClientConfig(SamlClientConfig samlClientConfig) {
+    public SamlAppConfig getSamlClientConfig(SamlAppConfig samlClientConfig) {
         return samlClientConfig;
     }
 
     @Override
-    public ScannerConfig getScannerConfig(ScannerConfig scannerConfig) {
-        return getSamlClientConfig((SamlClientConfig)scannerConfig);
+    public AppConfig getScannerConfig(AppConfig scannerConfig) {
+        return getSamlClientConfig((SamlAppConfig)scannerConfig);
     }
 
     @Override

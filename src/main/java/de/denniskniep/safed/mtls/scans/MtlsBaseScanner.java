@@ -1,6 +1,7 @@
 package de.denniskniep.safed.mtls.scans;
 
-import de.denniskniep.safed.common.config.ScannerConfig;
+import de.denniskniep.safed.common.auth.browser.HttpRequest;
+import de.denniskniep.safed.common.config.AppConfig;
 import de.denniskniep.safed.common.scans.ScanResult;
 
 public class MtlsBaseScanner implements MtlsScanner {
@@ -10,7 +11,12 @@ public class MtlsBaseScanner implements MtlsScanner {
     }
 
     @Override
-    public ScannerConfig getScannerConfig(ScannerConfig scannerConfig) {
+    public AppConfig getScannerConfig(AppConfig scannerConfig) {
         return scannerConfig;
+    }
+
+    @Override
+    public HttpRequest beforeRequest(HttpRequest request) {
+        return request;
     }
 }

@@ -1,7 +1,7 @@
 package de.denniskniep.safed.saml.auth.server;
 
 import de.denniskniep.safed.common.utils.KeyProvider;
-import de.denniskniep.safed.saml.config.SamlClientConfig;
+import de.denniskniep.safed.saml.config.SamlAppConfig;
 import de.denniskniep.safed.saml.config.SamlAuthData;
 import de.denniskniep.safed.saml.auth.browser.SamlRequestData;
 import org.keycloak.crypto.KeyWrapper;
@@ -37,7 +37,7 @@ public class SamlResponseBuilder {
         return attribute;
     }
 
-    public SamlResponseResult create(SamlClientConfig clientConfig, SamlRequestData request, SamlAuthData samlAuthData) {
+    public SamlResponseResult create(SamlAppConfig clientConfig, SamlRequestData request, SamlAuthData samlAuthData) {
 
         // References:
         // SamlProtocol.authenticated

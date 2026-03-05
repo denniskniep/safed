@@ -17,13 +17,14 @@ import org.openqa.selenium.chrome.ChromeDriverService;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.chromium.ChromiumDriverLogLevel;
 import org.openqa.selenium.devtools.HasDevTools;
+import org.openqa.selenium.net.PortProber;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -70,182 +71,208 @@ public class Browser implements AutoCloseable {
         exec("%s","%s", %s)
     """;
 
-    protected final WebDriver driver;
-    protected final BrowserConfig config;
+    private final WebDriver driver;
+    private final BrowserConfig config;
+    private final ByteArrayOutputStream chromeLogs = new ByteArrayOutputStream();
 
     private final Path tmpProfileDir;
 
-    protected final Event<BeforeRequestSentWithBody> beforeRequestSentEvent =
+    private final Event<BeforeRequestSentWithBody> beforeRequestSentEvent =
             new Event<>("network.beforeRequestSent", BeforeRequestSentWithBody::fromJsonMap);
 
-    public Browser() {
-        this(new BrowserConfig());
+    private final ChromeDriverService service;
+
+    public static Browser create(){
+        return create(new BrowserConfig());
     }
 
-    public Browser(BrowserConfig config) {
-        this.config = config;
 
-        // unique, empty profile per run
+    public static Browser create(BrowserConfig config){
+        Exception lastException = null;
+        int i;
+        for (i = 1; i < 4; i++) {
+            try {
+                // ToDo: Investigate why this occasionally fail and remove the retry logic
+                LOG.info("Starting Browser (attempt #{})", i);
+                return new Browser(config);
+            }catch (Exception e){
+                lastException = e;
+                LOG.error(e.getMessage());
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+        }
+        throw new RuntimeException("Failed to create Browser even after " + i + " attempts!", lastException);
+    }
+
+    private Browser(BrowserConfig config) {
+        try{
+            this.config = config;
+
+            // unique, empty profile per run
+            try {
+                tmpProfileDir = Files.createTempDirectory("chrome-selenium-profile-");
+            } catch (IOException e) {
+                throw new RuntimeException("Can not create temp chrome profile dir", e);
+            }
+
+            BrowserExtension browserExtension = new BrowserExtension(config.getExtraHeaders());
+
+            ChromeOptions options = new ChromeOptions();
+            options.addArguments("--headless=new");
+            options.addArguments("--user-data-dir=" + tmpProfileDir.toAbsolutePath());
+            options.addArguments("--window-size=1920,1080");
+            options.addArguments("--disable-gpu");
+            options.addArguments("--no-sandbox");
+            options.addArguments("--disable-dev-shm-usage");
+            options.addArguments("--single-process");
+            options.addEncodedExtensions(browserExtension.createEncodedExtension());
+
+            options.enableBiDi();
+
+            if (config.isIgnoreSslErrors()) {
+                options.addArguments("--ignore-certificate-errors");
+                options.setAcceptInsecureCerts(true);
+            }
+
+            if (config.hasCertConfig()) {
+                configureCerts(config, options);
+            }
+
+            this.service = new ChromeDriverService.Builder()
+                    .withEnvironment(Map.of("HOME", tmpProfileDir.toAbsolutePath().toString()))
+                    .withLogLevel(ChromiumDriverLogLevel.DEBUG)
+                    .withVerbose(true)
+                    .withLogOutput(chromeLogs)
+                    .build();
+
+            driver = new ChromeDriver(service, options);
+
+            driver.switchTo().newWindow(WindowType.TAB);
+
+            driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
+            driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(60));
+
+        }catch (Exception e){
+            revealBrowserLogBecauseOfError();
+            throw new  RuntimeException(e);
+        }
+    }
+
+    // https://chromium.googlesource.com/chromium/src.git/+/master/docs/linux/cert_management.md
+    // mTLS config does not work with snap installed chromium ($HOME/.pki does not work - Home envvar is not used)
+    private void configureCerts(BrowserConfig config, ChromeOptions options) {
         try {
-            tmpProfileDir = Files.createTempDirectory("chrome-selenium-profile-");
-        } catch (IOException e) {
-            throw new RuntimeException("Can not create temp chrome profile dir", e);
+            // Initialize NSS database in profile directory
+            Path nssDbDir = tmpProfileDir.resolve(".pki/nssdb");
+            Files.createDirectories(nssDbDir);
+            runCommand("certutil", "-N", "-d", "sql:" + nssDbDir.toAbsolutePath(), "--empty-password");
+
+            LOG.info("NSS database location: {}", nssDbDir.toAbsolutePath());
+
+            if(config.hasMtlsConfig()){
+                Path certPath = Path.of(this.config.getClientCertX509CertPemFilePath());
+                Path keyPath = Path.of(this.config.getClientCertPrivateKeyPemFilePath());
+                Path pkcs12Path = tmpProfileDir.resolve("client.p12");
+
+                // Create PKCS12 store
+                runCommand("openssl", "pkcs12", "-export",
+                        "-in", certPath.toAbsolutePath().toString(),
+                        "-inkey", keyPath.toAbsolutePath().toString(),
+                        "-out", pkcs12Path.toAbsolutePath().toString(),
+                        "-passout", "pass:supersecure");
+
+                // Import PKCS12 into NSS database
+                runCommand("pk12util",
+                        "-i", pkcs12Path.toAbsolutePath().toString(),
+                        "-d", "sql:" + nssDbDir.toAbsolutePath(),
+                        "-W", "supersecure");
+
+                // Autoselect cert
+                options.setExperimentalOption("prefs", Map.of(
+                        "profile.managed_auto_select_certificate_for_urls", List.of("{\"pattern\":\"*\",\"filter\":{}}")
+                ));
+            }
+
+            int i = 0;
+            for (var rootCa : config.getTrustedRootCAs()){
+                Path rootCaPath = Path.of(rootCa);
+
+                // trust a root CA certificate for issuing SSL server certificates
+                runCommand("certutil",
+                        "-d", "sql:" + nssDbDir.toAbsolutePath(),
+                        "-A",
+                        "-t", "C,,",
+                        "-n", "trusted-root-ca-" + i++,
+                        "-i",  rootCaPath.toAbsolutePath().toString());
+            }
+
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException("Failed to configure mTLS for browser", e);
         }
-
-        ChromeOptions options = new ChromeOptions();
-        options.addArguments("--headless=new");
-        options.addArguments("--disable-extensions");
-        options.addArguments("--user-data-dir=" + tmpProfileDir.toAbsolutePath());
-        options.addArguments("--remote-debugging-port=" + getRandomPort());
-        //options.addArguments("--auto-open-devtools-for-tabs");
-        options.addArguments("--window-size=1920,1080");
-        options.enableBiDi();
-
-        if (config.isIgnoreSslErrors()) {
-            options.addArguments("--ignore-certificate-errors");
-            options.setAcceptInsecureCerts(true);
-        }
-
-        if (config.hasMtlsConfig()) {
-            configureMtls(options);
-        }
-
-        ChromeDriverService service = new ChromeDriverService.Builder()
-                .withEnvironment(Map.of("HOME", tmpProfileDir.toAbsolutePath().toString()))
-                /*.withLogLevel(ChromiumDriverLogLevel.DEBUG)
-                .withVerbose(true)
-                .withLogOutput(System.out)*/
-                .build();
-
-        driver = new ChromeDriver(service, options);
-        driver.switchTo().newWindow(WindowType.TAB);
-
-        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
-        driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(60));
     }
 
-    private static void requireCommand(String command, String recommendation) {
+    private static void runCommand(String... command) throws IOException, InterruptedException {
+        requireCommand(command[0]);
+
+        ProcessBuilder pb = new ProcessBuilder(command);
+        pb.inheritIO();
+        Process process = pb.start();
+        int exitCode = process.waitFor();
+        if (exitCode != 0) {
+            throw new RuntimeException("Failed to execute "+command[0]+" (command returned exit code: " + exitCode + ")");
+        }
+    }
+
+    private static void requireCommand(String command) {
         try {
             Process process = new ProcessBuilder("which", command)
                     .redirectErrorStream(true)
                     .start();
             int exitCode = process.waitFor();
             if (exitCode != 0) {
-                throw new RuntimeException("Required command '" + command + "' is not available on this system. " + recommendation);
+                throw new RuntimeException("Required command '" + command + "' is not available on this system.");
             }
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException("Failed to check availability of command '" + command + "'", e);
         }
     }
 
-    // https://chromium.googlesource.com/chromium/src.git/+/master/docs/linux/cert_management.md
-    // mTLS config does not work with snap installed chromium ($HOME/.pki does not work - Home envvar is not used)
-    private void configureMtls(ChromeOptions options) {
-        try {
-
-            requireCommand("openssl", "Please install 'apt install openssl'");
-            requireCommand("certutil", "Please install 'apt install libnss3-tools'");
-            requireCommand("pk12util", "Please install 'apt install libnss3-tools'");
-
-            Path certPath = Path.of(config.getClientCertX509CertPemFilePath());
-            Path keyPath = Path.of(config.getClientCertPrivateKeyPemFilePath());
-
-            Path pkcs12Path = tmpProfileDir.resolve("client.p12");
-
-            // Convert PEM cert + key to PKCS12 using openssl
-            ProcessBuilder pb = new ProcessBuilder(
-                    "openssl", "pkcs12", "-export",
-                    "-in", certPath.toAbsolutePath().toString(),
-                    "-inkey", keyPath.toAbsolutePath().toString(),
-                    "-out", pkcs12Path.toAbsolutePath().toString(),
-                    "-passout", "pass:supersecure"
-            );
-            pb.inheritIO();
-            Process process = pb.start();
-            int exitCode = process.waitFor();
-            if (exitCode != 0) {
-                throw new RuntimeException("Failed to convert PEM to PKCS12 (openssl exit code: " + exitCode + ")");
-            }
-
-            // Initialize NSS database in profile directory
-            Path nssDbDir = tmpProfileDir.resolve(".pki/nssdb");
-            Files.createDirectories(nssDbDir);
-
-            ProcessBuilder certutilPb = new ProcessBuilder(
-                    "certutil", "-N", "-d", "sql:" + nssDbDir.toAbsolutePath(), "--empty-password"
-            );
-            certutilPb.inheritIO();
-            Process certutilProcess = certutilPb.start();
-            int certutilExit = certutilProcess.waitFor();
-            if (certutilExit != 0) {
-                throw new RuntimeException("Failed to initialize NSS database (certutil exit code: " + certutilExit + ")");
-            }
-
-            // Import PKCS12 into NSS database
-            ProcessBuilder pk12utilPb = new ProcessBuilder(
-                    "pk12util",
-                    "-i", pkcs12Path.toAbsolutePath().toString(),
-                    "-d", "sql:" + nssDbDir.toAbsolutePath(),
-                    "-W", "supersecure"
-            );
-            pk12utilPb.inheritIO();
-            Process pk12utilProcess = pk12utilPb.start();
-            int pk12utilExit = pk12utilProcess.waitFor();
-            if (pk12utilExit != 0) {
-                throw new RuntimeException("Failed to import PKCS12 into NSS database (pk12util exit code: " + pk12utilExit + ")");
-            }
-
-            // Autoselect cert
-            options.setExperimentalOption("prefs", Map.of(
-                    "profile.managed_auto_select_certificate_for_urls", List.of("{\"pattern\":\"*\",\"filter\":{}}")
-            ));
-
-            LOG.info("NSS database location: {}", nssDbDir.toAbsolutePath());
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException("Failed to configure mTLS for browser", e);
-        }
-    }
-
-    protected JavascriptExecutor getDriverAsJavascriptExecutor(){
+    private JavascriptExecutor getDriverAsJavascriptExecutor(){
         if (!(driver instanceof JavascriptExecutor)) {
             throw new RuntimeException("WebDriver instance must implement JavascriptExecutor");
         }
         return (JavascriptExecutor)driver;
     }
 
-    protected HasDevTools getDriverWithDevTools(){
+    private HasDevTools getDriverWithDevTools(){
         if (!(driver instanceof HasDevTools)) {
             throw new RuntimeException("WebDriver instance must implement HasDevTools");
         }
         return (HasDevTools)driver;
     }
 
-    protected HasBiDi getDriverWithBiDi(){
+    private HasBiDi getDriverWithBiDi(){
         if (!(driver instanceof HasBiDi)) {
             throw new RuntimeException("WebDriver instance must implement HasBiDi");
         }
         return (HasBiDi)driver;
     }
 
-    private int getRandomPort() {
-        try (ServerSocket serverSocket = new ServerSocket(0)) {
-            return serverSocket.getLocalPort();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     public Page execute(HttpRequest httpRequest){
-        return execute(httpRequest, r -> true);
+        return execute(httpRequest, r -> StringUtils.equalsIgnoreCase(r.getMethod(), httpRequest.method()) && StringUtils.equalsIgnoreCase(r.getUrl(), httpRequest.url()));
     }
 
     public Page execute(HttpRequest httpRequest, Predicate<RequestDataWithBody> captureRequestCondition){
+        var authLog = new AuthenticationLog();
+
+        CaptureRequest captureRequest = new CaptureRequest(captureRequestCondition);
+        getDriverWithBiDi().getBiDi().addListener(beforeRequestSentEvent, captureRequest);
+
         try(var network = new Network(driver)) {
-            var authLog = new AuthenticationLog();
-
-            CaptureRequest captureRequest = new CaptureRequest(captureRequestCondition);
-            getDriverWithBiDi().getBiDi().addListener(beforeRequestSentEvent, captureRequest);
-
             RequestResponseLogHandler requestResponseLogHandler = new RequestResponseLogHandler(authLog);
             network.onResponseCompleted(requestResponseLogHandler);
 
@@ -294,15 +321,17 @@ public class Browser implements AutoCloseable {
             var visibleText = driver.findElement(By.tagName("body")).getText();
 
             return new Page(driver.getCurrentUrl(), driver.getTitle(), driver.getPageSource(), visibleText, cookies, authLog, captureRequest.getCapturedRequest().get(), captureResponse);
+        }catch (Exception e){
+            revealBrowserLogBecauseOfError();
+            throw new  RuntimeException(e);
         }
     }
-
 
     private static boolean noRedirect(ResponseData r) {
         return r.getStatus() < 300 || r.getStatus() >= 400;
     }
 
-    public void waitForLastRequestProcessed(AuthenticationLog authenticationLog) {
+    private void waitForLastRequestProcessed(AuthenticationLog authenticationLog) {
         while (true) {
             RequestResponse lastRequest = null;
             if(!authenticationLog.getTraffic().isEmpty()){
@@ -322,7 +351,7 @@ public class Browser implements AutoCloseable {
         }
     }
 
-    public void waitForPageLoaded() {
+    private void waitForPageLoaded() {
         var timeout = Duration.ofSeconds(60);
         var pollingEvery = Duration.ofMillis(500);
 
@@ -332,7 +361,7 @@ public class Browser implements AutoCloseable {
         wait.until(documentReadyStateComplete());
     }
 
-    public ExpectedCondition<Boolean> documentReadyStateComplete() {
+    private ExpectedCondition<Boolean> documentReadyStateComplete() {
         return driver -> {
             if (driver instanceof JavascriptExecutor) {
                 String readyState = (String) ((JavascriptExecutor) driver).executeScript("return document.readyState");
@@ -342,14 +371,26 @@ public class Browser implements AutoCloseable {
         };
     }
 
+    private void revealBrowserLogBecauseOfError(){
+        LOG.info("Unexpected Error occurred, printing the verbose Browser logs\n{}", getLogs());
+    }
+
+    public String getLogs(){
+        return chromeLogs.toString();
+    }
+
     @Override
     public void close() {
         if (driver != null) {
             driver.quit();
         }
-    }
 
-    public WebDriver getDriver() {
-        return driver;
+        if (service != null && service.isRunning()) {
+            service.stop();  // Explicitly stop the service
+        }
+
+        if(service != null) {
+            service.close();
+        }
     }
 }
