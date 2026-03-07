@@ -381,16 +381,13 @@ public class Browser implements AutoCloseable {
 
     @Override
     public void close() {
+        try {
+            runCommand("pkill", "-f", "user-data-dir=" + tmpProfileDir.toAbsolutePath());
+        } catch (Exception e) {
+            LOG.error("Killing process for fast shutdown did not work.", e);
+        }
         if (driver != null) {
             driver.quit();
-        }
-
-        if (service != null && service.isRunning()) {
-            service.stop();  // Explicitly stop the service
-        }
-
-        if(service != null) {
-            service.close();
         }
     }
 }

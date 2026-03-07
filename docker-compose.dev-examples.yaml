@@ -2,7 +2,6 @@ services:
   examplesaml001:
     build:
       context: ./dev/example-saml-001
-    restart: always
     depends_on:
       - keycloak
     environment:
@@ -18,7 +17,6 @@ services:
   exampleoidc002codeflow:
     build:
       context: ./dev/example-oidc-002
-    restart: always
     depends_on:
       - keycloak
     environment:
@@ -34,7 +32,6 @@ services:
   exampleoidc002hybridflow:
     build:
       context: ./dev/example-oidc-002
-    restart: always
     depends_on:
       - keycloak
     environment:
@@ -50,7 +47,6 @@ services:
   exampleoidc002implicitflow:
     build:
       context: ./dev/example-oidc-002
-    restart: always
     depends_on:
       - keycloak
     environment:
@@ -66,7 +62,6 @@ services:
   examplemtls:
     build:
       context: ./dev/example-mtls-003
-    restart: always
     depends_on:
       - keycloak
     environment:

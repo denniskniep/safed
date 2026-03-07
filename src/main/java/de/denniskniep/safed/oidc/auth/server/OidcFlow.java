@@ -138,6 +138,7 @@ public class OidcFlow implements FrontChannelRequest, BackchannelHandler {
     }
 
     public Optional<TokenResponse> onCodeToToken(TokenRequest request) {
+        // ToDo: Add Client Secret check
         if(StringUtils.equals(request.getCode(), code)){
             var response = Optional.of(buildTokenResponse());
             return this.backchannelInterceptor.onCodeToToken(request, response);
