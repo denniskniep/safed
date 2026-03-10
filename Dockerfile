@@ -15,7 +15,7 @@ USER root
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-COPY ./install-chromium.sh ./install-chromium.sh
+COPY docker/install-chromium.sh ./install-chromium.sh
 RUN ./install-chromium.sh
 
 #=================================

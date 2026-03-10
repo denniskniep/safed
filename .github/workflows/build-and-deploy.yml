@@ -77,7 +77,7 @@ jobs:
           flavor: |
             latest=true
           tags: |
-            type=semver,pattern={{version}}
+            type=semver,pattern=v{{version}}
             type=semver,pattern=v{{major}}.{{minor}}
             type=semver,pattern=v{{major}}
 
@@ -125,12 +125,10 @@ jobs:
 
             ### Docker Image
             ```
-            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.VERSION }}
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:v${{ steps.version.outputs.VERSION }}
             ```
 
             ### Changes
-            This is a pre-release. Please test thoroughly before using in production.
-
             See the [CHANGELOG](CHANGELOG.md) for detailed changes.
           draft: true
           prerelease: true

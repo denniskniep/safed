@@ -123,6 +123,11 @@ Add to `/etc/hosts`
 127.0.0.1 keycloak
 ```
 
+Install Chromium and corresponding Selenium WebDriver
+```
+./docker/install-chromium.sh
+```
+
 Start development environment
 ```
 sudo docker compose -f docker-compose.dev.yaml -f docker-compose.dev-examples.yaml -f docker-compose.dev-apps.yaml up --build
