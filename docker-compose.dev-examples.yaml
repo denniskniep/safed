@@ -4,6 +4,7 @@ services:
       context: ./dev/example-saml-001
     depends_on:
       - keycloak
+    restart: always
     environment:
       KEYCLOAK_URL: "http://keycloak:8080"
     volumes:
@@ -19,6 +20,7 @@ services:
       context: ./dev/example-oidc-002
     depends_on:
       - keycloak
+    restart: always
     environment:
       KEYCLOAK_URL: "http://keycloak:8080"
     volumes:
@@ -34,6 +36,7 @@ services:
       context: ./dev/example-oidc-002
     depends_on:
       - keycloak
+    restart: always
     environment:
       KEYCLOAK_URL: "http://keycloak:8080"
     volumes:
@@ -49,6 +52,7 @@ services:
       context: ./dev/example-oidc-002
     depends_on:
       - keycloak
+    restart: always
     environment:
       KEYCLOAK_URL: "http://keycloak:8080"
     volumes:
@@ -64,6 +68,7 @@ services:
       context: ./dev/example-mtls-003
     depends_on:
       - keycloak
+    restart: always
     environment:
       KEYCLOAK_URL: "http://keycloak:8080"
     volumes:

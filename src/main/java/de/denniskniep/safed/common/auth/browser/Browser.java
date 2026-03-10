@@ -17,7 +17,6 @@ import org.openqa.selenium.chrome.ChromeDriverService;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.chromium.ChromiumDriverLogLevel;
 import org.openqa.selenium.devtools.HasDevTools;
-import org.openqa.selenium.net.PortProber;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
@@ -28,6 +27,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -120,6 +120,7 @@ public class Browser implements AutoCloseable {
             }
 
             BrowserExtension browserExtension = new BrowserExtension(config.getExtraHeaders());
+            Path extension = browserExtension.createExtensionAsFolder();
 
             ChromeOptions options = new ChromeOptions();
             options.addArguments("--headless=new");
@@ -128,9 +129,15 @@ public class Browser implements AutoCloseable {
             options.addArguments("--disable-gpu");
             options.addArguments("--no-sandbox");
             options.addArguments("--disable-dev-shm-usage");
-            options.addArguments("--single-process");
-            options.addEncodedExtensions(browserExtension.createEncodedExtension());
-
+            //options.addArguments("--enable-unsafe-extension-debugging");
+            //options.addArguments("--disable-features=DisableLoadExtensionCommandLineSwitch");
+            //options.addArguments("--load-extension=" + extension.toAbsolutePath());
+            //options.addArguments("--disable-extensions-except=" +  extension.toAbsolutePath());
+            //options.addArguments("--single-process");
+            //options.addArguments("--disable-dbus");
+            //options.addExtensions(browserExtension.createEncodedExtension().toAbsolutePath());
+            //options.addExtensions(extension);
+            options.addEncodedExtensions(browserExtension.createExtensionZipEncoded());
             options.enableBiDi();
 
             if (config.isIgnoreSslErrors()) {
@@ -144,21 +151,23 @@ public class Browser implements AutoCloseable {
 
             this.service = new ChromeDriverService.Builder()
                     .withEnvironment(Map.of("HOME", tmpProfileDir.toAbsolutePath().toString()))
-                    .withLogLevel(ChromiumDriverLogLevel.DEBUG)
-                    .withVerbose(true)
+                    .withLogLevel(config.isDebug() ? ChromiumDriverLogLevel.DEBUG : ChromiumDriverLogLevel.WARNING)
+                    .withVerbose(config.isDebug())
                     .withLogOutput(chromeLogs)
                     .build();
 
             driver = new ChromeDriver(service, options);
-
-            driver.switchTo().newWindow(WindowType.TAB);
-
             driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
             driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(60));
 
+            browserExtension.checkExtensionLoaded(driver);
+
+            driver.switchTo().newWindow(WindowType.TAB);
+
+
         }catch (Exception e){
             revealBrowserLogBecauseOfError();
-            throw new  RuntimeException(e);
+            throw new RuntimeException("Starting Browser failed", e);
         }
     }
 
@@ -178,6 +187,8 @@ public class Browser implements AutoCloseable {
                 Path keyPath = Path.of(this.config.getClientCertPrivateKeyPemFilePath());
                 Path pkcs12Path = tmpProfileDir.resolve("client.p12");
 
+                LOG.info("Configured mTLS cert {} with key {}", certPath.toAbsolutePath(), keyPath.toAbsolutePath());
+
                 // Create PKCS12 store
                 runCommand("openssl", "pkcs12", "-export",
                         "-in", certPath.toAbsolutePath().toString(),
@@ -193,13 +204,15 @@ public class Browser implements AutoCloseable {
 
                 // Autoselect cert
                 options.setExperimentalOption("prefs", Map.of(
-                        "profile.managed_auto_select_certificate_for_urls", List.of("{\"pattern\":\"*\",\"filter\":{}}")
+                    "profile.managed_auto_select_certificate_for_urls", List.of("{\"pattern\":\"*\",\"filter\":{}}")
                 ));
             }
 
             int i = 0;
-            for (var rootCa : config.getTrustedRootCAs()){
-                Path rootCaPath = Path.of(rootCa);
+            var trustedCAs = config.getTrustedRootCa() == null ?  new ArrayList<String>():  config.getTrustedRootCa();
+            for (var rootCa : trustedCAs){
+                String rootCaPath = Path.of(rootCa).toAbsolutePath().toString();
+                LOG.info("Configured Trusted root CA from: {}", rootCaPath);
 
                 // trust a root CA certificate for issuing SSL server certificates
                 runCommand("certutil",
@@ -207,7 +220,7 @@ public class Browser implements AutoCloseable {
                         "-A",
                         "-t", "C,,",
                         "-n", "trusted-root-ca-" + i++,
-                        "-i",  rootCaPath.toAbsolutePath().toString());
+                        "-i",  rootCaPath);
             }
 
         } catch (IOException | InterruptedException e) {
@@ -296,8 +309,13 @@ public class Browser implements AutoCloseable {
             waitForLastRequestProcessed(authLog);
             waitForPageLoaded();
 
+
+            if(StringUtils.equalsIgnoreCase("Privacy error", driver.getTitle())) {
+                throw new RuntimeException("Privacy error! Likely the provided SSL cert is not trusted by the browser\n"+new ObjectMapper().writeValueAsString(config));
+            }
+
             if(captureRequest.getCapturedRequest().isEmpty()) {
-                throw new RuntimeException("No captured request found!");
+                throw new RuntimeException("No captured request found!\nTrafficLog:\n" + authLog.asShortLogList());
             }
 
             var captureRequestSeen = false;
@@ -314,7 +332,7 @@ public class Browser implements AutoCloseable {
             }
 
             if(captureResponse == null) {
-                throw new RuntimeException("Can not find first non redirect Response after captured request!");
+                throw new RuntimeException("Can not find first non redirect Response after captured request!\nCaptured Request:"+captureRequest.getCapturedRequest().get().getUrl()+"\nTrafficLog:\n" + authLog.asShortLogList());
             }
 
             var cookies = driver.manage().getCookies();

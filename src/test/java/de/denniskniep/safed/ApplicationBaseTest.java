@@ -3,13 +3,19 @@ package de.denniskniep.safed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.denniskniep.safed.common.report.Report;
+import de.denniskniep.safed.webhook.WebhookReceiver;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.ComposeContainer;
+import org.testcontainers.containers.Container;
+import org.testcontainers.containers.ContainerState;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -21,6 +27,7 @@ import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 
@@ -29,7 +36,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 @Testcontainers
-public abstract class ApplicationBaseTest {
+public abstract class ApplicationBaseTest implements AutoCloseable {
 
     protected static final Logger LOG = LoggerFactory.getLogger(ApplicationBaseTest.class);
 
@@ -50,12 +57,35 @@ public abstract class ApplicationBaseTest {
     protected final ExampleApp exampleOidcHybridFlowApp;
     protected final ExampleApp exampleOidcImplicitFlowApp;
 
+    private final List<ExampleApp> exampleApps;
+
+    protected final String SAFED_SERVICE_NAME = "safed";
+
+    private static WebhookReceiver webhookServer;
+
+    protected ExampleApp findExampleApp(String clientID){
+        return exampleApps
+                .stream()
+                .filter(e -> StringUtils.equalsIgnoreCase(e.getClientId(), clientID))
+                .findFirst()
+                .orElseThrow();
+    }
+
     public ApplicationBaseTest(String port) {
+        webhookServer = new WebhookReceiver();
+        try {
+            webhookServer.start();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         ENVIRONMENT = new ComposeContainer(
                 new File("./docker-compose.dev.yaml"),
-                new File("./docker-compose.dev-examples.yaml")
+                new File("./docker-compose.dev-examples.yaml"),
+                new File("./docker-compose.dev-safed.yaml")
+
         )
-                .withStartupTimeout(Duration.of(120, ChronoUnit.MINUTES))
+                .withStartupTimeout(Duration.of(350, ChronoUnit.MINUTES))
                 .waitingFor(KEYCLOAK_SIDEKICK_SERVICE_NAME, Wait.forLogMessage("Finished Keycloak Setup\n", 1))
                 .waitingFor(EXAMPLE_SAML.serviceName(), Wait.forLogMessage(".*Started ExampleSamlApp.*", 1))
                 .waitingFor(EXAMPLE_MTLS.serviceName(), Wait.forLogMessage(".*Started ExampleMtlsApp.*", 1))
@@ -68,13 +98,19 @@ public abstract class ApplicationBaseTest {
                 .withLogConsumer(EXAMPLE_OIDC_HYBRID_FLOW.serviceName(), new Slf4jLogConsumer(LOG).withPrefix(EXAMPLE_OIDC_HYBRID_FLOW.serviceName()))
                 .withLogConsumer(EXAMPLE_OIDC_IMPLICIT_FLOW.serviceName(), new Slf4jLogConsumer(LOG).withPrefix(EXAMPLE_OIDC_IMPLICIT_FLOW.serviceName()))
                 .withLogConsumer(KEYCLOAK_SERVICE_NAME, new Slf4jLogConsumer(LOG).withPrefix(KEYCLOAK_SERVICE_NAME))
-                .withServices("postgres", KEYCLOAK_SERVICE_NAME, "keycloakorig", KEYCLOAK_SIDEKICK_SERVICE_NAME, EXAMPLE_SAML.serviceName(), EXAMPLE_MTLS.serviceName, EXAMPLE_OIDC_CODE_FLOW.serviceName(), EXAMPLE_OIDC_HYBRID_FLOW.serviceName(), EXAMPLE_OIDC_IMPLICIT_FLOW.serviceName())
+                .withServices(SAFED_SERVICE_NAME, "postgres", KEYCLOAK_SERVICE_NAME, "keycloakorig", KEYCLOAK_SIDEKICK_SERVICE_NAME, EXAMPLE_SAML.serviceName(), EXAMPLE_MTLS.serviceName, EXAMPLE_OIDC_CODE_FLOW.serviceName(), EXAMPLE_OIDC_HYBRID_FLOW.serviceName(), EXAMPLE_OIDC_IMPLICIT_FLOW.serviceName())
                 .withEnv("SAFED_APP_PORT", port)
                 .withExposedService(EXAMPLE_SAML.serviceName(), EXAMPLE_SAML.servicePort())
                 .withExposedService(EXAMPLE_MTLS.serviceName(), EXAMPLE_MTLS.servicePort())
                 .withExposedService(EXAMPLE_OIDC_CODE_FLOW.serviceName(), EXAMPLE_OIDC_CODE_FLOW.servicePort())
                 .withExposedService(EXAMPLE_OIDC_HYBRID_FLOW.serviceName(), EXAMPLE_OIDC_HYBRID_FLOW.servicePort())
-                .withExposedService(EXAMPLE_OIDC_IMPLICIT_FLOW.serviceName(), EXAMPLE_OIDC_IMPLICIT_FLOW.servicePort());
+                .withExposedService(EXAMPLE_OIDC_IMPLICIT_FLOW.serviceName(), EXAMPLE_OIDC_IMPLICIT_FLOW.servicePort())
+                .waitingFor(SAFED_SERVICE_NAME, Wait.forLogMessage(".*Keycloak (.*) is ready.*", 1))
+                .withLogConsumer(SAFED_SERVICE_NAME, new Slf4jLogConsumer(LOG).withPrefix(SAFED_SERVICE_NAME))
+                .withEnv("WEBHOOK_ENABLED", "true")
+                .withEnv("WEBHOOK_URL", "http://host.docker.internal:9999/webhook")
+                .withBuild(true);
+
 
         ENVIRONMENT.start();
 
@@ -83,26 +119,60 @@ public abstract class ApplicationBaseTest {
         exampleOidcCodeFlowApp = ExampleApp.from(ENVIRONMENT, EXAMPLE_OIDC_CODE_FLOW);
         exampleOidcHybridFlowApp = ExampleApp.from(ENVIRONMENT, EXAMPLE_OIDC_HYBRID_FLOW);
         exampleOidcImplicitFlowApp = ExampleApp.from(ENVIRONMENT, EXAMPLE_OIDC_IMPLICIT_FLOW);
+        exampleApps = List.of(exampleSamlApp, exampleMtlsApp, exampleOidcCodeFlowApp, exampleOidcHybridFlowApp, exampleOidcImplicitFlowApp);
+    }
+
+    public Report runAssessment(String clientId, List<String> triggeredScanners){
+        Optional<ContainerState> safedContainer = ENVIRONMENT.getContainerByServiceName(SAFED_SERVICE_NAME);
+        if(safedContainer.isEmpty()){
+            throw new IllegalStateException("SAFED_CONTAINER NOT FOUND");
+        }
+
+        try {
+            // TODO: how to get the Stdout into a stream while running
+            Container.ExecResult execResult = safedContainer.get().execInContainer("java", "-jar", "/app/app.jar", clientId, String.join(",", triggeredScanners));
+            String stdout = execResult.getStdout();
+            LOG.info(stdout);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return webhookServer
+                .getReceivedReports()
+                .stream()
+                .filter(r -> StringUtils.equalsIgnoreCase(clientId, r.getClientId()))
+                .findFirst()
+                .orElseThrow();
+    }
+
+    @Override
+    public void close(){
+        if (webhookServer != null) {
+            webhookServer.close();
+        }
     }
 
     public record ExampleAppData(String serviceName, Integer servicePort, String schema, String clientId) {
     }
 
     public static class ExampleApp {
+
         private final HttpClient httpClient;
+        private final ExampleAppData data;
         private final String schema;
         private final String host;
         private final Integer port;
 
         public static ExampleApp from(ComposeContainer environment, ExampleAppData data) {
             try {
-                return new ExampleApp(data.schema, environment.getServiceHost(data.serviceName(), data.servicePort()),environment.getServicePort(data.serviceName(), data.servicePort()));
+                return new ExampleApp(data, data.schema, environment.getServiceHost(data.serviceName(), data.servicePort()),environment.getServicePort(data.serviceName(), data.servicePort()));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
 
-        public ExampleApp(String schema, String host, Integer port) throws NoSuchAlgorithmException, KeyManagementException {
+        public ExampleApp(ExampleAppData data, String schema, String host, Integer port) throws NoSuchAlgorithmException, KeyManagementException {
+            this.data = data;
             this.schema = schema;
             this.host = host;
             this.port = port;
@@ -145,6 +215,9 @@ public abstract class ApplicationBaseTest {
         private URI getExampleSamlServiceUri(String path) {
             return URI.create(schema + "://" + host + ":" + port + path);
         }
+        public String getClientId() {
+            return data.clientId;
+        }
 
         protected <T> T invokeGetRequest(String path, TypeReference<T> responseClazz) {
             HttpRequest request = HttpRequest.newBuilder()
@@ -179,7 +252,9 @@ public abstract class ApplicationBaseTest {
                         upstream,
                         inputStream -> {
                             try {
-                                return objectMapper.readValue(inputStream, typeReference);
+                                // fully consume the stream first, so it is not canceling the http request!
+                                byte[] bytes = inputStream.readAllBytes();
+                                return objectMapper.readValue(bytes, typeReference);
                             } catch (Exception e) {
                                 throw new RuntimeException("Failed to parse JSON response", e);
                             }

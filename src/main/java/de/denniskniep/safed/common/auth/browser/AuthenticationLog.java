@@ -44,6 +44,10 @@ public class AuthenticationLog {
             }
         }
     }
+
+    public String asShortLogList(){
+        return  String.join("\n",getTraffic().stream().map(RequestResponse::asShortLog).toList());
+    }
 }
 
 

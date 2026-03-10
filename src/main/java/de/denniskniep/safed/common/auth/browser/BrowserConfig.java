@@ -7,15 +7,24 @@ public class BrowserConfig {
     private String clientCertX509CertPemFilePath;
     private String clientCertPrivateKeyPemFilePath;
     private boolean ignoreSslErrors;
-    private List<String> trustedRootCAs;
+    private List<String> trustedRootCa;
     private Map<String, String> extraHeaders;
+    private boolean debug;
+
+    public boolean isDebug() {
+        return debug;
+    }
+
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+    }
 
     public boolean hasMtlsConfig() {
         return clientCertX509CertPemFilePath != null && clientCertPrivateKeyPemFilePath != null;
     }
 
     public boolean hasTrustedRootCAConfig() {
-        return trustedRootCAs != null && !trustedRootCAs.isEmpty();
+        return trustedRootCa != null && !trustedRootCa.isEmpty();
     }
 
     public boolean hasCertConfig() {
@@ -43,12 +52,12 @@ public class BrowserConfig {
         this.ignoreSslErrors = ignoreSslErrors;
     }
 
-    public List<String> getTrustedRootCAs() {
-        return trustedRootCAs;
+    public List<String> getTrustedRootCa() {
+        return trustedRootCa;
     }
 
-    public void setTrustedRootCAs(List<String> trustedRootCAs) {
-        this.trustedRootCAs = trustedRootCAs;
+    public void setTrustedRootCa(List<String> trustedRootCa) {
+        this.trustedRootCa = trustedRootCa;
     }
 
     public Map<String, String> getExtraHeaders() {

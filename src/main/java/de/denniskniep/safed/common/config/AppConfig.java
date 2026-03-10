@@ -9,7 +9,7 @@ import java.util.Map;
 public abstract class AppConfig {
     private String clientCertPrivateKeyPemFilePath;
     private String clientCertX509CertPemFilePath;
-    private List<String> trustedRootCAs;
+    private List<String> trustedRootCa;
     private boolean ignoreSslErrors;
 
     private Map<String, String> extraHeaders;
@@ -59,12 +59,12 @@ public abstract class AppConfig {
         this.ignoreSslErrors = ignoreSslErrors;
     }
 
-    public List<String> getTrustedRootCAs() {
-        return trustedRootCAs;
+    public List<String> getTrustedRootCa() {
+        return trustedRootCa;
     }
 
-    public void setTrustedRootCAs(List<String> trustedRootCAs) {
-        this.trustedRootCAs = trustedRootCAs;
+    public void setTrustedRootCa(List<String> trustedRootCa) {
+        this.trustedRootCa = trustedRootCa;
     }
 
     public Map<String, String> getExtraHeaders() {
@@ -81,7 +81,7 @@ public abstract class AppConfig {
         var browserConfig = new BrowserConfig();
         browserConfig.setClientCert(this.getClientCertX509CertPemFilePath(), this.getClientCertPrivateKeyPemFilePath());
         browserConfig.setIgnoreSslErrors(this.isIgnoreSslErrors());
-        browserConfig.setTrustedRootCAs(this.getTrustedRootCAs());
+        browserConfig.setTrustedRootCa(this.getTrustedRootCa());
         browserConfig.setExtraHeaders(this.getExtraHeaders());
         return browserConfig;
     }

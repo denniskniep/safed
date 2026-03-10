@@ -6,9 +6,9 @@ services:
       - keycloak
     environment:
       KEYCLOAK_URL: "http://keycloak:8080"
-      SPRING_PROFILES_ACTIVE: dockertest
-      SAML_ISSUER_SIGNING_X509_CERT_PEM_FILE_PATH: "/tmp/signing_cert.pem"
-      SAML_ISSUER_SIGNING_PRIVATE_KEY_PEM_FILE_PATH: "/tmp/signing_key.pem"
+      SPRING_PROFILES_ACTIVE: "${SPRING_PROFILES_ACTIVE:-dockertest}"
+      WEBHOOK_ENABLED: "${WEBHOOK_ENABLED:-false}"
+      WEBHOOK_URL: "${WEBHOOK_URL:-}"
     volumes:
       - "./dev/keycloak/wait-for-keycloak.sh:/tmp/wait-for-keycloak.sh"
       - "./dev/keycloak/signing_cert.pem:/tmp/signing_cert.pem"
@@ -17,7 +17,9 @@ services:
       - "./dev/example-mtls-003/src/main/resources/certs/client.crt:/tmp/client.crt"
       - "./dev/example-mtls-003/src/main/resources/certs/server.crt:/tmp/server.crt"
     entrypoint: "sh -c"
-    command: ["/tmp/wait-for-keycloak.sh && java -Duser.timezone=UTC -jar /app/app.jar example-saml-001"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command: [ "/tmp/wait-for-keycloak.sh && tail -f /dev/null"]
     ports:
       - "8070:8070"
     networks: [ "safed-net" ]

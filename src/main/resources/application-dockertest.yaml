@@ -1,3 +1,29 @@
+oidc:
+  clients:
+    example-oidc-002-codeflow:
+      issuer-id: http://keycloak:8080/realms/demo
+      issuer-endpoint-url: http://keycloak:8080/realms/demo/protocol/openid-connect/auth
+      signing-private-key-pem-file-path: "/tmp/signing_key.pem"
+      signing-x509-cert-pem-file-path: "/tmp/signing_cert.pem"
+      client-id: example-oidc-002-codeflow
+      sign-in-url: "http://exampleoidc002codeflow:8082/"
+      redirect-url: "http://exampleoidc002codeflow:8082/login/oauth2/code/example-oidc-002-codeflow"
+    example-oidc-002-hybridflow:
+      issuer-id: http://keycloak:8080/realms/demo
+      issuer-endpoint-url: http://keycloak:8080/realms/demo/protocol/openid-connect/auth
+      signing-private-key-pem-file-path: "/tmp/signing_key.pem"
+      signing-x509-cert-pem-file-path: "/tmp/signing_cert.pem"
+      client-id: example-oidc-002-hybridflow
+      sign-in-url: "http://exampleoidc002hybridflow:8083/"
+      redirect-url: "http://exampleoidc002hybridflow:8083/oauth/hybrid"
+    example-oidc-002-implicitflow:
+      issuer-id: http://keycloak:8080/realms/demo
+      issuer-endpoint-url: http://keycloak:8080/realms/demo/protocol/openid-connect/auth
+      signing-private-key-pem-file-path: "/tmp/signing_key.pem"
+      signing-x509-cert-pem-file-path: "/tmp/signing_cert.pem"
+      client-id: example-oidc-002-implicitflow
+      sign-in-url: "http://exampleoidc002implicitflow:8084/"
+      redirect-url: "http://exampleoidc002implicitflow:8084/oauth/implicit"
 saml:
   clients:
     example-saml-001:
@@ -8,14 +34,14 @@ saml:
       client-id: example-saml-001
       sign-in-url: "http://examplesaml001:8081/"
       redirect-url: "http://examplesaml001:8081/login/saml2/sso/example-saml-001"
+
 mtls:
   clients:
     example-mtls-003:
       sign-in-url: "https://examplemtls:8085/"
       client-cert-private-key-pem-file-path: "/tmp/client.key"
       client-cert-x509-cert-pem-file-path: "/tmp/client.crt"
-      ignore-ssl-errors: true
-      trusted-root-cAs:
+      trusted-root-ca:
         - "/tmp/server.crt"
       extraHeaders:
         X-Username: testuser

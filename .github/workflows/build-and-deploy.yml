@@ -15,6 +15,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+
   build-and-test:
     name: Build and Test
     runs-on: ubuntu-latest
@@ -29,6 +30,7 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: 'maven'
+
 
       - name: Build application with Maven
         run: |
@@ -47,16 +49,16 @@ jobs:
           name: test-results
           path: target/surefire-reports/
 
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: application-jar
-          path: target/*.jar
+
 
   docker-release:
+    name: Deploy Docker
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     needs: build-and-test
-    if: startsWith(github.ref, 'refs/tags/v')
+    #if: startsWith(github.ref, 'refs/tags/v')
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -90,6 +92,18 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    needs: docker-release
+    #if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Extract version from tag
         id: version

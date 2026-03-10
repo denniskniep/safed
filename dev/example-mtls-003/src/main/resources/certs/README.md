@@ -10,7 +10,7 @@ openssl req -new -x509 -nodes -sha256 -days 365 \
 -key server.key \
 -out server.crt \
 -subj "/C=DE/ST=State/L=City/O=Company/OU=IT/CN=localhost" \
--addext "subjectAltName = DNS:localhost,DNS:*.localhost,IP:127.0.0.1"
+-addext "subjectAltName = DNS:localhost,DNS:*.localhost,DNS:examplemtls,IP:127.0.0.1"
 ```
 
 ## Create server PKCS12 keystore

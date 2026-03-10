@@ -9,3 +9,9 @@ logging:
 spring:
   application:
     name: safed
+
+webhook:
+  enabled: false
+  url: ""
+  authHeaderName: ""
+  authHeaderValue: ""

@@ -40,6 +40,58 @@ Multiple verification strategies determine if an attack succeeded, by comparing 
 - `DiffVerification` - Compares visible text differences between baseline and scan
 - `UrlAndStatusCodeVerification` - Compares final URL and HTTP status code
 
+## Webhook
+The webhook mechanism allows SAFED to automatically send assessment reports to a configured HTTP endpoint.
+
+### Webhook Configuration
+Configure the webhook in your `application.yaml` or environment variables:
+
+#### application.yaml
+```yaml
+webhook:
+  enabled: true
+  url: "https://your-webhook-endpoint.com/api/reports"
+  authHeaderName: "Authorization"
+  authHeaderValue: "Bearer <api-key>"
+```
+
+#### Environment Variables
+
+```bash
+WEBHOOK_ENABLED=true
+WEBHOOK_URL=https://your-webhook-endpoint.com/api/reports
+WEBHOOK_AUTHHEADERNAME="Authorization"
+WEBHOOK_AUTHHEADERVALUE="Bearer <api-key>"
+```
+
+### Webhook Behavior
+
+When enabled, the webhook will:
+1. Send a POST request to the configured URL after all assessments are completed
+2. Include all reports as JSON in the request body (Content-Type: application/json)
+3. Add the authentication header if configured
+
+The webhook sends a JSON array of `Report` objects
+
+### Webhook Example Payload
+
+```json
+[
+  {
+    "clientId": "example-client",
+    "durationInMs": 1234,
+    "status": "SUCCESS",
+    "errors": [],
+    "firstScan": { ... },
+    "secondScan": { ... },
+    "isVulnerableTestScan": { ... },
+    "isOkTestScan": { ... },
+    "findings": { ... },
+    "noFindings": { ... }
+  }
+]
+```
+
 ## Development
 ### Build & Test
 ```bash
@@ -53,12 +105,7 @@ mvn test
 
 Individual test class:
 ```bash
-mvn test -Dtest=AssessmentTests
-```
-
-Individual test method:
-```bash
-mvn test -Dtest=AssessmentTests#OidcTest_NoVulnerabilities
+mvn test -Dtest=AssessmentContainerTests
 ```
 
 ### Adding New Scanners
@@ -126,5 +173,23 @@ The reason is that SAFED can answer backchannel requests by apps exchanging code
 
 ## Automated Testing
 
-Running Tests will start TestContainers.
-TestContainer starts exact same environment as described in [Development](#development).
+### Overview
+
+Tests are implemented as parameterized JUnit tests in `AssessmentContainerTests`.
+
+Running tests will automatically start TestContainers, which spins up the exact same environment as described in [Development](#development).
+
+### Infrastructure Setup (`ApplicationBaseTest`)
+
+`ApplicationBaseTest` uses Testcontainers to start the Docker Compose files.
+The setup waits for readiness signals from each service before running any tests.
+
+A local `WebhookReceiver` is started on port `9999` to collect reports sent by SAFED.
+
+### Test Execution Flow (`AssessmentContainerTests`)
+
+Each parameterized test case follows this flow:
+1. **Configure example app** — sets `ignoredErrorDescriptions` on the target app via its admin API, controlling which validation errors the app deliberately ignores (making it vulnerable)
+2. **Execute SAFED inside the container** — runs `java -jar /app/app.jar <clientId> <triggeredScanners>` via `docker exec` inside the running SAFED container
+3. **Receive report via webhook** — `WebhookReceiver` collects the JSON report POSTed by SAFED to `http://host.docker.internal:9999/webhook`
+4. **Assert results** — verifies the overall `ScanResultStatus` and that exactly the expected scanners reported a vulnerability
