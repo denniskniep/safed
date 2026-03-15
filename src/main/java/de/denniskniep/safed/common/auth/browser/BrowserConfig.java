@@ -11,6 +11,7 @@ public class BrowserConfig {
     private Map<String, String> extraHeaders;
     private Map<String, String> hostResolverRules;
     private boolean debug;
+    private long pageLoadTimeoutInSeconds;
 
     public boolean isDebug() {
         return debug;
@@ -75,5 +76,13 @@ public class BrowserConfig {
 
     public void setHostResolverRules(Map<String, String> hostResolverRules) {
         this.hostResolverRules = hostResolverRules;
+    }
+
+    public long getPageLoadTimeoutInSeconds() {
+        return pageLoadTimeoutInSeconds;
+    }
+
+    public void setPageLoadTimeoutInSeconds(long pageLoadTimeoutInSeconds) {
+        this.pageLoadTimeoutInSeconds = pageLoadTimeoutInSeconds;
     }
 }

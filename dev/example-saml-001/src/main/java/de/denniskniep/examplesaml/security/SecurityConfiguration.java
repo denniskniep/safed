@@ -25,6 +25,7 @@ public class SecurityConfiguration {
               c -> c.ignoringRequestMatchers("/admin/**"))
             .authorizeHttpRequests(authorize -> authorize
                     .requestMatchers("/error").permitAll()
+                    .requestMatchers("/home").permitAll()
                     .requestMatchers("/admin/**").permitAll()
                     .anyRequest().authenticated()
             )

@@ -13,7 +13,7 @@ public class ScanResultReport {
     private String createdAt;
     private List<String> trafficLog;
     private List<String> evidences;
-    private List<String> errors;
+    private List<ReportError> errors;
     private ScanResultStatus status;
 
     public List<String> getEvidences() {
@@ -48,11 +48,11 @@ public class ScanResultReport {
         this.createdAt = createdAt;
     }
 
-    public List<String> getErrors() {
+    public List<ReportError> getErrors() {
         return errors;
     }
 
-    public void setErrors(List<String> errors) {
+    public void setErrors(List<ReportError> errors) {
         this.errors = errors;
     }
 }

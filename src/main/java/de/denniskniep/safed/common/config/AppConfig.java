@@ -18,6 +18,8 @@ public abstract class AppConfig {
     private List<String> scanners;
     private List<String> verificationStrategies;
 
+    private long pageLoadTimeoutInSeconds = 60;
+
     public List<String> getVerificationStrategies() {
         return verificationStrategies;
     }
@@ -84,6 +86,14 @@ public abstract class AppConfig {
         this.hostResolverRules = hostResolverRules;
     }
 
+    public long getPageLoadTimeoutInSeconds() {
+        return pageLoadTimeoutInSeconds;
+    }
+
+    public void setPageLoadTimeoutInSeconds(long pageLoadTimeoutInSeconds) {
+        this.pageLoadTimeoutInSeconds = pageLoadTimeoutInSeconds;
+    }
+
     @JsonIgnore
     public BrowserConfig getBrowserConfig() {
         var browserConfig = new BrowserConfig();
@@ -92,6 +102,7 @@ public abstract class AppConfig {
         browserConfig.setTrustedRootCa(this.getTrustedRootCa());
         browserConfig.setExtraHeaders(this.getExtraHeaders());
         browserConfig.setHostResolverRules(this.getHostResolverRules());
+        browserConfig.setPageLoadTimeoutInSeconds(this.getPageLoadTimeoutInSeconds());
         return browserConfig;
     }
 }

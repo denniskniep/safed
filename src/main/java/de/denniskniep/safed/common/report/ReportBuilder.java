@@ -1,6 +1,5 @@
 package de.denniskniep.safed.common.report;
 
-import de.denniskniep.safed.common.config.AppConfig;
 import de.denniskniep.safed.common.scans.ScanResult;
 import de.denniskniep.safed.common.scans.ScanResultStatus;
 
@@ -17,9 +16,9 @@ public class ReportBuilder {
     private final ScanResult isVulnerableScan;
     private final ScanResult isOkScan;
     private final HashMap<String, ScanResult> scanResults;
-    private final List<String> errors;
+    private final List<ReportError> errors;
 
-    public ReportBuilder(String clientId, long durationInMs, ScanResult firstScan, ScanResult secondScan, ScanResult isVulnerableScan, ScanResult isOkScan, HashMap<String, ScanResult> scanResults, List<String> errors) {
+    public ReportBuilder(String clientId, long durationInMs, ScanResult firstScan, ScanResult secondScan, ScanResult isVulnerableScan, ScanResult isOkScan, HashMap<String, ScanResult> scanResults, List<ReportError> errors) {
         this.clientId = clientId;
         this.durationInMs = durationInMs;
         this.firstScan = firstScan;
@@ -52,7 +51,8 @@ public class ReportBuilder {
                 status = ScanResultStatus.VULNERABLE;
                 report.addFinding(scanResult.getKey(), asScanResultReport(scanResult.getValue()));
             }
-            errors.addAll(scanResult.getValue().getErrors().stream().map(e -> "[Scanner:"+scanResult.getKey()+"] " + e).toList());
+            // metadata of error will be available in scan
+            errors.addAll(scanResult.getValue().getErrors().stream().map(r ->  new ReportError( "[Scanner:"+scanResult.getKey()+"] " + r.getMessage(), new HashMap<>())).toList());
         }
         if(!errors.isEmpty()){
             status = ScanResultStatus.FAILED;

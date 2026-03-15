@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+## [1.0.4] - 2026-03-15
+
+### Added
+
+- Refactored Exception handling and reporting
+
 ## [1.0.3] - 2026-03-14
 
 ### Added

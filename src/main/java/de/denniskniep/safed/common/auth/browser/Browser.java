@@ -3,7 +3,9 @@ package de.denniskniep.safed.common.auth.browser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.denniskniep.safed.common.auth.browser.bidi.*;
+import de.denniskniep.safed.common.error.LazyMetadata;
 import de.denniskniep.safed.common.scans.Page;
+import de.denniskniep.safed.common.error.RuntimeExceptionWithMetadata;
 import de.denniskniep.safed.common.utils.UrlUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
@@ -155,16 +157,15 @@ public class Browser implements AutoCloseable {
 
             driver = new ChromeDriver(service, options);
             driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
-            driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(60));
+            driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(config.getPageLoadTimeoutInSeconds()));
 
             browserExtension.checkExtensionLoaded(driver);
 
             driver.switchTo().newWindow(WindowType.TAB);
-
-
         }catch (Exception e){
-            revealBrowserLogBecauseOfError(e);
-            throw new RuntimeException("Starting Browser failed; "+ e.getMessage(), e);
+            throw new RuntimeExceptionWithMetadata("Starting Browser failed! " + e.getMessage(), e, LazyMetadata.list(
+                LazyMetadata.ofOne("browserLogs", () -> chromeLogs.toString())
+            ));
         }
     }
 
@@ -303,7 +304,16 @@ public class Browser implements AutoCloseable {
     }
 
     public Page execute(HttpRequest httpRequest, Predicate<RequestDataWithBody> captureRequestCondition){
-        var authLog = new AuthenticationLog();
+        final AuthenticationLog authLog = new AuthenticationLog();
+
+        var errorMetadataCollectors = LazyMetadata.list(
+            LazyMetadata.ofOne("title", () -> driver.getTitle()),
+            LazyMetadata.ofList("trafficLog", () -> authLog.getTraffic().stream().map(RequestResponse::asShortLog).toList()),
+            LazyMetadata.ofOne("browserLogs", () -> chromeLogs.toString()),
+            LazyMetadata.ofOne("visibleText", () -> driver.findElement(By.tagName("body")).getText()),
+            LazyMetadata.ofOne("screenshot", () -> "data:image/png;base64,"+ takeScreenshot())
+        );
+
         try(var network = new Network(driver)) {
             RequestResponseLogHandler requestResponseLogHandler = new RequestResponseLogHandler(authLog);
             network.onResponseCompleted(requestResponseLogHandler);
@@ -321,43 +331,45 @@ public class Browser implements AutoCloseable {
                 var js = String.format(FORM_INIT, httpRequest.method(), httpRequest.url(), bodyParams);
                 getDriverAsJavascriptExecutor().executeScript(js);
             }
-            var timeout = Duration.ofSeconds(60);
+            var timeout = Duration.ofSeconds(config.getPageLoadTimeoutInSeconds());
             var pollingEvery = Duration.ofMillis(500);
 
             WebDriverWait wait = new WebDriverWait(driver, timeout, pollingEvery);
             try{
                 wait.until(webDriver -> authLog.find(t -> captureRequestCondition.test(t.getRequest())).isPresent());
             }catch(TimeoutException e){
-                throw new RuntimeException("No captured request found!\nTrafficLog:\n" + authLog.asShortLogList(), e);
+                throw new RuntimeExceptionWithMetadata("Timeout waiting for captured request!", e, errorMetadataCollectors);
             }
 
             waitForLastRequestProcessed(authLog);
             waitForPageLoaded();
 
-            if(StringUtils.equalsIgnoreCase("Privacy error", driver.getTitle())) {
-                throw new RuntimeException("Privacy error! Likely the provided SSL cert is not trusted by the browser\n"+new ObjectMapper().writeValueAsString(config));
-            }
-
-            var capturedRequest = authLog.find(t -> captureRequestCondition.test(t.getRequest()));
-            if(capturedRequest.isEmpty()) {
-                throw new RuntimeException("No captured request found!\nTrafficLog:\n" + authLog.asShortLogList());
-            }
-
-            var capturedResponse =  authLog.findStartingAt(capturedRequest.get().getRequest().getRequestId(), t -> noRedirect(t) && isDocument(t));
-            if(capturedResponse.isEmpty()) {
-                throw new RuntimeException("Can not find first non redirect Response after captured request!\nCaptured Request:"+capturedRequest.get().getRequest().getUrl()+"\nTrafficLog:\n" + authLog.asShortLogList());
-            }
-
             var cookies = driver.manage().getCookies();
             var visibleText = driver.findElement(By.tagName("body")).getText();
 
             // Capture screenshot
-            String base64Screenshot = takeScreenshot();
+            var base64Screenshot = takeScreenshot();
 
-            return new Page(driver.getCurrentUrl(), driver.getTitle(), driver.getPageSource(), visibleText, base64Screenshot, cookies, authLog, capturedRequest.get().getRequest(), capturedResponse.get().getResponse());
+            if(StringUtils.equalsIgnoreCase("Privacy error", driver.getTitle())) {
+                throw new RuntimeExceptionWithMetadata("Privacy error! Likely the provided SSL cert is not trusted by the browser", errorMetadataCollectors);
+            }
+
+            var capturedRequest = authLog.find(t -> captureRequestCondition.test(t.getRequest()));
+            if(capturedRequest.isEmpty()) {
+                throw new RuntimeExceptionWithMetadata("No captured request found!", errorMetadataCollectors);
+            }
+
+            var capturedResponse = authLog.findStartingAt(capturedRequest.get().getRequest().getRequestId(), t -> noRedirect(t) && isDocument(t));
+            if(capturedResponse.isEmpty()) {
+                throw new RuntimeExceptionWithMetadata("Can not find first non redirect Response after captured request!", LazyMetadata.list(
+                    errorMetadataCollectors,
+                    LazyMetadata.ofOne("capturedRequestUrl", () -> capturedRequest.get().getRequest().getUrl())
+                ));
+            }
+
+            return new Page(driver.getCurrentUrl(), driver.getTitle(), driver.getPageSource(), visibleText.toString(), base64Screenshot.toString(), cookies, authLog, capturedRequest.get().getRequest(), capturedResponse.get().getResponse());
         }catch (Exception e){
-            revealBrowserLogBecauseOfError(e);
-            throw new RuntimeException("Loading Page failed: " + e.getMessage(), e);
+            throw new RuntimeExceptionWithMetadata("Loading Page failed! " + e.getMessage(), e, errorMetadataCollectors);
         }
     }
 
@@ -414,7 +426,7 @@ public class Browser implements AutoCloseable {
     }
 
     private void waitForPageLoaded() {
-        var timeout = Duration.ofSeconds(60);
+        var timeout = Duration.ofSeconds(config.getPageLoadTimeoutInSeconds());
         var pollingEvery = Duration.ofMillis(500);
 
         WebDriverWait wait = new WebDriverWait(driver, timeout, pollingEvery);
@@ -431,21 +443,6 @@ public class Browser implements AutoCloseable {
             }
             return true;
         };
-    }
-
-    private void revealBrowserLogBecauseOfError(Exception e){
-        LOG.debug("""
-                Unexpected Error occurred:
-                {}
-                ----------------------------
-                Printing the verbose Browser logs:
-                {}
-                ----------------------------
-                """, e.getMessage(), getLogs());
-    }
-
-    public String getLogs(){
-        return chromeLogs.toString();
     }
 
     @Override

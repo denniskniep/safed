@@ -3,9 +3,11 @@ package de.denniskniep.safed.common.assessment;
 import de.denniskniep.safed.common.config.AppConfig;
 import de.denniskniep.safed.common.report.Report;
 import de.denniskniep.safed.common.report.ReportBuilder;
+import de.denniskniep.safed.common.report.ReportError;
 import de.denniskniep.safed.common.scans.*;
 import de.denniskniep.safed.common.scans.Scanner;
-import de.denniskniep.safed.common.verifications.*;
+import de.denniskniep.safed.common.verifications.ScanResultVerificationStrategy;
+import de.denniskniep.safed.common.verifications.VerificationResult;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,9 +59,10 @@ public abstract class Assessment<T extends Scanner, C extends AppConfig> {
         try {
             return runInternal(clientId, scannerConfig);
         }catch (Exception e){
-            LOG.error("Unexpected error:", e);
+            ReportError error = ReportError.from(e);
+            LOG.error("ClientId: {}; Status: {}; Finished Assessment ", clientId, ScanResultStatus.FAILED);
             var duration = Duration.between(start, Instant.now());
-            ReportBuilder reportBuilder = new ReportBuilder(clientId, duration.toMillis() , firstScanSuccess, secondScanSuccess, isVulnerableScan, isOkScan, new HashMap<>(), List.of(e.getMessage()));
+            ReportBuilder reportBuilder = new ReportBuilder(clientId, duration.toMillis() , firstScanSuccess, secondScanSuccess, isVulnerableScan, isOkScan, new HashMap<>(), List.of(error));
             return reportBuilder.Build();
         }
     }
@@ -67,7 +70,7 @@ public abstract class Assessment<T extends Scanner, C extends AppConfig> {
     private Report runInternal(String clientId, C scannerConfig) {
         var start = Instant.now();
 
-        List<String> errors = new ArrayList<>();
+        List<ReportError> errors = new ArrayList<>();
         LOG.info("Start first baseline scan");
         // First scan with successful login
         firstScanSuccess = runScan(scannerConfig, successScanner);
@@ -102,7 +105,7 @@ public abstract class Assessment<T extends Scanner, C extends AppConfig> {
         if (isVulnerableScan.getStatus() == ScanResultStatus.OK) {
             var msg = "Fourth scan must always be classified as VULNERABLE!";
             LOG.warn(msg);
-            errors.add(msg);
+            errors.add(new ReportError(msg));
         }
 
         // For a malicious scan, we expect a significant drift in the response
@@ -111,7 +114,7 @@ public abstract class Assessment<T extends Scanner, C extends AppConfig> {
         if (isOkScan.getStatus() == ScanResultStatus.VULNERABLE) {
             var msg = "Third scan must always be classified as OK!";
             LOG.warn(msg);
-            errors.add(msg);
+            errors.add(new ReportError(msg));
         }
 
         LOG.info("Finished baseline and test scans");
@@ -129,7 +132,8 @@ public abstract class Assessment<T extends Scanner, C extends AppConfig> {
                 scanResults.put(scanner.getClass().getSimpleName(), scanResult);
                 LOG.info("ClientId: {}; Status: {}; Scanner: {};", clientId, scanResult.getStatus(), scanner.getClass().getSimpleName());
             }catch(Exception e){
-                var scanResult = ScanResult.failed(List.of(e.getMessage()));
+                ReportError error = ReportError.from(e);
+                var scanResult = ScanResult.failed(List.of(error));
                 LOG.error("ClientId: {}; Status: {}; Scanner: {};", clientId, scanResult.getStatus(), scanner.getClass().getSimpleName());
                 scanResults.put(scanner.getClass().getSimpleName(), scanResult);
             }
@@ -137,7 +141,11 @@ public abstract class Assessment<T extends Scanner, C extends AppConfig> {
         var duration = Duration.between(start, Instant.now());
         ReportBuilder reportBuilder = new ReportBuilder(clientId, duration.toMillis() , firstScanSuccess, secondScanSuccess, isVulnerableScan, isOkScan, scanResults, errors);
         var report = reportBuilder.Build();
-        LOG.info("ClientId: {}; Status: {}; Finished Assessment ", report.getClientId(), report.getStatus());
+        if(report.getStatus() == ScanResultStatus.FAILED){
+            LOG.error("ClientId: {}; Status: {}; Finished Assessment ", report.getClientId(), report.getStatus());
+        }else{
+            LOG.info("ClientId: {}; Status: {}; Finished Assessment ", report.getClientId(), report.getStatus());
+        }
         return report;
     }
 

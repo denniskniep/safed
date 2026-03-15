@@ -55,6 +55,23 @@ saml:
       sign-in-url: "http://localhost:8081/"
       redirect-url: "http://localhost:8081/login/saml2/sso/example-saml-001"
 
+    example-saml-001-no-auto-redirect:
+      claims:
+        - name: "name"
+          values:
+            - "Pen Tester"
+        - name: "given_name"
+          values:
+            - "Tester"
+      issuer-id: http://keycloak:8080/realms/demo
+      issuer-endpoint-url: http://keycloak:8080/realms/demo/protocol/saml
+      signing-private-key-pem-file-path: "./dev/keycloak/signing_key.pem"
+      signing-x509-cert-pem-file-path: "./dev/keycloak/signing_cert.pem"
+      client-id: example-saml-001
+      sign-in-url: "http://localhost:8081/home"
+      redirect-url: "http://localhost:8081/login/saml2/sso/example-saml-001"
+      page-load-timeout-in-seconds: 5
+
 mtls:
   clients:
     example-mtls-003:

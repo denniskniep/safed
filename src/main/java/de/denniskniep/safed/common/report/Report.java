@@ -19,7 +19,7 @@ public class Report {
     private ScanResultReport isVulnerableTestScan;
     private ScanResultReport isOkTestScan;
     private ScanResultStatus status;
-    private List<String> errors = new ArrayList<>();
+    private List<ReportError> errors = new ArrayList<>();
     private final Map<String, ScanResultReport> noFindings = new HashMap<>();
     private final Map<String, ScanResultReport> findings = new HashMap<>();
 
@@ -84,10 +84,10 @@ public class Report {
         return Serialization.AsPrettyJson(this);
     }
 
-    public void setErrors(List<String> errors) {
+    public void setErrors(List<ReportError> errors) {
         this.errors = errors;
     }
-    public List<String> getErrors() {
+    public List<ReportError> getErrors() {
         return errors;
     }
 

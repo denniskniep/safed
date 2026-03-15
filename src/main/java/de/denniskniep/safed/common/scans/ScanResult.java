@@ -1,5 +1,6 @@
 package de.denniskniep.safed.common.scans;
 
+import de.denniskniep.safed.common.report.ReportError;
 import de.denniskniep.safed.common.verifications.VerificationResult;
 import org.apache.commons.collections4.map.HashedMap;
 
@@ -17,7 +18,7 @@ public class ScanResult {
     private final Map<String, List<String>> infos;
     private final Map<String, VerificationResult> verifications;
     private final ScanResultStatus status;
-    private final List<String> errors;
+    private final List<ReportError> errors;
 
     public ScanResult(AuthResult authResult, Map<String, VerificationResult> verifications, Map<String, List<String>> infos) {
         this(authResult, overallResultOf(verifications), verifications, infos, new ArrayList<>());
@@ -27,7 +28,7 @@ public class ScanResult {
         return verifications.entrySet().stream().anyMatch(v -> v.getValue().getStatus() == ScanResultStatus.VULNERABLE) ? ScanResultStatus.VULNERABLE : ScanResultStatus.OK;
     }
 
-    private ScanResult(AuthResult authResult, ScanResultStatus status, Map<String, VerificationResult> verifications, Map<String, List<String>> infos, List<String> errors) {
+    private ScanResult(AuthResult authResult, ScanResultStatus status, Map<String, VerificationResult> verifications, Map<String, List<String>> infos, List<ReportError> errors) {
         if(authResult == null && status != ScanResultStatus.FAILED) {
             throw new RuntimeException("authResult is null, but status is " + status);
         }
@@ -43,7 +44,7 @@ public class ScanResult {
         return new ScanResult(authResult, ScanResultStatus.OK, new HashedMap<>(), infos, new ArrayList<>());
     }
 
-    public static ScanResult failed(List<String> errors) {
+    public static ScanResult failed(List<ReportError> errors) {
         var authResult = new EmptyAuthResult();
         return new ScanResult(authResult, ScanResultStatus.FAILED, new HashedMap<>(), new HashedMap<>(), errors);
     }
@@ -85,7 +86,7 @@ public class ScanResult {
                 .format(createdAt);
     }
 
-    public List<String> getErrors() {
+    public List<ReportError> getErrors() {
         return errors;
     }
 

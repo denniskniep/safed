@@ -35,11 +35,18 @@ public record RequestResponse(Instant created, String context, ResponseDataDetai
     }
 
     public String asShortLog() {
-        var url = getRequest().getUrl();
+        var unknown = "<unknown>";
+        var ctx =  StringUtils.isBlank(context) ?  "" : "[" + context + "]";
+        var method = getRequest() == null || getRequest().getMethod() == null ?  unknown : getRequest().getMethod();
+        var url = getRequest() == null || getRequest().getUrl() == null ?  unknown : getRequest().getUrl();
+        var type =  getRequest() == null || getRequest().getResourceType() == null ?  unknown : getRequest().getResourceType();
+        var initiator =  getRequest() == null || getRequest().getResourceInitiatorType() == null ?  unknown : getRequest().getResourceInitiatorType();
+        var status = getResponse() == null ?  unknown : getResponse().getStatus();
+
         if(url.startsWith("data:")) {
             url = url.substring(0, Math.min(150, url.length()-1));
         }
 
-        return (StringUtils.isBlank(context) ? "" : "[" + context + "]") + getRequest().getMethod() + " " + url + " -> " + getResponse().getStatus() + " (t:"+ getRequest().getResourceType() + "; i:"+ getRequest().getResourceInitiatorType() + ")";
+        return ctx + method + " " + url + " -> " + status + " (t:"+ type + "; i:"+ initiator + ")";
     }
 }

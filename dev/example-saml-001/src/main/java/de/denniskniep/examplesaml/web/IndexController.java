@@ -26,4 +26,11 @@ public class IndexController {
     model.addAttribute("datetime", Instant.now().toString());
     return "index";
   }
+
+  @GetMapping("/home")
+  public String home(Model model) {
+    model.addAttribute("title", title);
+    model.addAttribute("datetime", Instant.now().toString());
+    return "home";
+  }
 }

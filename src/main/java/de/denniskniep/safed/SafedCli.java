@@ -1,6 +1,7 @@
 package de.denniskniep.safed;
 
 import de.denniskniep.safed.common.config.AppConfig;
+import de.denniskniep.safed.common.report.ReportError;
 import de.denniskniep.safed.common.scans.ScanResultStatus;
 import de.denniskniep.safed.common.utils.Serialization;
 import de.denniskniep.safed.mtls.MtlsAssessment;
@@ -27,8 +28,6 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
 
 @ConditionalOnBooleanProperty(value = "safed.run-cli", matchIfMissing = true)
 @Component
@@ -91,7 +90,7 @@ public class SafedCli implements CommandLineRunner {
             if(samlAppConfig == null && oidcAppConfig == null && mtlsAppConfig == null){
                 var report = new Report();
                 report.setStatus(ScanResultStatus.FAILED);
-                report.setErrors(List.of("Provided ClientId  '" + clientId + "' not found!"));
+                report.setErrors(List.of(new ReportError("Provided ClientId  '" + clientId + "' not found!")));
                 reports.add(report);
             }
         }

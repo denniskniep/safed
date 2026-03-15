@@ -1,7 +1,6 @@
 package de.denniskniep.safed.common.auth.browser.bidi;
 
 import org.apache.commons.collections4.map.HashedMap;
-import org.apache.logging.log4j.spi.ObjectThreadContextMap;
 import org.openqa.selenium.bidi.network.Cookie;
 import org.openqa.selenium.bidi.network.FetchTimingInfo;
 import org.openqa.selenium.bidi.network.Header;
@@ -166,7 +165,7 @@ public class RequestDataWithBody {
     }
 
     public String getResourceInitiatorType() {
-        return resourceInitiator.get("type");
+        return resourceInitiator == null ? null : resourceInitiator.get("type");
     }
 
     public Map<String, String> getQueryParams() {
