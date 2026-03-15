@@ -1,9 +1,9 @@
 package de.denniskniep.safed.common.scans;
 
 import de.denniskniep.safed.common.auth.browser.AuthenticationLog;
-import de.denniskniep.safed.common.auth.browser.RequestDataWithBody;
+import de.denniskniep.safed.common.auth.browser.bidi.RequestDataWithBody;
+import de.denniskniep.safed.common.auth.browser.bidi.ResponseData;
 import org.openqa.selenium.Cookie;
-import org.openqa.selenium.bidi.network.ResponseData;
 
 import java.util.Set;
 
@@ -12,8 +12,9 @@ public record Page(
         String title,
         String source,
         String visibleText,
+        String base64Screenshot,
         Set<Cookie> cookies,
         AuthenticationLog authenticationLog,
-        RequestDataWithBody httpRequest,
-        ResponseData httpResponse) {
+        RequestDataWithBody capturedHttpRequest,
+        ResponseData capturedHttpResponse) {
 }

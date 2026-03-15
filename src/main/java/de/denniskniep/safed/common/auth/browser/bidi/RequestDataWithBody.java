@@ -1,6 +1,7 @@
-package de.denniskniep.safed.common.auth.browser;
+package de.denniskniep.safed.common.auth.browser.bidi;
 
 import org.apache.commons.collections4.map.HashedMap;
+import org.apache.logging.log4j.spi.ObjectThreadContextMap;
 import org.openqa.selenium.bidi.network.Cookie;
 import org.openqa.selenium.bidi.network.FetchTimingInfo;
 import org.openqa.selenium.bidi.network.Header;
@@ -36,6 +37,8 @@ public class RequestDataWithBody {
 
     private final long bodySize;
     private final String body;
+    private final String resourceType;
+    private final HashMap<String, String> resourceInitiator;
 
     public RequestDataWithBody(
             String requestId,
@@ -46,7 +49,9 @@ public class RequestDataWithBody {
             long headersSize,
             FetchTimingInfo timings,
             long bodySize,
-            String body) {
+            String body,
+            String resourceType,
+            HashMap<String, String> resourceInitiator) {
         this.requestId = requestId;
         this.url = url;
         this.method = method;
@@ -56,6 +61,8 @@ public class RequestDataWithBody {
         this.timings = timings;
         this.bodySize = bodySize;
         this.body = body;
+        this.resourceType = resourceType;
+        this.resourceInitiator = resourceInitiator;
     }
 
     public static RequestDataWithBody fromJson(JsonInput input) {
@@ -68,6 +75,8 @@ public class RequestDataWithBody {
         FetchTimingInfo timings = null;
         long bodySize = 0;
         String body = null;
+        String resourceType = null;
+        HashMap<String,String> resourceInitiator = null;
 
         input.beginObject();
         while (input.hasNext()) {
@@ -101,12 +110,19 @@ public class RequestDataWithBody {
                 case "goog:postData":
                     body = input.read(String.class);
                     break;
+                case "goog:resourceType":
+                    resourceType = input.read(String.class);
+                    break;
+                case "goog:resourceInitiator":
+                    resourceInitiator = input.read(new TypeToken<HashMap<String, Object>>() {
+                    }.getType());
+                    break;
                 default:
                     input.skipValue();
             }
         }
         input.endObject();
-        return new RequestDataWithBody(requestId, url, method, headers, cookies, headersSize, timings, bodySize, body);
+        return new RequestDataWithBody(requestId, url, method, headers, cookies, headersSize, timings, bodySize, body, resourceType, resourceInitiator);
     }
 
     public String getRequestId() {
@@ -143,6 +159,14 @@ public class RequestDataWithBody {
 
     public String getBody() {
         return body;
+    }
+
+    public String getResourceType() {
+        return resourceType;
+    }
+
+    public String getResourceInitiatorType() {
+        return resourceInitiator.get("type");
     }
 
     public Map<String, String> getQueryParams() {

@@ -17,6 +17,7 @@ import org.keycloak.crypto.KeyWrapper;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -198,8 +199,12 @@ public class OidcFlow implements FrontChannelRequest, BackchannelHandler {
 
     private RawJwtEncoded generateIdToken(){
         var tokenBuilder = (CustomJwtBuilder)generateTokenBase("ID")
-                .audience().add(clientConfig.getClientId()).and();
-
+                .header()
+                    // TODO: Extract key id from well known endpoint!
+                    //.keyId("jPJqsdH2VLCVzmDCr4AxhPXA9AiCtemtxnj_mFHwFhY")
+                    .type( "JWT")
+                .and()
+                .audience().single(clientConfig.getClientId());
         return compactToken(tokenBuilder, tokenInterceptors.getIdTokenInterceptor());
     }
 

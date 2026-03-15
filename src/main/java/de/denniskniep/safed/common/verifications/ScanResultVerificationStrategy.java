@@ -6,6 +6,6 @@ import de.denniskniep.safed.common.scans.ScanResult;
 import java.util.List;
 
 public interface ScanResultVerificationStrategy {
-    public List<String> extractInfos(AuthResult scanAuthResult);
-    ScanResult evaluateScanResult(AuthResult firstPositiveAuthResult, AuthResult secondPositiveAuthResult,AuthResult scanAuthResult);
+    List<String> extractInfos(AuthResult scanAuthResult);
+    VerificationResult evaluateScanResult(AuthResult firstPositiveAuthResult, AuthResult secondPositiveAuthResult, AuthResult scanAuthResult);
 }

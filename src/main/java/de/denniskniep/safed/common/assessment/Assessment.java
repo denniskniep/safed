@@ -26,8 +26,8 @@ public abstract class Assessment<T extends Scanner, C extends AppConfig> {
 
     private ScanResult firstScanSuccess;
     private ScanResult secondScanSuccess;
-    private ScanResult thirdScanSuccess;
-    private ScanResult fourthScanFailure;
+    private ScanResult isVulnerableScan;
+    private ScanResult isOkScan;
 
     public Assessment(T successScanner, T failureScanner) {
         this.successScanner = successScanner;
@@ -54,35 +54,68 @@ public abstract class Assessment<T extends Scanner, C extends AppConfig> {
         var start = Instant.now();
         validate(scannerConfig);
 
+        try {
+            return runInternal(clientId, scannerConfig);
+        }catch (Exception e){
+            LOG.error("Unexpected error:", e);
+            var duration = Duration.between(start, Instant.now());
+            ReportBuilder reportBuilder = new ReportBuilder(clientId, duration.toMillis() , firstScanSuccess, secondScanSuccess, isVulnerableScan, isOkScan, new HashMap<>(), List.of(e.getMessage()));
+            return reportBuilder.Build();
+        }
+    }
+
+    private Report runInternal(String clientId, C scannerConfig) {
+        var start = Instant.now();
+
         List<String> errors = new ArrayList<>();
-        LOG.info("Start initial tests");
+        LOG.info("Start first baseline scan");
         // First scan with successful login
         firstScanSuccess = runScan(scannerConfig, successScanner);
+
+        LOG.info("Start second baseline scan");
         // Second scan with successful login, but maybe changes in the page content from login to login
         secondScanSuccess = runScan(scannerConfig, successScanner);
-        // Third scan with successful login - means VULNERABLE
-        thirdScanSuccess = runScan(scannerConfig, successScanner);
-        // Fourth scan with failed login - means OK
-        fourthScanFailure = runScan(scannerConfig, failureScanner);
 
+        LOG.info("Start test scan - proof ok");
+        // scan with failure - means OK (not vulnerable)
+        isOkScan = runScan(scannerConfig, failureScanner);
 
-        // For a manipulated OIDCResponse we expect a significant drift in the response
-        // The third scan with a successful login does not have that drift on purpose!
+        // Dynamically adopt Verification Strategy
+        List<String> okVerifications = isOkScan.getVerificationStrategies(ScanResultStatus.OK);
+        List<String> vulnVerifications = isOkScan.getVerificationStrategies(ScanResultStatus.VULNERABLE);
+        if(!vulnVerifications.isEmpty() && !okVerifications.isEmpty()){
+            // a significant drift in the response is expected, therefore verifications should report OK
+            // if not we remove all verifications that are not reporting OK!
+            scannerConfig = (C)scannerConfig.deepCopy();
+            scannerConfig.setVerificationStrategies(okVerifications);
+            LOG.info("Restart test scan - proof ok (Adopted Verification Strategy)");
+            isOkScan = runScan(scannerConfig, failureScanner);
+        }
+
+        LOG.info("Start test scan - proof vulnerable");
+        // Scan with success - means VULNERABLE
+        isVulnerableScan = runScan(scannerConfig, successScanner);
+
+        // For a malicious scan, we expect a significant drift in the response
+        // The successScanner does not have that drift on purpose!
         // As no error occur and the user is normally logged in, we expect that to be classified as VULNERABLE
-        if (thirdScanSuccess.getStatus() == ScanResultStatus.OK) {
-            errors.add("Third scan must always be classified as VULNERABLE!");
+        if (isVulnerableScan.getStatus() == ScanResultStatus.OK) {
+            var msg = "Fourth scan must always be classified as VULNERABLE!";
+            LOG.warn(msg);
+            errors.add(msg);
         }
 
-        // The fourth scan with a failing login should have a significant drift in the response
+        // For a malicious scan, we expect a significant drift in the response
+        // The failureScanner should have a significant drift in the response
         // Because an error occur and the user is not logged in, we expect that to be classified as OK
-        if (fourthScanFailure.getStatus() == ScanResultStatus.VULNERABLE) {
-            // For a manipulated OIDCResponse we expect a significant drift in the response
-            // The third scan with positive login does not have that on purpose!
-            errors.add("Fourth scan must always be classified as OK!");
+        if (isOkScan.getStatus() == ScanResultStatus.VULNERABLE) {
+            var msg = "Third scan must always be classified as OK!";
+            LOG.warn(msg);
+            errors.add(msg);
         }
 
+        LOG.info("Finished baseline and test scans");
 
-        LOG.info("End initial tests");
         var scanResults = new HashMap<String, ScanResult>();
         for (var scanner : scanners) {
             if (scannerConfig.getScanners() != null && !scannerConfig.getScanners().contains(scanner.getClass().getSimpleName())) {
@@ -90,19 +123,26 @@ public abstract class Assessment<T extends Scanner, C extends AppConfig> {
                 continue;
             }
 
-            LOG.info("Start scanning with {}", scanner.getClass().getSimpleName());
-            var scanResult = runScan(scannerConfig, scanner);
-            scanResults.put(scanner.getClass().getSimpleName(), scanResult);
-            LOG.trace("Scanner {} finished with status: {}.\nFollowing evidences collected:\n{}", scanner.getClass().getSimpleName(), scanResult.getStatus(), String.join("\n", scanResult.getEvidences()));
+            LOG.debug("Start scanning with {}", scanner.getClass().getSimpleName());
+            try{
+                var scanResult = runScan(scannerConfig, scanner);
+                scanResults.put(scanner.getClass().getSimpleName(), scanResult);
+                LOG.info("ClientId: {}; Status: {}; Scanner: {};", clientId, scanResult.getStatus(), scanner.getClass().getSimpleName());
+            }catch(Exception e){
+                var scanResult = ScanResult.failed(List.of(e.getMessage()));
+                LOG.error("ClientId: {}; Status: {}; Scanner: {};", clientId, scanResult.getStatus(), scanner.getClass().getSimpleName());
+                scanResults.put(scanner.getClass().getSimpleName(), scanResult);
+            }
         }
-
-        var duration =  Duration.between(start, Instant.now());
-        ReportBuilder reportBuilder = new ReportBuilder(clientId, duration.toMillis() , firstScanSuccess, secondScanSuccess, thirdScanSuccess, fourthScanFailure, scanResults, errors);
-        return reportBuilder.Build();
+        var duration = Duration.between(start, Instant.now());
+        ReportBuilder reportBuilder = new ReportBuilder(clientId, duration.toMillis() , firstScanSuccess, secondScanSuccess, isVulnerableScan, isOkScan, scanResults, errors);
+        var report = reportBuilder.Build();
+        LOG.info("ClientId: {}; Status: {}; Finished Assessment ", report.getClientId(), report.getStatus());
+        return report;
     }
 
     private ScanResult runScan(C inputScannerConfig, T scanner) {
-        scanner.init(firstScanSuccess, secondScanSuccess, thirdScanSuccess, fourthScanFailure);
+        scanner.init(firstScanSuccess, secondScanSuccess, isVulnerableScan, isOkScan);
 
         C scannerConfig = (C)scanner.getScannerConfig(inputScannerConfig.deepCopy());
 
@@ -110,28 +150,39 @@ public abstract class Assessment<T extends Scanner, C extends AppConfig> {
 
         // All VerificationStrategies are used to gather infos
         var allVerificationStrategies = createVerificationStrategy(scanResultVerificationStrategies.keySet());
-        List<String> infos = allVerificationStrategies.extractInfos(authResult);
+        var infos = extractInfos(allVerificationStrategies, authResult);
 
         if (firstScanSuccess == null || secondScanSuccess == null) {
-            return new ScanResult(authResult, ScanResultStatus.OK, infos);
+            return ScanResult.ok(authResult, infos);
         }
 
         var selectedVerificationStrategies = createVerificationStrategy(scannerConfig.getVerificationStrategies());
-        var scanResult = selectedVerificationStrategies.evaluateScanResult(firstScanSuccess.getAuthResult(), secondScanSuccess.getAuthResult(), authResult);
-        var infosAndEvidences = new ArrayList<>(infos);
-        infosAndEvidences.addAll(scanResult.getEvidences());
-        return new ScanResult(scanResult.getAuthResult(), scanResult.getStatus(), infosAndEvidences);
+        var verifications = evaluate(selectedVerificationStrategies, firstScanSuccess.getAuthResult(), secondScanSuccess.getAuthResult(), authResult);
+        return new ScanResult(authResult, verifications, infos);
+    }
+
+    private Map<String, List<String>> extractInfos(List<ScanResultVerificationStrategy> verifications, AuthResult scanAuthResult) {
+        var infos = new HashMap<String, List<String>>();
+        for(var verificationStrategy : verifications){
+            infos.put(verificationStrategy.getClass().getSimpleName(), verificationStrategy.extractInfos(scanAuthResult));
+        }
+        return infos;
+    }
+
+    public  Map<String, VerificationResult> evaluate(List<ScanResultVerificationStrategy> verifications, AuthResult firstPositiveAuthResult, AuthResult secondPositiveAuthResult, AuthResult authResult) {
+        var results = new HashMap<String, VerificationResult>();
+        for(var verificationStrategy : verifications){
+            var result = verificationStrategy.evaluateScanResult(firstPositiveAuthResult, secondPositiveAuthResult, authResult);
+            results.put(verificationStrategy.getClass().getSimpleName(), result);
+        }
+        return results;
     }
 
     protected abstract AuthResult scan(C scannerConfig, T scanner);
 
-    private ScanResultVerificationStrategy createVerificationStrategy(Collection<String> verificationStrategyNames) {
+    private List<ScanResultVerificationStrategy> createVerificationStrategy(Collection<String> verificationStrategyNames) {
         if (verificationStrategyNames == null || verificationStrategyNames.isEmpty()) {
-            verificationStrategyNames = List.of(
-                    DiffVerification.class.getSimpleName(),
-                    UrlAndStatusCodeVerification.class.getSimpleName(),
-                    CookieVerification.class.getSimpleName()
-            );
+            verificationStrategyNames = scanResultVerificationStrategies.keySet();
         }
 
        List<ScanResultVerificationStrategy> verificationStrategies = new ArrayList<>();
@@ -139,8 +190,7 @@ public abstract class Assessment<T extends Scanner, C extends AppConfig> {
            verificationStrategies.add(findVerificationStrategyByName(name));
        }
 
-       return new AnyMatchVerification(verificationStrategies);
-
+       return verificationStrategies;
     }
 
     private ScanResultVerificationStrategy findVerificationStrategyByName(String name) {

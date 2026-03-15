@@ -2,16 +2,18 @@ package de.denniskniep.safed.common.auth.browser;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.denniskniep.safed.common.auth.browser.bidi.*;
 import de.denniskniep.safed.common.scans.Page;
+import de.denniskniep.safed.common.utils.UrlUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WindowType;
-import org.openqa.selenium.bidi.Event;
 import org.openqa.selenium.bidi.HasBiDi;
-import org.openqa.selenium.bidi.module.Network;
-import org.openqa.selenium.bidi.network.ResponseData;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeDriverService;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -22,15 +24,19 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.imageio.ImageIO;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class Browser implements AutoCloseable {
 
@@ -77,15 +83,11 @@ public class Browser implements AutoCloseable {
 
     private final Path tmpProfileDir;
 
-    private final Event<BeforeRequestSentWithBody> beforeRequestSentEvent =
-            new Event<>("network.beforeRequestSent", BeforeRequestSentWithBody::fromJsonMap);
-
     private final ChromeDriverService service;
 
     public static Browser create(){
         return create(new BrowserConfig());
     }
-
 
     public static Browser create(BrowserConfig config){
         Exception lastException = null;
@@ -93,11 +95,11 @@ public class Browser implements AutoCloseable {
         for (i = 1; i < 4; i++) {
             try {
                 // ToDo: Investigate why this occasionally fail and remove the retry logic
-                LOG.info("Starting Browser (attempt #{})", i);
+                LOG.debug("Starting Browser (attempt #{})", i);
                 return new Browser(config);
             }catch (Exception e){
                 lastException = e;
-                LOG.error(e.getMessage());
+                LOG.debug(e.getMessage(), e);
                 try {
                     Thread.sleep(200);
                 } catch (InterruptedException ex) {
@@ -105,7 +107,7 @@ public class Browser implements AutoCloseable {
                 }
             }
         }
-        throw new RuntimeException("Failed to create Browser even after " + i + " attempts!", lastException);
+        throw new RuntimeException("Failed to create Browser even after " + i + " attempts! " + lastException.getMessage(), lastException);
     }
 
     private Browser(BrowserConfig config) {
@@ -120,23 +122,14 @@ public class Browser implements AutoCloseable {
             }
 
             BrowserExtension browserExtension = new BrowserExtension(config.getExtraHeaders());
-            Path extension = browserExtension.createExtensionAsFolder();
 
             ChromeOptions options = new ChromeOptions();
             options.addArguments("--headless=new");
+            //options.addArguments("--auto-open-devtools-for-tabs");
             options.addArguments("--user-data-dir=" + tmpProfileDir.toAbsolutePath());
             options.addArguments("--window-size=1920,1080");
             options.addArguments("--disable-gpu");
-            options.addArguments("--no-sandbox");
             options.addArguments("--disable-dev-shm-usage");
-            //options.addArguments("--enable-unsafe-extension-debugging");
-            //options.addArguments("--disable-features=DisableLoadExtensionCommandLineSwitch");
-            //options.addArguments("--load-extension=" + extension.toAbsolutePath());
-            //options.addArguments("--disable-extensions-except=" +  extension.toAbsolutePath());
-            //options.addArguments("--single-process");
-            //options.addArguments("--disable-dbus");
-            //options.addExtensions(browserExtension.createEncodedExtension().toAbsolutePath());
-            //options.addExtensions(extension);
             options.addEncodedExtensions(browserExtension.createExtensionZipEncoded());
             options.enableBiDi();
 
@@ -147,6 +140,10 @@ public class Browser implements AutoCloseable {
 
             if (config.hasCertConfig()) {
                 configureCerts(config, options);
+            }
+
+            if(config.getHostResolverRules() != null && !config.getHostResolverRules().isEmpty()){
+                options.addArguments("--host-resolver-rules="+ asHostResolverArgs(config.getHostResolverRules()));
             }
 
             this.service = new ChromeDriverService.Builder()
@@ -166,9 +163,16 @@ public class Browser implements AutoCloseable {
 
 
         }catch (Exception e){
-            revealBrowserLogBecauseOfError();
-            throw new RuntimeException("Starting Browser failed", e);
+            revealBrowserLogBecauseOfError(e);
+            throw new RuntimeException("Starting Browser failed; "+ e.getMessage(), e);
         }
+    }
+
+    private String asHostResolverArgs(Map<String, String> hostResolverRules) {
+        return hostResolverRules
+                .entrySet()
+                .stream()
+                .map(entry -> "MAP " + entry.getKey() + " " + entry.getValue()).collect(Collectors.joining(","));
     }
 
     // https://chromium.googlesource.com/chromium/src.git/+/master/docs/linux/cert_management.md
@@ -180,14 +184,14 @@ public class Browser implements AutoCloseable {
             Files.createDirectories(nssDbDir);
             runCommand("certutil", "-N", "-d", "sql:" + nssDbDir.toAbsolutePath(), "--empty-password");
 
-            LOG.info("NSS database location: {}", nssDbDir.toAbsolutePath());
+            LOG.debug("NSS database location: {}", nssDbDir.toAbsolutePath());
 
             if(config.hasMtlsConfig()){
                 Path certPath = Path.of(this.config.getClientCertX509CertPemFilePath());
                 Path keyPath = Path.of(this.config.getClientCertPrivateKeyPemFilePath());
                 Path pkcs12Path = tmpProfileDir.resolve("client.p12");
 
-                LOG.info("Configured mTLS cert {} with key {}", certPath.toAbsolutePath(), keyPath.toAbsolutePath());
+                LOG.debug("Configured mTLS cert {} with key {}", certPath.toAbsolutePath(), keyPath.toAbsolutePath());
 
                 // Create PKCS12 store
                 runCommand("openssl", "pkcs12", "-export",
@@ -212,7 +216,7 @@ public class Browser implements AutoCloseable {
             var trustedCAs = config.getTrustedRootCa() == null ?  new ArrayList<String>():  config.getTrustedRootCa();
             for (var rootCa : trustedCAs){
                 String rootCaPath = Path.of(rootCa).toAbsolutePath().toString();
-                LOG.info("Configured Trusted root CA from: {}", rootCaPath);
+                LOG.debug("Configured Trusted root CA from: {}", rootCaPath);
 
                 // trust a root CA certificate for issuing SSL server certificates
                 runCommand("certutil",
@@ -231,12 +235,24 @@ public class Browser implements AutoCloseable {
     private static void runCommand(String... command) throws IOException, InterruptedException {
         requireCommand(command[0]);
 
-        ProcessBuilder pb = new ProcessBuilder(command);
-        pb.inheritIO();
-        Process process = pb.start();
-        int exitCode = process.waitFor();
-        if (exitCode != 0) {
-            throw new RuntimeException("Failed to execute "+command[0]+" (command returned exit code: " + exitCode + ")");
+        File outFile = File.createTempFile("proc", ".txt");
+
+        try {
+            ProcessBuilder pb = new ProcessBuilder(command);
+            pb.redirectOutput(outFile);
+            pb.redirectError(outFile);
+
+            Process process = pb.start();
+            int exitCode = process.waitFor();
+
+            if (exitCode != 0) {
+                String output = Files.readString(outFile.toPath());
+                throw new RuntimeException(
+                        "Failed to execute '" + command[0] + "' (command returned exit code: " + exitCode + ")\n" + output
+                );
+            }
+        } finally {
+            outFile.delete();
         }
     }
 
@@ -275,20 +291,24 @@ public class Browser implements AutoCloseable {
         return (HasBiDi)driver;
     }
 
+    private TakesScreenshot getScreenshotDriver(){
+        if (!(driver instanceof TakesScreenshot)) {
+            throw new RuntimeException("WebDriver instance must implement TakesScreenshot");
+        }
+        return (TakesScreenshot)driver;
+    }
+
     public Page execute(HttpRequest httpRequest){
-        return execute(httpRequest, r -> StringUtils.equalsIgnoreCase(r.getMethod(), httpRequest.method()) && StringUtils.equalsIgnoreCase(r.getUrl(), httpRequest.url()));
+        return execute(httpRequest, r -> StringUtils.equalsIgnoreCase(r.getMethod(), httpRequest.method()) && UrlUtils.laxEquals(r.getUrl(), httpRequest.url()));
     }
 
     public Page execute(HttpRequest httpRequest, Predicate<RequestDataWithBody> captureRequestCondition){
         var authLog = new AuthenticationLog();
-
-        CaptureRequest captureRequest = new CaptureRequest(captureRequestCondition);
-        getDriverWithBiDi().getBiDi().addListener(beforeRequestSentEvent, captureRequest);
-
         try(var network = new Network(driver)) {
             RequestResponseLogHandler requestResponseLogHandler = new RequestResponseLogHandler(authLog);
             network.onResponseCompleted(requestResponseLogHandler);
 
+            //TODO: preflight tcp connection check...
             if (StringUtils.equalsIgnoreCase("GET", httpRequest.method())) {
                 driver.get(httpRequest.url());
             } else {
@@ -303,50 +323,74 @@ public class Browser implements AutoCloseable {
             }
             var timeout = Duration.ofSeconds(60);
             var pollingEvery = Duration.ofMillis(500);
+
             WebDriverWait wait = new WebDriverWait(driver, timeout, pollingEvery);
-            wait.until(webDriver -> captureRequest.getCapturedRequest().isPresent());
+            try{
+                wait.until(webDriver -> authLog.find(t -> captureRequestCondition.test(t.getRequest())).isPresent());
+            }catch(TimeoutException e){
+                throw new RuntimeException("No captured request found!\nTrafficLog:\n" + authLog.asShortLogList(), e);
+            }
 
             waitForLastRequestProcessed(authLog);
             waitForPageLoaded();
-
 
             if(StringUtils.equalsIgnoreCase("Privacy error", driver.getTitle())) {
                 throw new RuntimeException("Privacy error! Likely the provided SSL cert is not trusted by the browser\n"+new ObjectMapper().writeValueAsString(config));
             }
 
-            if(captureRequest.getCapturedRequest().isEmpty()) {
+            var capturedRequest = authLog.find(t -> captureRequestCondition.test(t.getRequest()));
+            if(capturedRequest.isEmpty()) {
                 throw new RuntimeException("No captured request found!\nTrafficLog:\n" + authLog.asShortLogList());
             }
 
-            var captureRequestSeen = false;
-            ResponseData captureResponse = null;
-            for (var l : authLog.getTraffic()){
-                if (StringUtils.equals(l.getRequest().getRequestId(), captureRequest.getCapturedRequest().get().getRequestId())){
-                    captureRequestSeen = true;
-                }
-
-                if(captureRequestSeen && noRedirect(l.getResponse())) {
-                    captureResponse = l.getResponse();
-                    break;
-                }
-            }
-
-            if(captureResponse == null) {
-                throw new RuntimeException("Can not find first non redirect Response after captured request!\nCaptured Request:"+captureRequest.getCapturedRequest().get().getUrl()+"\nTrafficLog:\n" + authLog.asShortLogList());
+            var capturedResponse =  authLog.findStartingAt(capturedRequest.get().getRequest().getRequestId(), t -> noRedirect(t) && isDocument(t));
+            if(capturedResponse.isEmpty()) {
+                throw new RuntimeException("Can not find first non redirect Response after captured request!\nCaptured Request:"+capturedRequest.get().getRequest().getUrl()+"\nTrafficLog:\n" + authLog.asShortLogList());
             }
 
             var cookies = driver.manage().getCookies();
             var visibleText = driver.findElement(By.tagName("body")).getText();
 
-            return new Page(driver.getCurrentUrl(), driver.getTitle(), driver.getPageSource(), visibleText, cookies, authLog, captureRequest.getCapturedRequest().get(), captureResponse);
+            // Capture screenshot
+            String base64Screenshot = takeScreenshot();
+
+            return new Page(driver.getCurrentUrl(), driver.getTitle(), driver.getPageSource(), visibleText, base64Screenshot, cookies, authLog, capturedRequest.get().getRequest(), capturedResponse.get().getResponse());
         }catch (Exception e){
-            revealBrowserLogBecauseOfError();
-            throw new  RuntimeException(e);
+            revealBrowserLogBecauseOfError(e);
+            throw new RuntimeException("Loading Page failed: " + e.getMessage(), e);
         }
     }
 
-    private static boolean noRedirect(ResponseData r) {
-        return r.getStatus() < 300 || r.getStatus() >= 400;
+    private String takeScreenshot()  {
+        try{
+            String base64Original = getScreenshotDriver().getScreenshotAs(OutputType.BASE64);
+
+            // Step 2: Decode Base64 → byte[] → BufferedImage
+            byte[] imageBytes = Base64.getDecoder().decode(base64Original);
+            BufferedImage original = ImageIO.read(new ByteArrayInputStream(imageBytes));
+
+            // Step 3: Scale down
+            Image scaled = original.getScaledInstance(400, 300, Image.SCALE_SMOOTH);
+            BufferedImage output = new BufferedImage(400, 300, BufferedImage.TYPE_INT_RGB);
+            output.getGraphics().drawImage(scaled, 0, 0, null);
+
+            // Step 4: BufferedImage → byte[] → Base64
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ImageIO.write(output, "png", baos);
+            return Base64.getEncoder().encodeToString(baos.toByteArray());
+        }catch (Exception e){
+            LOG.error("Error during Screenshot creation!",e);
+            return null;
+        }
+    }
+
+    private static boolean noRedirect(RequestResponse r) {
+        return (r.getResponse().getStatus() < 300 || r.getResponse().getStatus() >= 400);
+    }
+
+    private boolean isDocument(RequestResponse l) {
+        var allowedResourceTypes = List.of("Document");
+        return allowedResourceTypes.stream().anyMatch(t -> StringUtils.equalsIgnoreCase(l.getRequest().getResourceType(), t));
     }
 
     private void waitForLastRequestProcessed(AuthenticationLog authenticationLog) {
@@ -389,8 +433,15 @@ public class Browser implements AutoCloseable {
         };
     }
 
-    private void revealBrowserLogBecauseOfError(){
-        LOG.info("Unexpected Error occurred, printing the verbose Browser logs\n{}", getLogs());
+    private void revealBrowserLogBecauseOfError(Exception e){
+        LOG.debug("""
+                Unexpected Error occurred:
+                {}
+                ----------------------------
+                Printing the verbose Browser logs:
+                {}
+                ----------------------------
+                """, e.getMessage(), getLogs());
     }
 
     public String getLogs(){
@@ -402,7 +453,7 @@ public class Browser implements AutoCloseable {
         try {
             runCommand("pkill", "-f", "user-data-dir=" + tmpProfileDir.toAbsolutePath());
         } catch (Exception e) {
-            LOG.error("Killing process for fast shutdown did not work.", e);
+            LOG.warn("Killing process for fast shutdown did not work.", e);
         }
         if (driver != null) {
             driver.quit();

@@ -4,7 +4,7 @@ server:
 
 logging:
   level:
-    de.denniskniep.safed: DEBUG
+    de.denniskniep.safed: INFO
 
 spring:
   application:

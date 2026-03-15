@@ -2,8 +2,8 @@ package de.denniskniep.safed.oidc.auth.browser;
 
 import de.denniskniep.safed.common.auth.browser.BrowserAuthenticationFlow;
 import de.denniskniep.safed.common.auth.browser.BrowserConfig;
-import de.denniskniep.safed.common.auth.browser.RequestDataWithBody;
-import org.apache.commons.lang3.StringUtils;
+import de.denniskniep.safed.common.auth.browser.bidi.RequestDataWithBody;
+import de.denniskniep.safed.common.utils.UrlUtils;
 
 import java.net.URL;
 import java.util.Map;
@@ -19,7 +19,7 @@ public class OidcBrowserAuthenticationFlow extends BrowserAuthenticationFlow<Oid
 
     @Override
     protected boolean isRequestToIdp(RequestDataWithBody request) {
-        return request.getMethod().equals("GET") && StringUtils.startsWithIgnoreCase(request.getUrl(), idpOidcEndpointUrl.toString());
+        return request.getMethod().equals("GET") && UrlUtils.laxStartsWith(request.getUrl(), idpOidcEndpointUrl.toString());
     }
 
     @Override

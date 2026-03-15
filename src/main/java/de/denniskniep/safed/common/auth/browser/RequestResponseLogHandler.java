@@ -1,10 +1,10 @@
 package de.denniskniep.safed.common.auth.browser;
 
-import org.openqa.selenium.bidi.network.ResponseDetails;
+import de.denniskniep.safed.common.auth.browser.bidi.ResponseDataDetails;
 
 import java.util.function.Consumer;
 
-public class RequestResponseLogHandler implements Consumer<ResponseDetails> {
+public class RequestResponseLogHandler implements Consumer<ResponseDataDetails> {
     private final AuthenticationLog authenticationLog;
 
     public RequestResponseLogHandler(AuthenticationLog authenticationLog) {
@@ -12,7 +12,7 @@ public class RequestResponseLogHandler implements Consumer<ResponseDetails> {
     }
 
     @Override
-    public void accept(ResponseDetails responseDetails) {
-        authenticationLog.add(responseDetails);
+    public void accept(ResponseDataDetails responseDataDetails) {
+        authenticationLog.add(responseDataDetails);
     }
 }

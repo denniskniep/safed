@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 public class Serialization {
     public static <T> T DeepCopy(T obj, Class<T> clazz){
         ObjectMapper objectMapper = new ObjectMapper();
-        String objAsString = AsJsonString(objectMapper, obj);
+        String objAsString = AsJsonStringWith(objectMapper, obj);
         return FromJsonString(objectMapper, objAsString, clazz);
     }
 
@@ -19,10 +19,15 @@ public class Serialization {
         DefaultPrettyPrinter prettyPrinter = new DefaultPrettyPrinter();
         prettyPrinter.indentArraysWith(DefaultIndenter.SYSTEM_LINEFEED_INSTANCE);
         objectMapper.setDefaultPrettyPrinter(prettyPrinter);
-        return Serialization.AsJsonString(objectMapper, obj);
+        return Serialization.AsJsonStringWith(objectMapper, obj);
     }
 
-    public static<T> String AsJsonString(ObjectMapper objectMapper, T obj){
+    public static<T> String AsJsonString(T obj){
+        ObjectMapper objectMapper = new ObjectMapper();
+        return AsJsonStringWith(objectMapper, obj);
+    }
+
+    private static<T> String AsJsonStringWith(ObjectMapper objectMapper, T obj){
         String copyAsString;
         try {
             copyAsString = objectMapper.writeValueAsString(obj);

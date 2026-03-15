@@ -58,6 +58,7 @@ public abstract class FederationAppConfig extends AppConfig {
         this.clientId = clientId;
     }
 
+    // TODO: extract URI from request -> only validate provided with list of RedirectURIs
     public URL getRedirectUrl() {
         return redirectUrl;
     }

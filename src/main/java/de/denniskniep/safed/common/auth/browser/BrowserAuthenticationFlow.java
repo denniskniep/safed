@@ -1,6 +1,8 @@
 package de.denniskniep.safed.common.auth.browser;
 
+import de.denniskniep.safed.common.auth.browser.bidi.RequestDataWithBody;
 import de.denniskniep.safed.common.scans.Page;
+import de.denniskniep.safed.common.utils.UrlUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,8 +28,8 @@ public abstract class BrowserAuthenticationFlow<T> implements AutoCloseable  {
         var httpRequest = new HttpRequest("GET", relyingPartySignInUrl.toString());
         var page = browser.execute(httpRequest, this::isRequestToIdp);
         authenticationLog.addAll(IDP_INIT_CONTEXT, page.authenticationLog().getTraffic());
-        authenticationLog.clearTrafficAfter(page.httpRequest().getRequestId());
-        var parsed = parse(page.httpRequest());
+        authenticationLog.clearTrafficAfter(page.capturedHttpRequest().getRequestId());
+        var parsed = parse(page.capturedHttpRequest());
         LOG.debug("Finished init");
         return parsed;
     }
@@ -38,8 +40,14 @@ public abstract class BrowserAuthenticationFlow<T> implements AutoCloseable  {
 
     public Page answerWith(HttpRequest httpRequest) {
         LOG.debug("Start answer");
-        var page = browser.execute(httpRequest, r -> StringUtils.equalsIgnoreCase(r.getMethod(), httpRequest.method()) && StringUtils.equalsIgnoreCase(r.getUrl(), httpRequest.url()));
+        var page = browser.execute(httpRequest, r -> StringUtils.equalsIgnoreCase(r.getMethod(), httpRequest.method()) && UrlUtils.laxEquals(r.getUrl(), httpRequest.url()));
         authenticationLog.addAll(IDP_RESPONSE_CONTEXT, page.authenticationLog().getTraffic());
+
+        var redirectingBackToIdp = page.authenticationLog().find(t-> isRequestToIdp(t.getRequest()));
+        if(redirectingBackToIdp.isPresent()){
+            LOG.debug("Redirecting back to Idp...");
+        }
+
         LOG.debug("Finished answer");
         return page;
     }

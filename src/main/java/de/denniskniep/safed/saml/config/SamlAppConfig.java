@@ -31,6 +31,14 @@ public class SamlAppConfig extends FederationAppConfig {
 
     private boolean encryptAssertion = false;
 
+    public boolean isSignDocument() {
+        return signDocument;
+    }
+
+    public boolean isSignAssertion() {
+        return signAssertion;
+    }
+
     public int getAssertionLifespanInMinutes() {
         return assertionLifespanInMinutes;
     }

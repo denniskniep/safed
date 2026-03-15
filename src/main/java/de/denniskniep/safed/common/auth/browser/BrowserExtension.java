@@ -56,24 +56,6 @@ public class BrowserExtension {
         this.config = new BrowserExtension.Config(extraHeaders);
     }
 
-    public File createExtensionZipFile() {
-        Path extensionDir = null;
-        try {
-            extensionDir = Files.createTempDirectory("chrome-extension-");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        var zipFile = extensionDir.resolve("extension.zip").toFile();
-        try (FileOutputStream fos = new FileOutputStream(zipFile)) {
-            fos.write(createExtensionAsZip());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        return zipFile;
-    }
-
     public String createExtensionZipEncoded() {
         return Base64.getEncoder().encodeToString(createExtensionAsZip());
     }
@@ -193,13 +175,12 @@ public class BrowserExtension {
                 }
             }
 
-            LOG.info("Loaded extensions: " + String.join(",", loadedExtensionNames));
+            LOG.debug("Loaded extensions: " + String.join(",", loadedExtensionNames));
 
             if (found) {
-                LOG.info("Expected BrowserExtension 'SAFED' is successfully loaded");
+                LOG.debug("Expected BrowserExtension 'SAFED' is successfully loaded");
             } else {
-                LOG.info("Expected BrowserExtension 'SAFED' not FOUND");
-                //throw new RuntimeException("Expected BrowserExtension 'SAFED' was not found in chrome://extensions");
+                throw new RuntimeException("Expected BrowserExtension 'SAFED' was not found in chrome://extensions");
             }
 
         } catch (NoSuchElementException e) {

@@ -9,6 +9,7 @@ public class BrowserConfig {
     private boolean ignoreSslErrors;
     private List<String> trustedRootCa;
     private Map<String, String> extraHeaders;
+    private Map<String, String> hostResolverRules;
     private boolean debug;
 
     public boolean isDebug() {
@@ -66,5 +67,13 @@ public class BrowserConfig {
 
     public void setExtraHeaders(Map<String, String> extraHeaders) {
         this.extraHeaders = extraHeaders;
+    }
+
+    public Map<String, String> getHostResolverRules() {
+        return hostResolverRules;
+    }
+
+    public void setHostResolverRules(Map<String, String> hostResolverRules) {
+        this.hostResolverRules = hostResolverRules;
     }
 }

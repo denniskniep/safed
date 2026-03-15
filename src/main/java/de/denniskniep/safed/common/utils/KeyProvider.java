@@ -1,6 +1,11 @@
 package de.denniskniep.safed.common.utils;
 
 import de.denniskniep.safed.common.config.FederationAppConfig;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.keycloak.common.util.KeyUtils;
 import org.keycloak.crypto.KeyStatus;
 import org.keycloak.crypto.KeyType;
@@ -11,36 +16,19 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.util.FileCopyUtils;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.KeyFactory;
 import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.util.Base64;
 
 public class KeyProvider {
-
-    private static String loadFromFile(String filePath){
-        Path relativePath = Paths.get(filePath);
-        Path absolutePath = relativePath.toAbsolutePath();
-        try {
-            return loadContentFromFilePath("file://" + absolutePath);
-        } catch (IOException e) {
-            throw new RuntimeException("Can not load signing cert configPath: '"+ filePath + "' absPath:'"+absolutePath+"'", e);
-        }
-    }
 
     public static KeyWrapper loadSigningKey(FederationAppConfig federationConfig) {
         String privateRsaKeyPem = loadFromFile(federationConfig.getSigningPrivateKeyPemFilePath());
@@ -65,27 +53,39 @@ public class KeyProvider {
         return key;
     }
 
-    public static X509Certificate certFromPem(String certificatePem){
-        var certContent = certificatePem.replaceAll("\\n", "").replace("-----BEGIN CERTIFICATE-----", "").replace("-----END CERTIFICATE-----", "");
-        var certDecoded = Base64.getDecoder().decode(certContent);
+    public static X509Certificate loadCertFromFile(String filePath) {
+        String certificatePem = loadFromFile(filePath);
+        return certFromPem(certificatePem);
+    }
 
-        CertificateFactory certFactory;
-        try {
-            certFactory = CertificateFactory.getInstance("X.509");
-        } catch (CertificateException e) {
-            throw new RuntimeException("Can not use X.509", e);
+
+    private static X509Certificate certFromPem(String certificatePem){
+        try (PEMParser pemParser = new PEMParser(new StringReader(certificatePem))) {
+            X509CertificateHolder certHolder = (X509CertificateHolder) pemParser.readObject();
+            return new JcaX509CertificateConverter().getCertificate(certHolder);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to parse certificate", e);
         }
+    }
 
-        try(var stream = new ByteArrayInputStream(certDecoded)) {
-            return (X509Certificate)certFactory.generateCertificate(stream);
-        } catch (CertificateException | IOException e) {
+    private static PrivateKey privateKeyFromPem(String privateKeyAsPem){
+        PEMParser pemParser = new PEMParser(new StringReader(privateKeyAsPem));
+        try {
+            PrivateKeyInfo privateKeyInfo = (PrivateKeyInfo) pemParser.readObject();
+            return new JcaPEMKeyConverter().getPrivateKey(privateKeyInfo);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static X509Certificate loadCertFromFile(String filePath) {
-        String certificatePem = loadFromFile(filePath);
-        return certFromPem(certificatePem);
+    private static String loadFromFile(String filePath){
+        Path relativePath = Paths.get(filePath);
+        Path absolutePath = relativePath.toAbsolutePath();
+        try {
+            return loadContentFromFilePath("file://" + absolutePath);
+        } catch (IOException e) {
+            throw new RuntimeException("Can not load signing cert configPath: '"+ filePath + "' absPath:'"+absolutePath+"'", e);
+        }
     }
 
     private static String loadContentFromFilePath(String filePath) throws IOException {
@@ -93,26 +93,6 @@ public class KeyProvider {
         Resource resource = resourceLoader.getResource(filePath);
         try (Reader reader = new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8)) {
             return FileCopyUtils.copyToString(reader);
-        }
-    }
-
-
-    private static PrivateKey privateKeyFromPem(String privateKeyAsPem){
-        var privateKeyContent = privateKeyAsPem.replaceAll("\\n", "").replace("-----BEGIN PRIVATE KEY-----", "").replace("-----END PRIVATE KEY-----", "");
-        var privateKeyDecoded = Base64.getDecoder().decode(privateKeyContent);
-
-        KeyFactory kf;
-        try {
-            kf = KeyFactory.getInstance("RSA");
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Can not use Algorithm", e);
-        }
-
-        PKCS8EncodedKeySpec keySpecPKCS8 = new PKCS8EncodedKeySpec(privateKeyDecoded);
-        try {
-            return kf.generatePrivate(keySpecPKCS8);
-        } catch (InvalidKeySpecException e) {
-            throw new RuntimeException("Can not create private key", e);
         }
     }
 }

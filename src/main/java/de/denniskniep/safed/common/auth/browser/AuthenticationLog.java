@@ -1,10 +1,12 @@
 package de.denniskniep.safed.common.auth.browser;
 
+import de.denniskniep.safed.common.auth.browser.bidi.ResponseDataDetails;
 import org.apache.commons.lang3.StringUtils;
-import org.openqa.selenium.bidi.network.ResponseDetails;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Predicate;
 
 public class AuthenticationLog {
 
@@ -14,19 +16,19 @@ public class AuthenticationLog {
         return traffic;
     }
 
-    public RequestResponse add(ResponseDetails responseDetails){
-       return add("",  responseDetails);
+    public RequestResponse add(ResponseDataDetails responseDataDetails){
+       return add("", responseDataDetails);
     }
 
     public void addAll(String context, List<RequestResponse> requestResponses){
         for (RequestResponse r : requestResponses) {
-            RequestResponse requestResponse = new RequestResponse(r.created(), context, r.responseDetails());
+            RequestResponse requestResponse = new RequestResponse(r.created(), context, r.responseDataDetails());
             traffic.add(requestResponse);
         }
     }
 
-    public RequestResponse add(String context, ResponseDetails responseDetails){
-        RequestResponse requestResponse = new RequestResponse(context, responseDetails);
+    public RequestResponse add(String context, ResponseDataDetails responseDataDetails){
+        RequestResponse requestResponse = new RequestResponse(context, responseDataDetails);
         traffic.add(requestResponse);
         return requestResponse;
     }
@@ -45,8 +47,30 @@ public class AuthenticationLog {
         }
     }
 
+    public Optional<RequestResponse> find(Predicate<RequestResponse> findCondition){
+        return findInternal(Optional.empty(), findCondition);
+    }
+
+    public Optional<RequestResponse> findStartingAt(String startAtRequestId, Predicate<RequestResponse> findCondition){
+        return findInternal(Optional.of(startAtRequestId), findCondition);
+    }
+
+    private Optional<RequestResponse> findInternal(Optional<String> startAtRequestId, Predicate<RequestResponse> findCondition){
+        var execFind = false;
+        for (RequestResponse t : List.copyOf(traffic)) {
+            if (startAtRequestId.isEmpty() || StringUtils.equals(t.getRequest().getRequestId(), startAtRequestId.get())){
+                execFind = true;
+            }
+
+            if(execFind && findCondition.test(t)){
+                return Optional.of(t);
+            }
+        }
+        return Optional.empty();
+    }
+
     public String asShortLogList(){
-        return  String.join("\n",getTraffic().stream().map(RequestResponse::asShortLog).toList());
+        return String.join("\n",getTraffic().stream().map(RequestResponse::asShortLog).toList());
     }
 }
 

@@ -8,12 +8,14 @@ RUN mvn dependency:go-offline
 COPY src ./src
 RUN mvn clean package -DskipTests
 
-FROM eclipse-temurin:21-jre-jammy
+FROM debian:sid-slim
 # Source: https://github.com/SeleniumHQ/docker-selenium/tree/trunk/NodeChromium
 
 USER root
 
 ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update -qqy && apt-get -qqy install wget curl default-jdk
 
 COPY docker/install-chromium.sh ./install-chromium.sh
 RUN ./install-chromium.sh
@@ -30,8 +32,6 @@ RUN /opt/bin/wrap_chromium_binary && chromium --version
 #============================================
 COPY ./docker/chrome-cleanup.sh /opt/bin/chrome-cleanup.sh
 COPY ./docker/chrome-cleanup.conf /etc/supervisor/conf.d/chrome-cleanup.conf
-
-USER ${SEL_UID}
 
 #============================================
 # Dumping Browser information for config
@@ -54,4 +54,4 @@ RUN useradd -m -u 1000 appuser && \
 
 USER appuser
 
-ENTRYPOINT ["sh", "-c", "java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]

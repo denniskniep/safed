@@ -1,3 +1,7 @@
+logging:
+  level:
+    de.denniskniep.safed: DEBUG
+
 oidc:
   clients:
     example-oidc-002-codeflow:

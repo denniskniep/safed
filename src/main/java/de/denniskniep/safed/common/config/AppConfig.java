@@ -13,6 +13,7 @@ public abstract class AppConfig {
     private boolean ignoreSslErrors;
 
     private Map<String, String> extraHeaders;
+    private Map<String, String> hostResolverRules;
 
     private List<String> scanners;
     private List<String> verificationStrategies;
@@ -75,6 +76,13 @@ public abstract class AppConfig {
         this.extraHeaders = extraHeaders;
     }
 
+    public Map<String, String> getHostResolverRules() {
+        return hostResolverRules;
+    }
+
+    public void setHostResolverRules(Map<String, String> hostResolverRules) {
+        this.hostResolverRules = hostResolverRules;
+    }
 
     @JsonIgnore
     public BrowserConfig getBrowserConfig() {
@@ -83,6 +91,7 @@ public abstract class AppConfig {
         browserConfig.setIgnoreSslErrors(this.isIgnoreSslErrors());
         browserConfig.setTrustedRootCa(this.getTrustedRootCa());
         browserConfig.setExtraHeaders(this.getExtraHeaders());
+        browserConfig.setHostResolverRules(this.getHostResolverRules());
         return browserConfig;
     }
 }

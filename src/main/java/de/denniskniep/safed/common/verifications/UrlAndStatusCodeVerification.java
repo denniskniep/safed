@@ -1,12 +1,10 @@
 package de.denniskniep.safed.common.verifications;
 
 import de.denniskniep.safed.common.scans.AuthResult;
-import de.denniskniep.safed.common.scans.ScanResult;
 import de.denniskniep.safed.common.scans.ScanResultStatus;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -14,30 +12,39 @@ public class UrlAndStatusCodeVerification implements ScanResultVerificationStrat
 
     @Override
     public List<String> extractInfos(AuthResult scanAuthResult) {
-        return List.of();
+        return List.of(
+                "[INFO] " + extractUrlAndStatusCode(scanAuthResult)
+        );
     }
 
     @Override
-    public ScanResult evaluateScanResult(AuthResult firstPositiveAuthResult, AuthResult secondPositiveAuthResult, AuthResult scanAuthResult) {
+    public VerificationResult evaluateScanResult(AuthResult firstPositiveAuthResult, AuthResult secondPositiveAuthResult, AuthResult scanAuthResult) {
         ScanResultStatus status;
-        List<String> evidences = new ArrayList<>();
+        String comparator;
 
-        if(StringUtils.equalsIgnoreCase(firstPositiveAuthResult.getResponsePage().url(), scanAuthResult.getResponsePage().url())
-                && firstPositiveAuthResult.getResponsePage().httpResponse().getStatus() == scanAuthResult.getResponsePage().httpResponse().getStatus()){
+        var firstPositiveAuthResultExtract = extractUrlAndStatusCode(firstPositiveAuthResult);
+        var scanAuthResultExtract = extractUrlAndStatusCode(scanAuthResult);
 
+        if(StringUtils.equalsIgnoreCase(firstPositiveAuthResultExtract, scanAuthResultExtract)){
             status = ScanResultStatus.VULNERABLE;
-            evidences.add("[" + status +"] " + extractUrlAndStatusCode(firstPositiveAuthResult) + " == " + extractUrlAndStatusCode(scanAuthResult));
-
+            comparator = " == ";
         }else{
             status = ScanResultStatus.OK;
-            evidences.add("[" +status+"] " +extractUrlAndStatusCode(firstPositiveAuthResult) + " != " + extractUrlAndStatusCode(scanAuthResult));
-
+            comparator = " != ";
         }
 
-        return new ScanResult(scanAuthResult, status, evidences);
+        return new VerificationResult(status, List.of("[" + status +"] " + firstPositiveAuthResultExtract + comparator + scanAuthResultExtract));
     }
 
     private String extractUrlAndStatusCode(AuthResult authResult) {
-        return authResult.getResponsePage().url() + " -> "+ authResult.getResponsePage().httpResponse().getStatus();
+        if(authResult.getResponsePage() == null){
+            return "";
+        }
+
+        if(authResult.getResponsePage().capturedHttpResponse() == null){
+            return authResult.getResponsePage().url() + " -> <null>";
+        }
+
+        return authResult.getResponsePage().url() + " -> "+ authResult.getResponsePage().capturedHttpResponse().getStatus();
     }
 }

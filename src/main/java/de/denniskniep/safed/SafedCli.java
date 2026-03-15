@@ -92,12 +92,16 @@ public class SafedCli implements CommandLineRunner {
                 var report = new Report();
                 report.setStatus(ScanResultStatus.FAILED);
                 report.setErrors(List.of("Provided ClientId  '" + clientId + "' not found!"));
+                reports.add(report);
             }
         }
 
-        LOG.info(Serialization.AsPrettyJson(reports));
+        LOG.debug(Serialization.AsPrettyJson(reports));
+        if(!LOG.isDebugEnabled()) {
+            LOG.info(Serialization.AsJsonString(reports));
+        }
+
         webhookService.sendReports(reports);
-        LOG.info("Finished assessment");
         SpringApplication.exit(applicationContext, () -> 0);
     }
 

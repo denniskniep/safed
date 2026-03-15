@@ -46,24 +46,26 @@ public class ReportBuilder {
 
         ScanResultStatus status = ScanResultStatus.OK;
         for(var scanResult : scanResults.entrySet()){
-            if(scanResult.getValue().getStatus() == ScanResultStatus.OK){
+            if(scanResult.getValue().getStatus() == ScanResultStatus.OK || scanResult.getValue().getStatus() == ScanResultStatus.FAILED){
                 report.addNoFinding(scanResult.getKey(), asScanResultReport(scanResult.getValue()));
             }else{
                 status = ScanResultStatus.VULNERABLE;
                 report.addFinding(scanResult.getKey(), asScanResultReport(scanResult.getValue()));
             }
+            errors.addAll(scanResult.getValue().getErrors().stream().map(e -> "[Scanner:"+scanResult.getKey()+"] " + e).toList());
         }
         if(!errors.isEmpty()){
             status = ScanResultStatus.FAILED;
             report.setErrors(errors);
         }
         report.setStatus(status);
-
-
         return report;
     }
 
     private ScanResultReport asScanResultReport(ScanResult scanResult){
+        if(scanResult == null){
+            return null;
+        }
         ScanResultReport scanResultReport = new ScanResultReport();
         scanResultReport.setStatus(scanResult.getStatus());
         scanResultReport.setEvidences(scanResult.getEvidences());
@@ -74,10 +76,15 @@ public class ReportBuilder {
         }
         scanResultReport.setTrafficLog(trafficLog);
         scanResultReport.setCreatedAt(scanResult.getCreatedAtFormatted());
+        scanResultReport.setErrors(scanResult.getErrors());
         return scanResultReport;
     }
 
     private InitialScanReport asInitialScanReport(ScanResult scanResult){
+        if(scanResult == null){
+            return null;
+        }
+
         InitialScanReport initialScanReport = new InitialScanReport();
 
         List<String> trafficLog = new ArrayList<>();

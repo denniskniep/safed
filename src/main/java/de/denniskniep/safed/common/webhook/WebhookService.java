@@ -34,7 +34,7 @@ public class WebhookService {
         }
 
         if (webhookConfig.getUrl() == null || webhookConfig.getUrl().isEmpty()) {
-            LOG.error("Webhook URL is not configured, skipping sending reports");
+            LOG.error("Webhook is enabled, but URL is not configured, skipping sending reports");
             return;
         }
 

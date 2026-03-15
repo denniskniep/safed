@@ -2,8 +2,8 @@ package de.denniskniep.safed.saml.auth.browser;
 
 import de.denniskniep.safed.common.auth.browser.BrowserAuthenticationFlow;
 import de.denniskniep.safed.common.auth.browser.BrowserConfig;
-import de.denniskniep.safed.common.auth.browser.RequestDataWithBody;
-import org.apache.commons.lang3.StringUtils;
+import de.denniskniep.safed.common.auth.browser.bidi.RequestDataWithBody;
+import de.denniskniep.safed.common.utils.UrlUtils;
 import org.keycloak.dom.saml.v2.SAML2Object;
 import org.keycloak.dom.saml.v2.protocol.AuthnRequestType;
 import org.keycloak.saml.SAMLRequestParser;
@@ -23,7 +23,7 @@ public class SamlBrowserAuthenticationFlow extends BrowserAuthenticationFlow<Sam
 
     @Override
     protected boolean isRequestToIdp(RequestDataWithBody request) {
-        return StringUtils.startsWithIgnoreCase(request.getUrl(), idpSamlEndpointUrl.toString());
+        return UrlUtils.laxStartsWith(request.getUrl(), idpSamlEndpointUrl.toString());
     }
 
     @Override

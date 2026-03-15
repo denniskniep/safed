@@ -23,8 +23,8 @@ public class CookieVerification implements ScanResultVerificationStrategy {
     }
 
     @Override
-    public ScanResult evaluateScanResult(AuthResult firstPositiveAuthResult, AuthResult secondPositiveAuthResult, AuthResult scanAuthResult) {
-        return new ScanResult(scanAuthResult, ScanResultStatus.OK, new ArrayList<>());
+    public VerificationResult evaluateScanResult(AuthResult firstPositiveAuthResult, AuthResult secondPositiveAuthResult, AuthResult scanAuthResult) {
+        return new VerificationResult(ScanResultStatus.OK, new ArrayList<>());
     }
 
     private String asString(Set<Cookie> cookies) {
@@ -32,6 +32,9 @@ public class CookieVerification implements ScanResultVerificationStrategy {
     }
 
     private Set<Cookie> getCookies(AuthResult authResult){
+        if(authResult.getResponsePage() == null){
+            return Set.of();
+        }
         return authResult.getResponsePage().cookies();
     }
 }

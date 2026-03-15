@@ -21,7 +21,7 @@ public class DiffVerification implements ScanResultVerificationStrategy  {
     }
 
     @Override
-    public ScanResult evaluateScanResult(AuthResult firstPositiveAuthResult, AuthResult secondPositiveAuthResult, AuthResult scanAuthResult) {
+    public VerificationResult evaluateScanResult(AuthResult firstPositiveAuthResult, AuthResult secondPositiveAuthResult, AuthResult scanAuthResult) {
 
             var normalPatch = DiffUtils.diff(
                     Arrays.asList(extractVisibleText(firstPositiveAuthResult).split("\n")),
@@ -57,7 +57,7 @@ public class DiffVerification implements ScanResultVerificationStrategy  {
                     "["+status + "] Normal diff lines between successful authentications: "+ normalDiff.size() + " and line distance of scan: " + scanDiff.size()
             );
 
-            return new ScanResult(scanAuthResult, status, evidences);
+            return new VerificationResult(status, evidences);
     }
 
 
@@ -72,6 +72,9 @@ public class DiffVerification implements ScanResultVerificationStrategy  {
     }
 
     private String extractVisibleText(AuthResult authResult){
+        if(authResult.getResponsePage() == null){
+            return "";
+        }
         return authResult.getResponsePage().visibleText();
     }
 }

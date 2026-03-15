@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -e
 
+apt-get update -qqy
+apt-get -qqy install libnss3-tools
+
 # Install Chromium
 export CHROMIUM_VERSION="145.0.7632.159"
 export CHROMIUM_DEB_SITE="http://deb.debian.org/debian"
@@ -25,12 +28,6 @@ wget "$URL2" -O /tmp/chromium/chromium.deb
 wget "$URL3" -O /tmp/chromium/chromium-l10n.deb
 wget "$URL4" -O /tmp/chromium/chromium-driver.deb
 
-echo "deb ${CHROMIUM_DEB_SITE}/ sid main" >/etc/apt/sources.list.d/debian.list
-wget -qO- https://ftp-master.debian.org/keys/archive-key-12.asc | gpg --dearmor > /etc/apt/trusted.gpg.d/debian-archive-keyring.gpg
-wget -qO- https://ftp-master.debian.org/keys/archive-key-12-security.asc | gpg --dearmor > /etc/apt/trusted.gpg.d/debian-archive-security-keyring.gpg
-apt-get update -qqy
-apt-get -qqy install libnss3-tools
-
-apt-get -qqyf install /tmp/chromium/chromium-common.deb /tmp/chromium/chromium.deb /tmp/chromium/chromium-l10n.deb /tmp/chromium/chromium-driver.deb
+apt-get -yf install /tmp/chromium/chromium-common.deb /tmp/chromium/chromium.deb /tmp/chromium/chromium-l10n.deb /tmp/chromium/chromium-driver.deb
 
 rm -rf /tmp/chromium;

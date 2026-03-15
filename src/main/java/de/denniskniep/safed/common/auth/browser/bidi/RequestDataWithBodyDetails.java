@@ -1,4 +1,4 @@
-package de.denniskniep.safed.common.auth.browser;
+package de.denniskniep.safed.common.auth.browser.bidi;
 
 import org.openqa.selenium.bidi.network.BaseParameters;
 import org.openqa.selenium.bidi.network.Initiator;
@@ -10,20 +10,20 @@ import java.util.List;
 import java.util.Map;
 
 // TODO: Can be replaced once Selenium Bidi supports body in requests natively
-public class BeforeRequestSentWithBody {
+public class RequestDataWithBodyDetails {
     private static final Json JSON = new Json();
 
     private final BaseParameters baseParameters;
     private final Initiator initiator;
     private final RequestDataWithBody requestParameter;
 
-    private BeforeRequestSentWithBody(BaseParameters baseParameters, Initiator initiator, RequestDataWithBody requestParameter) {
+    private RequestDataWithBodyDetails(BaseParameters baseParameters, Initiator initiator, RequestDataWithBody requestParameter) {
         this.baseParameters = baseParameters;
         this.initiator = initiator;
         this.requestParameter = requestParameter;
     }
 
-    public static BeforeRequestSentWithBody fromJsonMap(Map<String, Object> jsonMap) {
+    public static RequestDataWithBodyDetails fromJsonMap(Map<String, Object> jsonMap) {
         try (StringReader baseParameterReader = new StringReader(JSON.toJson(jsonMap));
              StringReader initiatorReader = new StringReader(JSON.toJson(jsonMap.get("initiator")));
              StringReader requestReader = new StringReader(JSON.toJson(jsonMap.get("request")));
@@ -35,7 +35,7 @@ public class BeforeRequestSentWithBody {
             var initiatorParameter =  Initiator.fromJson(initiatorInput);
             var requestParameter = RequestDataWithBody.fromJson(requestInput);
 
-            return new BeforeRequestSentWithBody(baseParameter, initiatorParameter, requestParameter);
+            return new RequestDataWithBodyDetails(baseParameter, initiatorParameter, requestParameter);
         }
     }
 
