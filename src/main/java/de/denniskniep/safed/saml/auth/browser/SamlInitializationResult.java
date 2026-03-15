@@ -35,6 +35,7 @@ public class SamlInitializationResult {
         SamlRequestData samlRequestData = new SamlRequestData();
         samlRequestData.setId(samlRequest.getID());
         samlRequestData.setRelayState(RelayState);
+        samlRequestData.setRedirectUri(samlRequest.getAssertionConsumerServiceURL());
         return samlRequestData;
     }
 }

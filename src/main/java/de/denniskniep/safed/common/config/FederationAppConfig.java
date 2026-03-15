@@ -9,6 +9,7 @@ import java.util.List;
 public abstract class FederationAppConfig extends AppConfig {
     private String clientId;
     private URL redirectUrl;
+    private List<String> validRedirectUrls;
     private URL signInUrl;
     private List<ClaimConfig> claims = new ArrayList<>();
     private URL issuerId;
@@ -58,13 +59,20 @@ public abstract class FederationAppConfig extends AppConfig {
         this.clientId = clientId;
     }
 
-    // TODO: extract URI from request -> only validate provided with list of RedirectURIs
     public URL getRedirectUrl() {
         return redirectUrl;
     }
 
     public void setRedirectUrl(URL redirectUrl) {
         this.redirectUrl = redirectUrl;
+    }
+
+    public List<String> getValidRedirectUrls() {
+        return validRedirectUrls;
+    }
+
+    public void setValidRedirectUrls(List<String> validRedirectUrls) {
+        this.validRedirectUrls = validRedirectUrls;
     }
 
     public URL getSignInUrl() {

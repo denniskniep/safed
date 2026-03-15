@@ -1,6 +1,7 @@
 package de.denniskniep.safed.saml.auth.server;
 
 import de.denniskniep.safed.common.utils.KeyProvider;
+import de.denniskniep.safed.common.utils.RedirectUtils;
 import de.denniskniep.safed.saml.config.SamlAppConfig;
 import de.denniskniep.safed.saml.config.SamlAuthData;
 import de.denniskniep.safed.saml.auth.browser.SamlRequestData;
@@ -15,6 +16,7 @@ import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
 import org.w3c.dom.Document;
 
 import java.net.URI;
+import java.net.URL;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
@@ -43,10 +45,17 @@ public class SamlResponseBuilder {
         // SamlProtocol.authenticated
         // SamlService.handleSamlRequest
 
+        URL redirectUrl;
+        if(clientConfig.getRedirectUrl() != null) {
+            redirectUrl = clientConfig.getRedirectUrl();
+        } else{
+            redirectUrl = RedirectUtils.getValidRedirectUrl(request.getRedirectUri(), clientConfig.getValidRedirectUrls());
+        }
+
         // Manipulate standard properties
         SAML2LoginResponseBuilder builder = new SAML2LoginResponseBuilder()
                 .requestID(request.getId()) // InResponseTo
-                .destination(clientConfig.getRedirectUrl().toExternalForm())
+                .destination(redirectUrl.toString())
                 .issuer(clientConfig.getIssuerId().toExternalForm())
                 .assertionExpiration(clientConfig.getAssertionLifespanInMinutes())
                 .subjectExpiration(clientConfig.getAssertionLifespanInMinutes())
@@ -133,7 +142,7 @@ public class SamlResponseBuilder {
             var postBindingBuilder = bindingBuilder.postBinding(samlDocument);
 
             //todo: Apply here XML Changes after signature!
-            return postBindingBuilder.createWebRequest(clientConfig.getRedirectUrl());
+            return postBindingBuilder.createWebRequest(redirectUrl);
         } catch (Exception e) {
             throw new RuntimeException("Can not build SAMLResponse", e);
         }

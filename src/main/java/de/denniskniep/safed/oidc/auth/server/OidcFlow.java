@@ -3,6 +3,7 @@ package de.denniskniep.safed.oidc.auth.server;
 import de.denniskniep.safed.common.auth.browser.HttpRequest;
 import de.denniskniep.safed.common.config.ClaimConfig;
 import de.denniskniep.safed.common.utils.KeyProvider;
+import de.denniskniep.safed.common.utils.RedirectUtils;
 import de.denniskniep.safed.oidc.auth.browser.OidcAuthenticationRequest;
 import de.denniskniep.safed.oidc.auth.server.endpoints.TokenRequest;
 import de.denniskniep.safed.oidc.auth.server.endpoints.TokenResponse;
@@ -18,6 +19,7 @@ import org.keycloak.crypto.KeyWrapper;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -57,18 +59,25 @@ public class OidcFlow implements FrontChannelRequest, BackchannelHandler {
             responseMode = "query";
         }
 
+        URL redirectUrl;
+        if(clientConfig.getRedirectUrl() != null) {
+            redirectUrl = clientConfig.getRedirectUrl();
+        } else{
+            redirectUrl = RedirectUtils.getValidRedirectUrl(requestData.getRedirectUri(), clientConfig.getValidRedirectUrls());
+        }
+
         if(StringUtils.equalsIgnoreCase(responseMode, "query")) {
-            URI uri = buildQuery(clientConfig.getRedirectUrl().toString(), params);
+            URI uri = buildQuery(redirectUrl.toString(), params);
             return new HttpRequest("GET", uri.toString());
         }
 
         if(StringUtils.equalsIgnoreCase(responseMode, "form_post")) {
-            URI uri = buildQuery(clientConfig.getRedirectUrl().toString());
+            URI uri = buildQuery(redirectUrl.toString());
             return new HttpRequest("POST", uri.toString(), params);
         }
 
         if(StringUtils.equalsIgnoreCase(responseMode, "fragment")) {
-            URI uri = buildQuery(clientConfig.getRedirectUrl().toString(), new HashedMap<>(), params);
+            URI uri = buildQuery(redirectUrl.toString(), new HashedMap<>(), params);
             return new HttpRequest("GET", uri.toString());
         }
 
