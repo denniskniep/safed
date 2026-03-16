@@ -306,6 +306,8 @@ public class Browser implements AutoCloseable {
     public Page execute(HttpRequest httpRequest, Predicate<RequestDataWithBody> captureRequestCondition){
         final AuthenticationLog authLog = new AuthenticationLog();
 
+        ReachabilityChecker.check(httpRequest.url(), Long.valueOf(config.getPageLoadTimeoutInSeconds()).intValue());
+
         var errorMetadataCollectors = LazyMetadata.list(
             LazyMetadata.ofOne("title", () -> driver.getTitle()),
             LazyMetadata.ofList("trafficLog", () -> authLog.getTraffic().stream().map(RequestResponse::asShortLog).toList()),
@@ -318,7 +320,6 @@ public class Browser implements AutoCloseable {
             RequestResponseLogHandler requestResponseLogHandler = new RequestResponseLogHandler(authLog);
             network.onResponseCompleted(requestResponseLogHandler);
 
-            //TODO: preflight tcp connection check...
             if (StringUtils.equalsIgnoreCase("GET", httpRequest.method())) {
                 driver.get(httpRequest.url());
             } else {
