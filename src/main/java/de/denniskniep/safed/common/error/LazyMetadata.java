@@ -6,6 +6,14 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public class LazyMetadata {
+
+    public static final String TITLE = "title";
+    public static final String TRAFFIC_LOG = "trafficLog";
+    public static final String BROWSER_LOGS = "browserLogs";
+    public static final String VISIBLE_TEXT = "visibleText";
+    public static final String SCREENSHOT = "screenshot";
+    public static final String CAPTURED_REQUEST_URL = "capturedRequestUrl";
+
     private final String key;
     private final Supplier<List<String>> lazyValues;
 

@@ -27,7 +27,7 @@ public class SamlAssessment extends Assessment<SamlScanner, SamlAppConfig> {
     }
 
     @Override
-    protected AuthResult scan(SamlAppConfig config, SamlScanner scanner) {
+    protected AuthResult scan(SamlAppConfig config, SamlScanner scanner, boolean isBaselineScan) {
         SamlAuthData samlAuthData = new SamlAuthData();
         samlAuthData.setAuthMethod(JBossSAMLURIConstants.AC_UNSPECIFIED.get());
         samlAuthData.setSessionIndex(UUID.randomUUID() + "::" + UUID.randomUUID());

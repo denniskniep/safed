@@ -167,7 +167,7 @@ public class Browser implements AutoCloseable {
             driver.switchTo().newWindow(WindowType.TAB);
         }catch (Exception e){
             throw new RuntimeExceptionWithMetadata("Starting Browser failed! " + e.getMessage(), e, LazyMetadata.list(
-                LazyMetadata.ofOne("browserLogs", () -> chromeLogs.toString())
+                LazyMetadata.ofOne(LazyMetadata.BROWSER_LOGS, () -> chromeLogs.toString())
             ));
         }
     }
@@ -312,11 +312,11 @@ public class Browser implements AutoCloseable {
         ReachabilityChecker.check(httpRequest.url(), Long.valueOf(config.getPageLoadTimeoutInSeconds()).intValue());
 
         var errorMetadataCollectors = LazyMetadata.list(
-            LazyMetadata.ofOne("title", () -> driver.getTitle()),
-            LazyMetadata.ofList("trafficLog", () -> authLog.getTraffic().stream().map(RequestResponse::asShortLog).toList()),
-            LazyMetadata.ofOne("browserLogs", () -> chromeLogs.toString()),
-            LazyMetadata.ofOne("visibleText", () -> driver.findElement(By.tagName("body")).getText()),
-            LazyMetadata.ofOne("screenshot", () -> "data:image/jpeg;base64,"+ takeScreenshot())
+            LazyMetadata.ofOne(LazyMetadata.TITLE, () -> driver.getTitle()),
+            LazyMetadata.ofList(LazyMetadata.TRAFFIC_LOG, () -> authLog.getTraffic().stream().map(RequestResponse::asShortLog).toList()),
+            LazyMetadata.ofOne(LazyMetadata.BROWSER_LOGS, () -> chromeLogs.toString()),
+            LazyMetadata.ofOne(LazyMetadata.VISIBLE_TEXT, () -> driver.findElement(By.tagName("body")).getText()),
+            LazyMetadata.ofOne(LazyMetadata.SCREENSHOT, () -> "data:image/jpeg;base64,"+ takeScreenshot())
         );
 
         try(var network = new Network(driver)) {
@@ -367,7 +367,7 @@ public class Browser implements AutoCloseable {
             if(capturedResponse.isEmpty()) {
                 throw new RuntimeExceptionWithMetadata("Can not find first non redirect Response after captured request!", LazyMetadata.list(
                     errorMetadataCollectors,
-                    LazyMetadata.ofOne("capturedRequestUrl", () -> capturedRequest.get().getRequest().getUrl())
+                    LazyMetadata.ofOne(LazyMetadata.CAPTURED_REQUEST_URL, () -> capturedRequest.get().getRequest().getUrl())
                 ));
             }
 

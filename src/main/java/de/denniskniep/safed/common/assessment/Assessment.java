@@ -85,15 +85,15 @@ public abstract class Assessment<T extends Scanner, C extends AppConfig> {
         List<ReportError> errors = new ArrayList<>();
         LOG.info("Start first baseline scan");
         // First scan with successful login
-        firstScanSuccess = runScan(scannerConfig, successScanner);
+        firstScanSuccess = runScan(scannerConfig, successScanner, true);
 
         LOG.info("Start second baseline scan");
         // Second scan with successful login, but maybe changes in the page content from login to login
-        secondScanSuccess = runScan(scannerConfig, successScanner);
+        secondScanSuccess = runScan(scannerConfig, successScanner, true);
 
         LOG.info("Start test scan - proof ok");
         // scan with failure - means OK (not vulnerable)
-        isOkScan = runScan(scannerConfig, failureScanner);
+        isOkScan = runScan(scannerConfig, failureScanner, false);
 
         // Dynamically adopt Verification Strategy
         List<String> okVerifications = isOkScan.getVerificationStrategies(ScanResultStatus.OK);
@@ -104,12 +104,12 @@ public abstract class Assessment<T extends Scanner, C extends AppConfig> {
             scannerConfig = (C)scannerConfig.deepCopy();
             scannerConfig.setVerificationStrategies(okVerifications);
             LOG.info("Restart test scan - proof ok (Adopted Verification Strategy)");
-            isOkScan = runScan(scannerConfig, failureScanner);
+            isOkScan = runScan(scannerConfig, failureScanner, false);
         }
 
         LOG.info("Start test scan - proof vulnerable");
         // Scan with success - means VULNERABLE
-        isVulnerableScan = runScan(scannerConfig, successScanner);
+        isVulnerableScan = runScan(scannerConfig, successScanner, false);
 
         // For a malicious scan, we expect a significant drift in the response
         // The successScanner does not have that drift on purpose!
@@ -140,7 +140,7 @@ public abstract class Assessment<T extends Scanner, C extends AppConfig> {
 
             LOG.debug("Start scanning with {}", scanner.getClass().getSimpleName());
             try{
-                var scanResult = runScan(scannerConfig, scanner);
+                var scanResult = runScan(scannerConfig, scanner, false);
                 scanResults.put(scanner.getClass().getSimpleName(), scanResult);
                 LOG.info("ClientId: {}; Status: {}; Scanner: {};", clientId, scanResult.getStatus(), scanner.getClass().getSimpleName());
             }catch(Exception e){
@@ -161,12 +161,12 @@ public abstract class Assessment<T extends Scanner, C extends AppConfig> {
         return report;
     }
 
-    private ScanResult runScan(C inputScannerConfig, T scanner) {
+    private ScanResult runScan(C inputScannerConfig, T scanner, boolean isBaselineScan) {
         scanner.init(firstScanSuccess, secondScanSuccess, isVulnerableScan, isOkScan);
 
         C scannerConfig = (C)scanner.getScannerConfig(inputScannerConfig.deepCopy());
 
-        AuthResult authResult = scan(scannerConfig, scanner);
+        AuthResult authResult = scan(scannerConfig, scanner, isBaselineScan);
 
         // All VerificationStrategies are used to gather infos
         var allVerificationStrategies = createVerificationStrategy(scanResultVerificationStrategies.keySet());
@@ -198,7 +198,7 @@ public abstract class Assessment<T extends Scanner, C extends AppConfig> {
         return results;
     }
 
-    protected abstract AuthResult scan(C scannerConfig, T scanner);
+    protected abstract AuthResult scan(C scannerConfig, T scanner, boolean isBaselineScan);
 
     private List<ScanResultVerificationStrategy> createVerificationStrategy(Collection<String> verificationStrategyNames) {
         if (verificationStrategyNames == null || verificationStrategyNames.isEmpty()) {

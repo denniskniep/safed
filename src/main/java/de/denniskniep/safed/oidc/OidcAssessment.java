@@ -24,7 +24,7 @@ public class OidcAssessment extends Assessment<OidcScanner, OidcAppConfig> {
     }
 
     @Override
-    protected AuthResult scan(OidcAppConfig config, OidcScanner scanner) {
+    protected AuthResult scan(OidcAppConfig config, OidcScanner scanner, boolean isBaselineScan) {
         var browserConfig = config.getBrowserConfig();
         try (OidcBrowserAuthenticationFlow oidcAuthentication = new OidcBrowserAuthenticationFlow(config.getIssuerEndpointUrl(), browserConfig)){
             OidcAuthenticationRequest oidcRequestData = oidcAuthentication.initialize(config.getSignInUrl());

@@ -61,8 +61,7 @@ public class ReachabilityChecker {
                 "Reachability check failed: connection timed out for '" + url + "'" +
                 " - host is unreachable or not responding. " + e.getMessage() , e);
         } catch (SSLException e) {
-            throw new RuntimeException(
-                    "Reachability check: SSL negotiation issue for '" + url + "'. " + e.getMessage(), e);
+            // ignore
         } catch (Exception e) {
             throw new RuntimeException(
                 "Reachability check failed for '" + url + "'. " + e.getMessage(), e);

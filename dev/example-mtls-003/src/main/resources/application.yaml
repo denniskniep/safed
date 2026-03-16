@@ -8,7 +8,7 @@ server:
     key-store-type: PKCS12
     key-alias: server
 
-    client-auth: want
+    client-auth:  need
 
     # Protocol settings
     protocol: TLS
