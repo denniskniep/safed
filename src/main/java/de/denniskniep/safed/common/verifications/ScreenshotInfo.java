@@ -18,7 +18,7 @@ public class ScreenshotInfo implements ScanResultVerificationStrategy {
         }
 
         return List.of(
-                "[INFO] Screenshot: data:image/png;base64," + scanAuthResult.getResponsePage().base64Screenshot()
+                "[INFO] Screenshot: data:image/jpeg;base64," + scanAuthResult.getResponsePage().base64Screenshot()
         );
     }
 

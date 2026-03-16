@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Removed Banner in CLI
+- Compressing Screenshots
+- List all scanners in failed assessment report
 
 ## [1.0.5] - 2026-03-15
 

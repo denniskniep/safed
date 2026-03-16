@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public abstract class Assessment<T extends Scanner, C extends AppConfig> {
     private static final Logger LOG = LoggerFactory.getLogger(Assessment.class);
@@ -56,18 +57,29 @@ public abstract class Assessment<T extends Scanner, C extends AppConfig> {
         var start = Instant.now();
         validate(scannerConfig);
 
+        List<String> scannersToUse = new ArrayList<>();
+        for (var scanner : scanners) {
+            if (scannerConfig.getScanners() == null || scannerConfig.getScanners().contains(scanner.getClass().getSimpleName())) {
+                scannersToUse.add(scanner.getClass().getSimpleName());
+            }
+        }
+
         try {
-            return runInternal(clientId, scannerConfig);
+            return runInternal(clientId, scannersToUse, scannerConfig);
         }catch (Exception e){
             ReportError error = ReportError.from(e);
             LOG.error("ClientId: {}; Status: {}; Finished Assessment ", clientId, ScanResultStatus.FAILED);
             var duration = Duration.between(start, Instant.now());
-            ReportBuilder reportBuilder = new ReportBuilder(clientId, duration.toMillis() , firstScanSuccess, secondScanSuccess, isVulnerableScan, isOkScan, new HashMap<>(), List.of(error));
+            var scanResult = scannersToUse.stream().collect(Collectors.toMap(
+                    s -> s ,
+                    s -> ScanResult.failed(List.of(error))
+            ));
+            ReportBuilder reportBuilder = new ReportBuilder(clientId, duration.toMillis() , firstScanSuccess, secondScanSuccess, isVulnerableScan, isOkScan, scanResult, new ArrayList<>());
             return reportBuilder.Build();
         }
     }
 
-    private Report runInternal(String clientId, C scannerConfig) {
+    private Report runInternal(String clientId, List<String> scannersToUse, C scannerConfig) {
         var start = Instant.now();
 
         List<ReportError> errors = new ArrayList<>();
@@ -121,7 +133,7 @@ public abstract class Assessment<T extends Scanner, C extends AppConfig> {
 
         var scanResults = new HashMap<String, ScanResult>();
         for (var scanner : scanners) {
-            if (scannerConfig.getScanners() != null && !scannerConfig.getScanners().contains(scanner.getClass().getSimpleName())) {
+            if (!scannersToUse.contains(scanner.getClass().getSimpleName())) {
                 LOG.info("Skip scanning with {}", scanner.getClass().getSimpleName());
                 continue;
             }

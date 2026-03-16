@@ -6,6 +6,7 @@ import de.denniskniep.safed.common.scans.ScanResultStatus;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ReportBuilder {
 
@@ -15,10 +16,10 @@ public class ReportBuilder {
     private final ScanResult secondScan;
     private final ScanResult isVulnerableScan;
     private final ScanResult isOkScan;
-    private final HashMap<String, ScanResult> scanResults;
+    private final Map<String, ScanResult> scanResults;
     private final List<ReportError> errors;
 
-    public ReportBuilder(String clientId, long durationInMs, ScanResult firstScan, ScanResult secondScan, ScanResult isVulnerableScan, ScanResult isOkScan, HashMap<String, ScanResult> scanResults, List<ReportError> errors) {
+    public ReportBuilder(String clientId, long durationInMs, ScanResult firstScan, ScanResult secondScan, ScanResult isVulnerableScan, ScanResult isOkScan, Map<String, ScanResult> scanResults, List<ReportError> errors) {
         this.clientId = clientId;
         this.durationInMs = durationInMs;
         this.firstScan = firstScan;
@@ -52,7 +53,9 @@ public class ReportBuilder {
                 report.addFinding(scanResult.getKey(), asScanResultReport(scanResult.getValue()));
             }
             // metadata of error will be available in scan
-            errors.addAll(scanResult.getValue().getErrors().stream().map(r ->  new ReportError( "[Scanner:"+scanResult.getKey()+"] " + r.getMessage(), new HashMap<>())).toList());
+            if(!scanResult.getValue().getErrors().isEmpty()){
+                errors.addAll(scanResult.getValue().getErrors().stream().map(r ->  new ReportError( "[Scanner:"+scanResult.getKey()+"] " + r.getMessage(), new HashMap<>())).toList());
+            }
         }
         if(!errors.isEmpty()){
             status = ScanResultStatus.FAILED;

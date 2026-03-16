@@ -26,7 +26,10 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -313,7 +316,7 @@ public class Browser implements AutoCloseable {
             LazyMetadata.ofList("trafficLog", () -> authLog.getTraffic().stream().map(RequestResponse::asShortLog).toList()),
             LazyMetadata.ofOne("browserLogs", () -> chromeLogs.toString()),
             LazyMetadata.ofOne("visibleText", () -> driver.findElement(By.tagName("body")).getText()),
-            LazyMetadata.ofOne("screenshot", () -> "data:image/png;base64,"+ takeScreenshot())
+            LazyMetadata.ofOne("screenshot", () -> "data:image/jpeg;base64,"+ takeScreenshot())
         );
 
         try(var network = new Network(driver)) {
@@ -383,13 +386,21 @@ public class Browser implements AutoCloseable {
             BufferedImage original = ImageIO.read(new ByteArrayInputStream(imageBytes));
 
             // Step 3: Scale down
-            Image scaled = original.getScaledInstance(400, 300, Image.SCALE_SMOOTH);
-            BufferedImage output = new BufferedImage(400, 300, BufferedImage.TYPE_INT_RGB);
+            Image scaled = original.getScaledInstance(320, 240, Image.SCALE_SMOOTH);
+            BufferedImage output = new BufferedImage(320, 240, BufferedImage.TYPE_INT_RGB);
             output.getGraphics().drawImage(scaled, 0, 0, null);
 
-            // Step 4: BufferedImage → byte[] → Base64
+            // Step 4: BufferedImage → JPEG bytes → Base64
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ImageIO.write(output, "png", baos);
+            ImageWriter writer = ImageIO.getImageWritersByFormatName("jpeg").next();
+            ImageWriteParam param = writer.getDefaultWriteParam();
+            param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+            param.setCompressionQuality(0.35f);
+            writer.setOutput(ImageIO.createImageOutputStream(baos));
+            writer.write(null, new IIOImage(output, null, null), param);
+            writer.dispose();
+
+            // Step 5: Encode Base64
             return Base64.getEncoder().encodeToString(baos.toByteArray());
         }catch (Exception e){
             LOG.error("Error during Screenshot creation!",e);
