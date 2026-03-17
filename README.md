@@ -184,14 +184,20 @@ Tests are implemented as parameterized JUnit tests in `AssessmentContainerTests`
 
 Running tests will automatically start TestContainers, which spins up the exact same environment as described in [Development](#development).
 
-### Infrastructure Setup (`ApplicationBaseTest`)
+### Infrastructure Setup
 
-`ApplicationBaseTest` uses Testcontainers to start the Docker Compose files.
+`ApplicationBaseTest` uses Testcontainers to start the Docker Compose files (`docker-compose.dev*.yaml`).
 The setup waits for readiness signals from each service before running any tests.
 
-A local `WebhookReceiver` is started on port `9999` to collect reports sent by SAFED.
 
-### Test Execution Flow (`AssessmentContainerTests`)
+Even SAFED is running in a container, because it relies on a local working chromium setup. 
+Therefore, a container is a good fit to have a reproducable environment, but it comes with the downside that the tests 
+are not executed by java itself, which means less finegranular control about test-execution.
+
+The reporting of the results from the container to the test framework is done via webhooks, 
+started by `WebhookReceiver` on port `9999`.
+
+### Test Execution Flow 
 
 Each parameterized test case follows this flow:
 1. **Configure example app** — sets `ignoredErrorDescriptions` on the target app via its admin API, controlling which validation errors the app deliberately ignores (making it vulnerable)

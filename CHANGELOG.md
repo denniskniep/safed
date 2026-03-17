@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+## [1.0.6] - 2026-03-17
+
+### Added
+
 - Preflight connection check before opening website 
 
 ### Changed
@@ -17,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Compressing Screenshots
 - List all scanners in failed assessment report
 - enhance mTLS scanner reporting for socket level cert errors
+- Lift Chromium to 146.0.7680.71
 
 ## [1.0.5] - 2026-03-15
 

@@ -309,7 +309,7 @@ public class Browser implements AutoCloseable {
     public Page execute(HttpRequest httpRequest, Predicate<RequestDataWithBody> captureRequestCondition){
         final AuthenticationLog authLog = new AuthenticationLog();
 
-        ReachabilityChecker.check(httpRequest.url(), Long.valueOf(config.getPageLoadTimeoutInSeconds()).intValue());
+        ReachabilityChecker.check(httpRequest.url(), Long.valueOf(config.getPageLoadTimeoutInSeconds()).intValue(), config.getHostResolverRules());
 
         var errorMetadataCollectors = LazyMetadata.list(
             LazyMetadata.ofOne(LazyMetadata.TITLE, () -> driver.getTitle()),
