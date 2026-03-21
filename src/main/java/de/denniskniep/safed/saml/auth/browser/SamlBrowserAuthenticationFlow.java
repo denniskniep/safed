@@ -42,7 +42,15 @@ public class SamlBrowserAuthenticationFlow extends BrowserAuthenticationFlow<Sam
         samlInitializationResult.setSamlRequestAsBase64(samlRequestAsBase64);
         samlInitializationResult.setRelayState(relayState);
 
-        SAMLDocumentHolder samlRequest = SAMLRequestParser.parseRequestPostBinding(samlInitializationResult.getSamlRequestAsBase64());
+        SAMLDocumentHolder samlRequest;
+        if("GET".equalsIgnoreCase(request.getMethod())) {
+            samlRequest = SAMLRequestParser.parseRequestRedirectBinding(samlInitializationResult.getSamlRequestAsBase64());
+        } else if ("POST".equalsIgnoreCase(request.getMethod())) {
+            samlRequest = SAMLRequestParser.parseRequestPostBinding(samlInitializationResult.getSamlRequestAsBase64());
+        }else{
+            throw new RuntimeException("Unrecognized HTTP method: " + request.getMethod());
+        }
+
         SAML2Object samlRequestObj = samlRequest.getSamlObject();
         if (samlRequestObj == null) {
             throw new RuntimeException("SamlRequestHolder is null");
