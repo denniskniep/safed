@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+## [1.0.7] - 2026-03-26
+
+### Added
+
+- Support SAML Request via Redirect
+
+### Changed
+
+- Default to responseMode fragement in oidc implicit and hybrid flow
+- ScannerResult is marked as FAILED, if Assessment has errors
+- Lift Chromium to 146.0.7680.153
+
 ## [1.0.6] - 2026-03-17
 
 ### Added

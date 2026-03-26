@@ -8,6 +8,7 @@ import java.util.function.Supplier;
 public class LazyMetadata {
 
     public static final String TITLE = "title";
+    public static final String CURRENT_URL = "current:url";
     public static final String TRAFFIC_LOG = "trafficLog";
     public static final String BROWSER_LOGS = "browserLogs";
     public static final String VISIBLE_TEXT = "visibleText";

@@ -1,6 +1,11 @@
 package de.denniskniep.safed.oidc.auth.browser;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import de.denniskniep.safed.common.utils.Serialization;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class OidcAuthenticationRequest {
     private String responseType;
@@ -69,5 +74,15 @@ public class OidcAuthenticationRequest {
 
     public OidcAuthenticationRequest deepCopy() {
         return Serialization.DeepCopy(this, OidcAuthenticationRequest.class);
+    }
+
+    @JsonIgnore
+    public String[] getResponseTypes() {
+       return StringUtils.split(this.getResponseType(), " ");
+    }
+
+    @JsonIgnore
+    public boolean hasResponseType(String responseType) {
+        return Arrays.stream(getResponseTypes()).anyMatch(r -> StringUtils.equalsIgnoreCase(r,responseType));
     }
 }

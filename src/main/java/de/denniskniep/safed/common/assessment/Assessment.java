@@ -4,7 +4,9 @@ import de.denniskniep.safed.common.config.AppConfig;
 import de.denniskniep.safed.common.report.Report;
 import de.denniskniep.safed.common.report.ReportBuilder;
 import de.denniskniep.safed.common.report.ReportError;
-import de.denniskniep.safed.common.scans.*;
+import de.denniskniep.safed.common.scans.AuthResult;
+import de.denniskniep.safed.common.scans.ScanResult;
+import de.denniskniep.safed.common.scans.ScanResultStatus;
 import de.denniskniep.safed.common.scans.Scanner;
 import de.denniskniep.safed.common.verifications.ScanResultVerificationStrategy;
 import de.denniskniep.safed.common.verifications.VerificationResult;
@@ -141,6 +143,10 @@ public abstract class Assessment<T extends Scanner, C extends AppConfig> {
             LOG.debug("Start scanning with {}", scanner.getClass().getSimpleName());
             try{
                 var scanResult = runScan(scannerConfig, scanner, false);
+                if(!errors.isEmpty()){
+                    // mark scanner fail, if assessment has errors!
+                    scanResult = ScanResult.failed(scanResult, errors);
+                }
                 scanResults.put(scanner.getClass().getSimpleName(), scanResult);
                 LOG.info("ClientId: {}; Status: {}; Scanner: {};", clientId, scanResult.getStatus(), scanner.getClass().getSimpleName());
             }catch(Exception e){

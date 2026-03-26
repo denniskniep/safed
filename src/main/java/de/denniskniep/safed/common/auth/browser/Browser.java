@@ -313,6 +313,7 @@ public class Browser implements AutoCloseable {
 
         var errorMetadataCollectors = LazyMetadata.list(
             LazyMetadata.ofOne(LazyMetadata.TITLE, () -> driver.getTitle()),
+            LazyMetadata.ofOne(LazyMetadata.CURRENT_URL, () -> driver.getCurrentUrl()),
             LazyMetadata.ofList(LazyMetadata.TRAFFIC_LOG, () -> authLog.getTraffic().stream().map(RequestResponse::asShortLog).toList()),
             LazyMetadata.ofOne(LazyMetadata.BROWSER_LOGS, () -> chromeLogs.toString()),
             LazyMetadata.ofOne(LazyMetadata.VISIBLE_TEXT, () -> driver.findElement(By.tagName("body")).getText()),
@@ -351,7 +352,6 @@ public class Browser implements AutoCloseable {
             var cookies = driver.manage().getCookies();
             var visibleText = driver.findElement(By.tagName("body")).getText();
 
-            // Capture screenshot
             var base64Screenshot = takeScreenshot();
 
             if(StringUtils.equalsIgnoreCase("Privacy error", driver.getTitle())) {
@@ -373,7 +373,22 @@ public class Browser implements AutoCloseable {
 
             return new Page(driver.getCurrentUrl(), driver.getTitle(), driver.getPageSource(), visibleText.toString(), base64Screenshot.toString(), cookies, authLog, capturedRequest.get().getRequest(), capturedResponse.get().getResponse());
         }catch (Exception e){
-            throw new RuntimeExceptionWithMetadata("Loading Page failed! " + e.getMessage(), e, errorMetadataCollectors);
+            var additionalErrorInfo = "";
+            try{
+                if(StringUtils.equalsIgnoreCase("Privacy error", driver.getTitle())) {
+                    additionalErrorInfo += " Privacy error;";
+                }
+
+                String currentUrl = driver.getCurrentUrl();
+                Optional<RequestResponse> requestResponse = authLog.find(r -> StringUtils.equalsIgnoreCase(r.getRequest().getUrl(), currentUrl));
+                if(requestResponse.isPresent() && requestResponse.get().getResponse().getStatus() > 399) {
+                    additionalErrorInfo += " returned error code "+requestResponse.get().getResponse().getStatus() + ";";
+                }
+            }catch(Exception x){
+                // attempt to enrich err msg failed!
+            }
+
+            throw new RuntimeExceptionWithMetadata("Loading Page failed! " + e.getMessage() + additionalErrorInfo, e, errorMetadataCollectors);
         }
     }
 

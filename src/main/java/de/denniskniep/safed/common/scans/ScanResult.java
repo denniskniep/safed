@@ -28,7 +28,7 @@ public class ScanResult {
         return verifications.entrySet().stream().anyMatch(v -> v.getValue().getStatus() == ScanResultStatus.VULNERABLE) ? ScanResultStatus.VULNERABLE : ScanResultStatus.OK;
     }
 
-    private ScanResult(AuthResult authResult, ScanResultStatus status, Map<String, VerificationResult> verifications, Map<String, List<String>> infos, List<ReportError> errors) {
+    public ScanResult(AuthResult authResult, ScanResultStatus status, Map<String, VerificationResult> verifications, Map<String, List<String>> infos, List<ReportError> errors) {
         if(authResult == null && status != ScanResultStatus.FAILED) {
             throw new RuntimeException("authResult is null, but status is " + status);
         }
@@ -42,6 +42,10 @@ public class ScanResult {
 
     public static ScanResult ok(AuthResult authResult, Map<String, List<String>> infos) {
         return new ScanResult(authResult, ScanResultStatus.OK, new HashedMap<>(), infos, new ArrayList<>());
+    }
+
+    public static ScanResult failed(ScanResult scanResult, List<ReportError> errors) {
+        return new ScanResult(scanResult.authResult, ScanResultStatus.FAILED, scanResult.verifications, scanResult.infos, errors);
     }
 
     public static ScanResult failed(List<ReportError> errors) {

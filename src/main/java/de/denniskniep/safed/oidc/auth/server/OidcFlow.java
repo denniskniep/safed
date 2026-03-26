@@ -55,8 +55,12 @@ public class OidcFlow implements FrontChannelRequest, BackchannelHandler {
     public HttpRequest buildWebRequest() {
         Map<String, String> params = buildParameters();
         var responseMode = requestData.getResponseMode();
-        if(StringUtils.isBlank(responseMode)){
-            responseMode = "query";
+
+        // hybrid or implicit
+        if(StringUtils.isBlank(responseMode) && requestData.hasResponseType("id_token")){
+            responseMode = "fragment";
+        } else if(StringUtils.isBlank(responseMode)){
+            responseMode = "code";
         }
 
         URL redirectUrl;
@@ -115,19 +119,17 @@ public class OidcFlow implements FrontChannelRequest, BackchannelHandler {
 
 
     private Map<String,String> buildParameters() {
-        var responseTypes = StringUtils.split(requestData.getResponseType(), " ");
-
         var params = new HashMap<String, String>();
 
-        if(Arrays.stream(responseTypes).anyMatch(r -> StringUtils.equalsIgnoreCase(r, "code"))){
+        if(requestData.hasResponseType("code")){
             params.put("code", code);
         }
 
-        if(Arrays.stream(responseTypes).anyMatch(r -> StringUtils.equalsIgnoreCase(r, "id_token"))){
+        if(requestData.hasResponseType("id_token")){
             params.put("id_token", idToken.base64Encoded());
         }
 
-        if(Arrays.stream(responseTypes).anyMatch(r -> StringUtils.equalsIgnoreCase(r, "token"))){
+        if(requestData.hasResponseType("token")){
             params.put("access_token", accessToken.base64Encoded());
             params.put("token_type", accessToken.jwt().claims().get("typ", String.class));
             params.put("expires_in", String.valueOf((Duration.between(accessToken.jwt().claims().getIssuedAt().toInstant(), accessToken.jwt().claims().getExpiration().toInstant()).getSeconds())));
@@ -186,6 +188,11 @@ public class OidcFlow implements FrontChannelRequest, BackchannelHandler {
     private CustomJwtBuilder generateTokenBase(String typ){
         var id = UUID.randomUUID() + "." + UUID.randomUUID();
         var builder = (CustomJwtBuilder)new CustomJwtBuilder()
+                .header()
+                    // TODO: Extract key id from well known endpoint!
+                    //.keyId("jPJqsdH2VLCVzmDCr4AxhPXA9AiCtemtxnj_mFHwFhY")
+                    .type( "JWT")
+                .and()
                 .claim(PREFIX, PREFIX) // token payload starts always with "eyIxMzM3YjMzZiI6IjEzMzdiMzNmIi"
                 .id(id)
                 .claim("typ", typ)
@@ -208,11 +215,6 @@ public class OidcFlow implements FrontChannelRequest, BackchannelHandler {
 
     private RawJwtEncoded generateIdToken(){
         var tokenBuilder = (CustomJwtBuilder)generateTokenBase("ID")
-                .header()
-                    // TODO: Extract key id from well known endpoint!
-                    //.keyId("jPJqsdH2VLCVzmDCr4AxhPXA9AiCtemtxnj_mFHwFhY")
-                    .type( "JWT")
-                .and()
                 .audience().single(clientConfig.getClientId());
         return compactToken(tokenBuilder, tokenInterceptors.getIdTokenInterceptor());
     }
