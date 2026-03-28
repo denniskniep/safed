@@ -60,7 +60,7 @@ public class OidcFlow implements FrontChannelRequest, BackchannelHandler {
         if(StringUtils.isBlank(responseMode) && requestData.hasResponseType("id_token")){
             responseMode = "fragment";
         } else if(StringUtils.isBlank(responseMode)){
-            responseMode = "code";
+            responseMode = "query";
         }
 
         URL redirectUrl;
