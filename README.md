@@ -95,6 +95,8 @@ The webhook sends a JSON array of `Report` objects
 ## Configuration
 
 ### Using Selenium Actions to initialize the sign-in
+All types can be found here: `src/main/java/de/denniskniep/safed/common/auth/browser/selenium`
+
 ```
 sign-in-selenium-actions:
     - type: "InputTextByName"
