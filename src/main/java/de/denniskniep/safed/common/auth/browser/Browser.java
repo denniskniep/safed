@@ -3,6 +3,7 @@ package de.denniskniep.safed.common.auth.browser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.denniskniep.safed.common.auth.browser.bidi.*;
+import de.denniskniep.safed.common.auth.browser.selenium.SeleniumAction;
 import de.denniskniep.safed.common.error.LazyMetadata;
 import de.denniskniep.safed.common.scans.Page;
 import de.denniskniep.safed.common.error.RuntimeExceptionWithMetadata;
@@ -307,6 +308,10 @@ public class Browser implements AutoCloseable {
     }
 
     public Page execute(HttpRequest httpRequest, Predicate<RequestDataWithBody> captureRequestCondition){
+        return execute(httpRequest, captureRequestCondition, new ArrayList<>());
+    }
+
+    public Page execute(HttpRequest httpRequest, Predicate<RequestDataWithBody> captureRequestCondition, List<SeleniumAction> seleniumActions){
         final AuthenticationLog authLog = new AuthenticationLog();
 
         ReachabilityChecker.check(httpRequest.url(), Long.valueOf(config.getPageLoadTimeoutInSeconds()).intValue(), config.getHostResolverRules());
@@ -339,15 +344,24 @@ public class Browser implements AutoCloseable {
             var timeout = Duration.ofSeconds(config.getPageLoadTimeoutInSeconds());
             var pollingEvery = Duration.ofMillis(500);
 
+            waitForLastRequestProcessed(authLog);
+            waitForPageLoaded();
+
+            if(!seleniumActions.isEmpty()){
+                for(var seleniumAction : seleniumActions){
+                    seleniumAction.execute(driver);
+
+                    waitForLastRequestProcessed(authLog);
+                    waitForPageLoaded();
+                }
+            }
+
             WebDriverWait wait = new WebDriverWait(driver, timeout, pollingEvery);
             try{
                 wait.until(webDriver -> authLog.find(t -> captureRequestCondition.test(t.getRequest())).isPresent());
             }catch(TimeoutException e){
                 throw new RuntimeExceptionWithMetadata("Timeout waiting for captured request!", e, errorMetadataCollectors);
             }
-
-            waitForLastRequestProcessed(authLog);
-            waitForPageLoaded();
 
             var cookies = driver.manage().getCookies();
             var visibleText = driver.findElement(By.tagName("body")).getText();

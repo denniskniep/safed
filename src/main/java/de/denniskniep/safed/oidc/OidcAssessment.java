@@ -27,7 +27,7 @@ public class OidcAssessment extends Assessment<OidcScanner, OidcAppConfig> {
     protected AuthResult scan(OidcAppConfig config, OidcScanner scanner, boolean isBaselineScan) {
         var browserConfig = config.getBrowserConfig();
         try (OidcBrowserAuthenticationFlow oidcAuthentication = new OidcBrowserAuthenticationFlow(config.getIssuerEndpointUrl(), browserConfig)){
-            OidcAuthenticationRequest oidcRequestData = oidcAuthentication.initialize(config.getSignInUrl());
+            OidcAuthenticationRequest oidcRequestData = oidcAuthentication.initialize(config.getSignInUrl(), config.getSignInSeleniumActions());
             oidcRequestData = scanner.getOidcRequestData(oidcRequestData.deepCopy());
 
             var oidcFlow = new OidcFlow(config, oidcRequestData, scanner.getTokenInterceptors(), scanner.getBackchannelInterceptor());

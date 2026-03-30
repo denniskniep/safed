@@ -88,10 +88,20 @@ public abstract class Assessment<T extends Scanner, C extends AppConfig> {
         LOG.info("Start first baseline scan");
         // First scan with successful login
         firstScanSuccess = runScan(scannerConfig, successScanner, true);
+        if(isErrorResponse(firstScanSuccess)){
+            var msg = "FirstScan response must always return a non error status code!";
+            LOG.warn(msg);
+            errors.add(new ReportError(msg));
+        }
 
         LOG.info("Start second baseline scan");
         // Second scan with successful login, but maybe changes in the page content from login to login
         secondScanSuccess = runScan(scannerConfig, successScanner, true);
+        if(isErrorResponse(secondScanSuccess)){
+            var msg = "SecondScan response must always return a non error status code!";
+            LOG.warn(msg);
+            errors.add(new ReportError(msg));
+        }
 
         LOG.info("Start test scan - proof ok");
         // scan with failure - means OK (not vulnerable)
@@ -165,6 +175,10 @@ public abstract class Assessment<T extends Scanner, C extends AppConfig> {
             LOG.info("ClientId: {}; Status: {}; Finished Assessment ", report.getClientId(), report.getStatus());
         }
         return report;
+    }
+
+    private boolean isErrorResponse(ScanResult scanResult) {
+        return scanResult.getAuthResult().getResponsePage().capturedHttpResponse().getStatus() > 399;
     }
 
     private ScanResult runScan(C inputScannerConfig, T scanner, boolean isBaselineScan) {

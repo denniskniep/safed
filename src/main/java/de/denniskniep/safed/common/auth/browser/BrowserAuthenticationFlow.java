@@ -1,6 +1,7 @@
 package de.denniskniep.safed.common.auth.browser;
 
 import de.denniskniep.safed.common.auth.browser.bidi.RequestDataWithBody;
+import de.denniskniep.safed.common.auth.browser.selenium.SeleniumAction;
 import de.denniskniep.safed.common.scans.Page;
 import de.denniskniep.safed.common.utils.UrlUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -8,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URL;
+import java.util.List;
 
 public abstract class BrowserAuthenticationFlow<T> implements AutoCloseable  {
 
@@ -23,10 +25,10 @@ public abstract class BrowserAuthenticationFlow<T> implements AutoCloseable  {
         this.authenticationLog = new AuthenticationLog();
     }
 
-    public T initialize(URL relyingPartySignInUrl) {
+    public T initialize(URL relyingPartySignInUrl, List<SeleniumAction> signInSeleniumActions) {
         LOG.debug("Start init");
         var httpRequest = new HttpRequest("GET", relyingPartySignInUrl.toString());
-        var page = browser.execute(httpRequest, this::isRequestToIdp);
+        var page = browser.execute(httpRequest, this::isRequestToIdp, signInSeleniumActions);
         authenticationLog.addAll(IDP_INIT_CONTEXT, page.authenticationLog().getTraffic());
         authenticationLog.clearTrafficAfter(page.capturedHttpRequest().getRequestId());
         var parsed = parse(page.capturedHttpRequest());

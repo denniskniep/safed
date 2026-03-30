@@ -92,6 +92,18 @@ The webhook sends a JSON array of `Report` objects
 ]
 ```
 
+## Configuration
+
+### Using Selenium Actions to initialize the sign-in
+```
+sign-in-selenium-actions:
+    - type: "InputTextByName"
+      name: "username"
+      text: "MyUsername"
+    - type: "ClickElementById"
+      id: "signin"
+```
+
 ## Development
 ### Build & Test
 ```bash

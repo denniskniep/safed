@@ -37,7 +37,7 @@ public class SamlAssessment extends Assessment<SamlScanner, SamlAppConfig> {
         var browserConfig = config.getBrowserConfig();
 
         try (SamlBrowserAuthenticationFlow samlAuthentication = new SamlBrowserAuthenticationFlow(config.getIssuerEndpointUrl(), browserConfig)){
-            SamlInitializationResult initializationResult = samlAuthentication.initialize(config.getSignInUrl());
+            SamlInitializationResult initializationResult = samlAuthentication.initialize(config.getSignInUrl(), config.getSignInSeleniumActions());
 
             SamlRequestData samlRequestData = initializationResult.asSamlRequestData();
             samlRequestData = scanner.getSamlRequestData(samlRequestData);

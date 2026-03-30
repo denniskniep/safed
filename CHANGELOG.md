@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+## [1.0.8] - 2026-03-31
+
+### Added
+
+- Use Selenium Actions (click on button, enter text etc.) to initiate the sign-in
+
+### Changed
+
+- If first or second baseline scan returns status code >=400 than mark assessment as failed
+
 ## [1.0.7] - 2026-03-26
 
 ### Added

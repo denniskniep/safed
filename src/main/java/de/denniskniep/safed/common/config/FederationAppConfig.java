@@ -1,12 +1,17 @@
 package de.denniskniep.safed.common.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import de.denniskniep.safed.common.auth.browser.selenium.SeleniumAction;
 import org.keycloak.saml.SignatureAlgorithm;
 
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public abstract class FederationAppConfig extends AppConfig {
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
     private String clientId;
     private URL redirectUrl;
     private List<String> validRedirectUrls;
@@ -16,6 +21,7 @@ public abstract class FederationAppConfig extends AppConfig {
     private URL issuerEndpointUrl;
     private String signingPrivateKeyPemFilePath;
     private String signingX509CertPemFilePath;
+    private List<Map<String, Object>> signInSeleniumActions = new ArrayList<>();
 
     public URL getIssuerId() {
         return issuerId;
@@ -98,5 +104,15 @@ public abstract class FederationAppConfig extends AppConfig {
 
     public void setSignatureAlgorithm(SignatureAlgorithm signatureAlgorithm) {
         this.signatureAlgorithm = signatureAlgorithm;
+    }
+
+    public List<SeleniumAction> getSignInSeleniumActions() {
+        return signInSeleniumActions.stream()
+                .map(m -> OBJECT_MAPPER.convertValue(m, SeleniumAction.class))
+                .toList();
+    }
+
+    public void setSignInSeleniumActions(List<Map<String, Object>> signInSeleniumActions) {
+        this.signInSeleniumActions = signInSeleniumActions;
     }
 }
