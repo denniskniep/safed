@@ -6,6 +6,8 @@ import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
+import org.bouncycastle.util.io.pem.PemObject;
+import org.bouncycastle.util.io.pem.PemWriter;
 import org.keycloak.common.util.KeyUtils;
 import org.keycloak.crypto.KeyStatus;
 import org.keycloak.crypto.KeyType;
@@ -20,9 +22,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -58,6 +64,21 @@ public class KeyProvider {
         return certFromPem(certificatePem);
     }
 
+
+    public static List<String> certsFromPemBundle(Path pemFile) throws IOException {
+        List<String> certs = new ArrayList<>();
+        try (PEMParser parser = new PEMParser(Files.newBufferedReader(pemFile))) {
+            PemObject obj;
+            while ((obj = parser.readPemObject()) != null) {
+                StringWriter sw = new StringWriter();
+                try (PemWriter writer = new PemWriter(sw)) {
+                    writer.writeObject(obj);
+                }
+                certs.add(sw.toString());
+            }
+        }
+        return certs;
+    }
 
     private static X509Certificate certFromPem(String certificatePem){
         try (PEMParser pemParser = new PEMParser(new StringReader(certificatePem))) {

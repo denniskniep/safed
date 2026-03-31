@@ -1,5 +1,7 @@
 package de.denniskniep.safed.common.report;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import de.denniskniep.safed.common.error.RuntimeExceptionWithMetadata;
 import de.denniskniep.safed.common.utils.Serialization;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -16,7 +18,8 @@ public class ReportError {
         this(message, new HashMap<>());
     }
 
-    public ReportError(String message, HashMap<String, List<String>> metadata) {
+    @JsonCreator
+    public ReportError(@JsonProperty("message") String message, @JsonProperty("metadata") HashMap<String, List<String>> metadata) {
         this.message = message;
         this.metadata = metadata;
     }

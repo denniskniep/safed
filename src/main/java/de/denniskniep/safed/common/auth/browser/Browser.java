@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.denniskniep.safed.common.auth.browser.bidi.*;
 import de.denniskniep.safed.common.auth.browser.selenium.SeleniumAction;
 import de.denniskniep.safed.common.error.LazyMetadata;
+import de.denniskniep.safed.common.utils.KeyProvider;
 import de.denniskniep.safed.common.scans.Page;
 import de.denniskniep.safed.common.error.RuntimeExceptionWithMetadata;
 import de.denniskniep.safed.common.utils.UrlUtils;
@@ -220,16 +221,27 @@ public class Browser implements AutoCloseable {
             int i = 0;
             var trustedCAs = config.getTrustedRootCa() == null ?  new ArrayList<String>():  config.getTrustedRootCa();
             for (var rootCa : trustedCAs){
-                String rootCaPath = Path.of(rootCa).toAbsolutePath().toString();
+                Path rootCaPath = Path.of(rootCa).toAbsolutePath();
                 LOG.debug("Configured Trusted root CA from: {}", rootCaPath);
 
-                // trust a root CA certificate for issuing SSL server certificates
-                runCommand("certutil",
-                        "-d", "sql:" + nssDbDir.toAbsolutePath(),
-                        "-A",
-                        "-t", "C,,",
-                        "-n", "trusted-root-ca-" + i++,
-                        "-i",  rootCaPath);
+                List<String> certs = KeyProvider.certsFromPemBundle(rootCaPath);
+                LOG.debug("Found {} certificate(s) in bundle: {}", certs.size(), rootCaPath);
+
+                for (String certPem : certs) {
+                    Path tmpCert = Files.createTempFile(tmpProfileDir, "trusted-ca-", ".pem");
+                    try {
+                        Files.writeString(tmpCert, certPem);
+                        // trust a root CA certificate for issuing SSL server certificates
+                        runCommand("certutil",
+                                "-d", "sql:" + nssDbDir.toAbsolutePath(),
+                                "-A",
+                                "-t", "C,,",
+                                "-n", "trusted-root-ca-" + i++,
+                                "-i", tmpCert.toAbsolutePath().toString());
+                    } finally {
+                        Files.deleteIfExists(tmpCert);
+                    }
+                }
             }
 
         } catch (IOException | InterruptedException e) {
@@ -347,12 +359,22 @@ public class Browser implements AutoCloseable {
             waitForLastRequestProcessed(authLog);
             waitForPageLoaded();
 
+            if(StringUtils.equalsIgnoreCase("Privacy error", driver.getTitle())) {
+                throw new RuntimeExceptionWithMetadata(errorMetadataCollectors);
+            }
+
             if(!seleniumActions.isEmpty()){
+                var i=0;
                 for(var seleniumAction : seleniumActions){
-                    seleniumAction.execute(driver);
+                    try{
+                        seleniumAction.execute(driver);
+                    }catch(Exception e){
+                        throw new  RuntimeException("Error during SeleniumAction["+i+"] execution: " + e.getMessage(), e);
+                    }
 
                     waitForLastRequestProcessed(authLog);
                     waitForPageLoaded();
+                    i++;
                 }
             }
 
@@ -368,9 +390,6 @@ public class Browser implements AutoCloseable {
 
             var base64Screenshot = takeScreenshot();
 
-            if(StringUtils.equalsIgnoreCase("Privacy error", driver.getTitle())) {
-                throw new RuntimeExceptionWithMetadata("Privacy error! Likely the provided SSL cert is not trusted by the browser", errorMetadataCollectors);
-            }
 
             var capturedRequest = authLog.find(t -> captureRequestCondition.test(t.getRequest()));
             if(capturedRequest.isEmpty()) {
@@ -390,7 +409,7 @@ public class Browser implements AutoCloseable {
             var additionalErrorInfo = "";
             try{
                 if(StringUtils.equalsIgnoreCase("Privacy error", driver.getTitle())) {
-                    additionalErrorInfo += " Privacy error;";
+                    additionalErrorInfo += " Privacy error " + getPrivacyErrorDetails() + ";";
                 }
 
                 String currentUrl = driver.getCurrentUrl();
@@ -404,6 +423,17 @@ public class Browser implements AutoCloseable {
 
             throw new RuntimeExceptionWithMetadata("Loading Page failed! " + e.getMessage() + additionalErrorInfo, e, errorMetadataCollectors);
         }
+    }
+
+    private String getPrivacyErrorDetails(){
+        try {
+            Object errorCode = getDriverAsJavascriptExecutor().executeScript(
+                    "var el = document.querySelector('.error-code'); return el ? el.innerText : null;");
+            if (errorCode != null && !errorCode.toString().isBlank()) {
+                return errorCode.toString();
+            }
+        } catch (Exception ignored) {}
+        return "";
     }
 
     private String takeScreenshot()  {

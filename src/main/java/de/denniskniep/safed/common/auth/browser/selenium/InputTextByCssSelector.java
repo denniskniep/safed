@@ -2,6 +2,7 @@ package de.denniskniep.safed.common.auth.browser.selenium;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 
 public class InputTextByCssSelector implements SeleniumAction {
 
@@ -26,7 +27,13 @@ public class InputTextByCssSelector implements SeleniumAction {
 
     @Override
     public void execute(WebDriver driver) {
-        var element = driver.findElement(By.cssSelector(cssSelector));
-        element.sendKeys(text);
+        var allElements = driver.findElements(By.cssSelector(cssSelector));
+
+        for(WebElement element : allElements) {
+            if(element.isDisplayed()){
+                element.sendKeys(text);
+                break;
+            }
+        }
     }
 }

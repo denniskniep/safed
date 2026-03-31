@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+## [1.0.9] - 2026-03-31
+
+### Changed
+
+- Import all certs from pem bundle
+- More details for privacy error
+- Fixed nested error message
+
 ## [1.0.8] - 2026-03-31
 
 ### Added

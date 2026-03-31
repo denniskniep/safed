@@ -27,7 +27,8 @@ public class ReportBuilder {
         this.isVulnerableScan = isVulnerableScan;
         this.isOkScan = isOkScan;
         this.scanResults = scanResults;
-        this.errors = errors;
+        this.errors = new ArrayList<>();
+        this.errors.addAll(errors);
     }
 
     public Report Build(){

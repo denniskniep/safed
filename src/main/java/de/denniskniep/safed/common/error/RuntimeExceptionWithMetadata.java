@@ -14,6 +14,11 @@ public class RuntimeExceptionWithMetadata extends RuntimeException {
 
     private final HashMap<String, List<String>> metadata;
 
+    public RuntimeExceptionWithMetadata(List<LazyMetadata> metadataSuppliers) {
+        super("");
+        metadata = retrieveMetaData(metadataSuppliers);
+    }
+
     public RuntimeExceptionWithMetadata(String message, List<LazyMetadata> metadataSuppliers) {
         super(message);
         metadata = retrieveMetaData(metadataSuppliers);
