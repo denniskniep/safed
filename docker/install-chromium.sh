@@ -5,7 +5,8 @@ apt-get update -qqy
 apt-get -qqy install libnss3-tools
 
 # Install Chromium
-export CHROMIUM_VERSION="146.0.7680.153"
+# Get current version via https://ftp.debian.org/debian/pool/main/c/chromium/
+export CHROMIUM_VERSION="151.0.7922.137"
 export CHROMIUM_DEB_SITE="http://deb.debian.org/debian"
 
 echo "DPKG Architecture:" && dpkg --print-architecture
