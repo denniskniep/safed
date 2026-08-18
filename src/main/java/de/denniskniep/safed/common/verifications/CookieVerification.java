@@ -62,7 +62,7 @@ public class CookieVerification implements ScanResultVerificationStrategy {
                 continue;
             }
 
-            if(cookieAValue != null && cookieBValue != null && (StringUtils.equals(cookieAValue, UNSTABLE_VALUE) || StringUtils.equals(cookieAValue, UNSTABLE_VALUE))){
+            if(cookieAValue != null && cookieBValue != null && StringUtils.equals(cookieAValue, UNSTABLE_VALUE)){
                 // Both cookies exist, but it must not match!
                 continue;
             }
