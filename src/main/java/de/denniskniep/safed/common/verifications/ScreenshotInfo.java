@@ -12,13 +12,13 @@ import java.util.List;
 public class ScreenshotInfo implements ScanResultVerificationStrategy {
 
     @Override
-    public List<String> extractInfos(AuthResult scanAuthResult) {
+    public List<Evidence> extractInfos(AuthResult scanAuthResult) {
         if(scanAuthResult.getResponsePage().base64Screenshot() == null){
             return new ArrayList<>();
         }
 
         return List.of(
-                "[INFO] Screenshot: data:image/jpeg;base64," + scanAuthResult.getResponsePage().base64Screenshot()
+            new Evidence(EvidenceStatus.INFO, "Screenshot", "data:image/jpeg;base64," + scanAuthResult.getResponsePage().base64Screenshot())
         );
     }
 

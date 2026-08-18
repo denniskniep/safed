@@ -33,3 +33,5 @@ build/
 .vscode/
 
 CLAUDE.md
+
+.wiki/.cache

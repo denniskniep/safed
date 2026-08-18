@@ -8,21 +8,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class TitleInfo implements ScanResultVerificationStrategy {
+public class VisibleTextInfo implements ScanResultVerificationStrategy {
 
     @Override
-    public List<String> extractInfos(AuthResult scanAuthResult) {
-        if(scanAuthResult.getResponsePage().base64Screenshot() == null){
-            return new ArrayList<>();
-        }
-
+    public List<Evidence> extractInfos(AuthResult scanAuthResult) {
         return List.of(
-                "[INFO] Title: " + scanAuthResult.getResponsePage().title()
+                new Evidence(EvidenceStatus.INFO, "VisibleText", scanAuthResult.extractVisibleText())
         );
     }
 
     @Override
     public VerificationResult evaluateScanResult(AuthResult firstPositiveAuthResult, AuthResult secondPositiveAuthResult, AuthResult scanAuthResult) {
-        return new VerificationResult(ScanResultStatus.OK, List.of());
+        return new VerificationResult(ScanResultStatus.OK, new ArrayList<>());
     }
 }

@@ -51,7 +51,13 @@ public class SecurityConfiguration {
         return filterChain(http, clientRegistrationRepository, "code id_token","form_post").build();
     }
 
-    private HttpSecurity filterChain(HttpSecurity http, ClientRegistrationRepository clientRegistrationRepository, String responseType, String responseMode) throws Exception {
+    @Bean
+    @Profile("fragmentflow")
+    SecurityFilterChain filterChainFragmentFlow(HttpSecurity http, ClientRegistrationRepository clientRegistrationRepository) throws Exception {
+        return filterChain(http, clientRegistrationRepository, "id_token token","fragment", "/fragment.html").build();
+    }
+
+    private HttpSecurity filterChain(HttpSecurity http, ClientRegistrationRepository clientRegistrationRepository, String responseType, String responseMode, String... additionalPermitAllPatterns) throws Exception {
         var resolver = new DefaultOAuth2AuthorizationRequestResolver(
                 clientRegistrationRepository,
                 OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI);
@@ -79,8 +85,11 @@ public class SecurityConfiguration {
                 authorize
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/oauth/**").permitAll()
-                        .requestMatchers("/admin/**").permitAll()
-                        .anyRequest().authenticated();
+                        .requestMatchers("/admin/**").permitAll();
+                if (additionalPermitAllPatterns.length > 0) {
+                    authorize.requestMatchers(additionalPermitAllPatterns).permitAll();
+                }
+                authorize.anyRequest().authenticated();
             });
 
         return http;

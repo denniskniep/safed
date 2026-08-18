@@ -26,6 +26,13 @@ Selenium-based Chrome automation with BiDi network interception (`src/main/java/
 - Phase 2 (Answer): Submits manipulated federation response
 - Handle Backchannel requests if required (see `OidcController`)
 
+### Mtls Assessment Flow
+Direct browser navigation to the sign-in URL with a client certificate, no federation redirects (`src/main/java/de/denniskniep/safed/mtls/MtlsAssessment.java`)
+- Baseline: open sign-in URL with the configured client certificate
+- Control scan (`FailMtlsScanner`): rewrite request to `/error` on the same host
+- Scanners manipulate the client certificate before connecting, e.g. `NoClientCertScanner`, `InvalidCAScanner`
+- SSL errors (`ERR_SSL_PROTOCOL_ERROR`, `ERR_BAD_SSL_CLIENT_AUTH_CERT`, `ERR_SOCKET_NOT_CONNECTED`) count as a blocked result
+
 ### Scanner
 The scanners allow pluggable manipulation of federation configs, requests, responses, etc.
 
@@ -38,7 +45,7 @@ Scanners can be found here:
 ### Verification Strategies
 Multiple verification strategies determine if an attack succeeded, by comparing baseline results with scan results (`src/main/java/de/denniskniep/safed/common/verifications`)
 - `DiffVerification` - Compares visible text differences between baseline and scan
-- `UrlAndStatusCodeVerification` - Compares final URL and HTTP status code
+- `StatusCodeVerification` - Compares final URL and HTTP status code
 
 ## Webhook
 The webhook mechanism allows SAFED to automatically send assessment reports to a configured HTTP endpoint.
@@ -182,6 +189,7 @@ http://keycloak:8080
 * Example OIDC App - Code Flow`./dev/example-oidc-002/`): http://localhost:8082/
 * Example OIDC App - Hybrid Flow(`./dev/example-oidc-002/`): http://localhost:8083/
 * Example OIDC App - Implicit Flow (`./dev/example-oidc-002/`): http://localhost:8084/
+* Example OIDC App - Fragment Flow (`./dev/example-oidc-002/`): http://localhost:8086/
 * Example Mtls App (`./dev/example-mtls-003/`): http://localhost:8085/
 * Grafana OIDC (`.dev/apps/grafana-oidc`): http://localhost:3001/
 
@@ -217,4 +225,4 @@ Each parameterized test case follows this flow:
 1. **Configure example app** — sets `ignoredErrorDescriptions` on the target app via its admin API, controlling which validation errors the app deliberately ignores (making it vulnerable)
 2. **Execute SAFED inside the container** — runs `java -jar /app/app.jar <clientId> <triggeredScanners>` via `docker exec` inside the running SAFED container
 3. **Receive report via webhook** — `WebhookReceiver` collects the JSON report POSTed by SAFED to `http://host.docker.internal:9999/webhook`
-4. **Assert results** — verifies the overall `ScanResultStatus` and that exactly the expected scanners reported a vulnerability
+4. **Assert results** — verifies the overall `EvidenceStatus` and that exactly the expected scanners reported a vulnerability

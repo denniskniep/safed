@@ -63,6 +63,22 @@ services:
       - "8084:8084"
     networks: [ "safed-net" ]
 
+  exampleoidc002fragmentflow:
+    build:
+      context: ./dev/example-oidc-002
+    depends_on:
+      - keycloak
+    restart: always
+    environment:
+      KEYCLOAK_URL: "http://keycloak:8080"
+    volumes:
+      - "./dev/keycloak/wait-for-keycloak.sh:/tmp/wait-for-keycloak.sh"
+    entrypoint: "sh -c"
+    command: ["/tmp/wait-for-keycloak.sh && java -Duser.timezone=UTC -jar /app/example.jar --spring.profiles.active=fragmentflow"]
+    ports:
+      - "8086:8086"
+    networks: [ "safed-net" ]
+
   examplemtls:
     build:
       context: ./dev/example-mtls-003

@@ -7,6 +7,7 @@ import com.github.difflib.DiffUtils;
 import com.github.difflib.UnifiedDiffUtils;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -14,67 +15,39 @@ import java.util.List;
 public class DiffVerification implements ScanResultVerificationStrategy  {
 
     @Override
-    public List<String> extractInfos(AuthResult scanAuthResult) {
-        return List.of(
-                "[INFO] VisibleText:\n" + extractVisibleText(scanAuthResult)
-        );
+    public List<Evidence> extractInfos(AuthResult scanAuthResult) {
+        return new ArrayList<>();
     }
 
     @Override
     public VerificationResult evaluateScanResult(AuthResult firstPositiveAuthResult, AuthResult secondPositiveAuthResult, AuthResult scanAuthResult) {
+        var normalDiff = diff(firstPositiveAuthResult, secondPositiveAuthResult);
+        var scanDiff = diff(firstPositiveAuthResult, scanAuthResult);
 
-            var normalPatch = DiffUtils.diff(
-                    Arrays.asList(extractVisibleText(firstPositiveAuthResult).split("\n")),
-                    Arrays.asList(extractVisibleText(secondPositiveAuthResult).split("\n"))
-            );
+        ScanResultStatus status = ScanResultStatus.OK;
+        if(scanDiff.size() <= normalDiff.size()){
+            status = ScanResultStatus.VULNERABLE;
+        }
 
-            List<String> normalDiff = UnifiedDiffUtils.generateUnifiedDiff(
-                    null,
-                    null,
-                    Arrays.stream(extractVisibleText(firstPositiveAuthResult).split("\n")).toList(),
-                    normalPatch,
-                    0).stream().skip(3).toList();
+        var evidences = List.of(
+            new Evidence(EvidenceStatus.INFO, "Diff.Patch", String.join("\n", scanDiff)),
+            new Evidence(EvidenceStatus.from(status), "Diff.Summary","Normal diff lines between successful authentications: "+ normalDiff.size() + " and line distance of scan: " + scanDiff.size())
+        );
 
-            var scanPatch = DiffUtils.diff(
-                    Arrays.asList(extractVisibleText(firstPositiveAuthResult).split("\n")),
-                    Arrays.asList(extractVisibleText(scanAuthResult).split("\n"))
-            );
-
-            List<String> scanDiff = UnifiedDiffUtils.generateUnifiedDiff(
-                    null,
-                    null,
-                    Arrays.stream(extractVisibleText(firstPositiveAuthResult).split("\n")).toList(),
-                    scanPatch,
-                    0).stream().skip(3).toList();;
-
-
-            ScanResultStatus status = ScanResultStatus.OK;
-            if(scanDiff.size() <= normalDiff.size()){
-                status = ScanResultStatus.VULNERABLE;
-            }
-            var evidences = List.of(
-                    "[INFO] Diff: \n" + String.join("\n", scanDiff),
-                    "["+status + "] Normal diff lines between successful authentications: "+ normalDiff.size() + " and line distance of scan: " + scanDiff.size()
-            );
-
-            return new VerificationResult(status, evidences);
+        return new VerificationResult(status, evidences);
     }
 
+    private List<String> diff(AuthResult authResultA, AuthResult authResultB){
+        var patch = DiffUtils.diff(
+                Arrays.asList(authResultA.extractVisibleText().split("\n")),
+                Arrays.asList(authResultB.extractVisibleText().split("\n"))
+        );
 
-    private static int countChars(List<String> strings) {
-        int count = 0;
-        for (String str : strings) {
-            if (str != null) {
-                count += str.length();
-            }
-        }
-        return count;
-    }
-
-    private String extractVisibleText(AuthResult authResult){
-        if(authResult.getResponsePage() == null){
-            return "";
-        }
-        return authResult.getResponsePage().visibleText();
+        return UnifiedDiffUtils.generateUnifiedDiff(
+                null,
+                null,
+                Arrays.stream(authResultA.extractVisibleText().split("\n")).toList(),
+                patch,
+                0).stream().skip(3).toList();
     }
 }

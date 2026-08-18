@@ -445,8 +445,8 @@ public class Browser implements AutoCloseable {
             BufferedImage original = ImageIO.read(new ByteArrayInputStream(imageBytes));
 
             // Step 3: Scale down
-            Image scaled = original.getScaledInstance(320, 240, Image.SCALE_SMOOTH);
-            BufferedImage output = new BufferedImage(320, 240, BufferedImage.TYPE_INT_RGB);
+            Image scaled = original.getScaledInstance(640, 480, Image.SCALE_SMOOTH);
+            BufferedImage output = new BufferedImage(640, 480, BufferedImage.TYPE_INT_RGB);
             output.getGraphics().drawImage(scaled, 0, 0, null);
 
             // Step 4: BufferedImage → JPEG bytes → Base64

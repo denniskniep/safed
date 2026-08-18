@@ -46,6 +46,12 @@ public class OAuth2Endpoint {
         return authenticateViaOauth(httpRequest, "example-oidc-002-implicitflow", request.getIdToken());
     }
 
+    @PostMapping(value = "fragment", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public ResponseEntity<Void> handleFragmentFlow(@RequestParam MultiValueMap<String, String> params, HttpServletRequest httpRequest) {
+        OAuth2ImplicitRequest request = new ObjectMapper().convertValue(params.toSingleValueMap(), OAuth2ImplicitRequest.class);
+        return authenticateViaOauth(httpRequest, "example-oidc-002-fragmentflow", request.getIdToken());
+    }
+
     public  ResponseEntity<Void> authenticateViaOauth(HttpServletRequest httpRequest, String registrationId, String idTokenAsBase64){
         var clientRegistration = clientRegistrationRepository.findByRegistrationId(registrationId);
         JwtDecoder decoder = jwtDecoderFactory.createDecoder(clientRegistration);

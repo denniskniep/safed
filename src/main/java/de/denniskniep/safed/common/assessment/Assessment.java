@@ -8,6 +8,7 @@ import de.denniskniep.safed.common.scans.AuthResult;
 import de.denniskniep.safed.common.scans.ScanResult;
 import de.denniskniep.safed.common.scans.ScanResultStatus;
 import de.denniskniep.safed.common.scans.Scanner;
+import de.denniskniep.safed.common.verifications.Evidence;
 import de.denniskniep.safed.common.verifications.ScanResultVerificationStrategy;
 import de.denniskniep.safed.common.verifications.VerificationResult;
 import org.apache.commons.lang3.StringUtils;
@@ -201,10 +202,10 @@ public abstract class Assessment<T extends Scanner, C extends AppConfig> {
         return new ScanResult(authResult, verifications, infos);
     }
 
-    private Map<String, List<String>> extractInfos(List<ScanResultVerificationStrategy> verifications, AuthResult scanAuthResult) {
-        var infos = new HashMap<String, List<String>>();
+    private List<Evidence> extractInfos(List<ScanResultVerificationStrategy> verifications, AuthResult scanAuthResult) {
+        var infos = new ArrayList<Evidence>();
         for(var verificationStrategy : verifications){
-            infos.put(verificationStrategy.getClass().getSimpleName(), verificationStrategy.extractInfos(scanAuthResult));
+            infos.addAll(verificationStrategy.extractInfos(scanAuthResult));
         }
         return infos;
     }

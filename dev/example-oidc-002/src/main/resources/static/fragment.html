@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"/><title>Fragment Flow</title></head>
+<body>
+<p>Signing in&hellip;</p>
+<script>
+    var params = new URLSearchParams(window.location.hash.substring(1));
+    fetch("/oauth/fragment", {
+        method: "POST",
+        headers: {"Content-Type": "application/x-www-form-urlencoded"},
+        body: params.toString()
+    }).then(function () {
+        window.location.href = "/";
+    });
+</script>
+</body>
+</html>

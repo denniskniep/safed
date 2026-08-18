@@ -3,6 +3,7 @@ package de.denniskniep.safed.common.report;
 import de.denniskniep.safed.common.scans.ScanResultStatus;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import de.denniskniep.safed.common.verifications.Evidence;
 
 import java.util.List;
 
@@ -12,15 +13,15 @@ public class ScanResultReport {
 
     private String createdAt;
     private List<String> trafficLog;
-    private List<String> evidences;
+    private List<Evidence> evidences;
     private List<ReportError> errors;
     private ScanResultStatus status;
 
-    public List<String> getEvidences() {
+    public List<Evidence> getEvidences() {
         return evidences;
     }
 
-    public void setEvidences(List<String> evidences) {
+    public void setEvidences(List<Evidence> evidences) {
         this.evidences = evidences;
     }
 

@@ -2,6 +2,7 @@ package de.denniskniep.safed.common.report;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import de.denniskniep.safed.common.verifications.Evidence;
 
 import java.util.List;
 
@@ -9,15 +10,15 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class InitialScanReport {
     private String createdAt;
-    private List<String> evidences;
+    private List<Evidence> evidences;
     private List<String> trafficLog;
 
 
-    public List<String> getEvidences() {
+    public List<Evidence> getEvidences() {
         return evidences;
     }
 
-    public void setEvidences(List<String> evidences) {
+    public void setEvidences(List<Evidence> evidences) {
         this.evidences = evidences;
     }
 

@@ -45,6 +45,7 @@ public abstract class ApplicationBaseTest implements AutoCloseable {
     protected static final ExampleAppData EXAMPLE_OIDC_HYBRID_FLOW = new ExampleAppData("exampleoidc002hybridflow", 8083, "http","example-oidc-002-hybridflow");
     protected static final ExampleAppData EXAMPLE_OIDC_IMPLICIT_FLOW = new ExampleAppData("exampleoidc002implicitflow", 8084, "http","example-oidc-002-implicitflow");
     protected static final ExampleAppData EXAMPLE_MTLS = new ExampleAppData("examplemtls", 8085, "https","example-mtls-003");
+    protected static final ExampleAppData EXAMPLE_OIDC_FRAGMENT_FLOW = new ExampleAppData("exampleoidc002fragmentflow", 8086, "http","example-oidc-002-fragmentflow");
 
     protected static final String KEYCLOAK_SERVICE_NAME = "keycloak";
     protected static final String KEYCLOAK_SIDEKICK_SERVICE_NAME = "keycloaksidekick";
@@ -56,6 +57,7 @@ public abstract class ApplicationBaseTest implements AutoCloseable {
     protected final ExampleApp exampleOidcCodeFlowApp;
     protected final ExampleApp exampleOidcHybridFlowApp;
     protected final ExampleApp exampleOidcImplicitFlowApp;
+    protected final ExampleApp exampleOidcFragmentFlowApp;
 
     private final List<ExampleApp> exampleApps;
 
@@ -92,19 +94,22 @@ public abstract class ApplicationBaseTest implements AutoCloseable {
                 .waitingFor(EXAMPLE_OIDC_CODE_FLOW.serviceName(), Wait.forLogMessage(".*Started ExampleOidcApplication.*", 1))
                 .waitingFor(EXAMPLE_OIDC_HYBRID_FLOW.serviceName(), Wait.forLogMessage(".*Started ExampleOidcApplication.*", 1))
                 .waitingFor(EXAMPLE_OIDC_IMPLICIT_FLOW.serviceName(), Wait.forLogMessage(".*Started ExampleOidcApplication.*", 1))
+                .waitingFor(EXAMPLE_OIDC_FRAGMENT_FLOW.serviceName(), Wait.forLogMessage(".*Started ExampleOidcApplication.*", 1))
                 .withLogConsumer(EXAMPLE_SAML.serviceName(), new Slf4jLogConsumer(LOG).withPrefix(EXAMPLE_SAML.serviceName()))
                 .withLogConsumer(EXAMPLE_MTLS.serviceName(), new Slf4jLogConsumer(LOG).withPrefix(EXAMPLE_MTLS.serviceName()))
                 .withLogConsumer(EXAMPLE_OIDC_CODE_FLOW.serviceName(), new Slf4jLogConsumer(LOG).withPrefix(EXAMPLE_OIDC_CODE_FLOW.serviceName()))
                 .withLogConsumer(EXAMPLE_OIDC_HYBRID_FLOW.serviceName(), new Slf4jLogConsumer(LOG).withPrefix(EXAMPLE_OIDC_HYBRID_FLOW.serviceName()))
                 .withLogConsumer(EXAMPLE_OIDC_IMPLICIT_FLOW.serviceName(), new Slf4jLogConsumer(LOG).withPrefix(EXAMPLE_OIDC_IMPLICIT_FLOW.serviceName()))
+                .withLogConsumer(EXAMPLE_OIDC_FRAGMENT_FLOW.serviceName(), new Slf4jLogConsumer(LOG).withPrefix(EXAMPLE_OIDC_FRAGMENT_FLOW.serviceName()))
                 .withLogConsumer(KEYCLOAK_SERVICE_NAME, new Slf4jLogConsumer(LOG).withPrefix(KEYCLOAK_SERVICE_NAME))
-                .withServices(SAFED_SERVICE_NAME, "postgres", KEYCLOAK_SERVICE_NAME, "keycloakorig", KEYCLOAK_SIDEKICK_SERVICE_NAME, EXAMPLE_SAML.serviceName(), EXAMPLE_MTLS.serviceName, EXAMPLE_OIDC_CODE_FLOW.serviceName(), EXAMPLE_OIDC_HYBRID_FLOW.serviceName(), EXAMPLE_OIDC_IMPLICIT_FLOW.serviceName())
+                .withServices(SAFED_SERVICE_NAME, "postgres", KEYCLOAK_SERVICE_NAME, "keycloakorig", KEYCLOAK_SIDEKICK_SERVICE_NAME, EXAMPLE_SAML.serviceName(), EXAMPLE_MTLS.serviceName, EXAMPLE_OIDC_CODE_FLOW.serviceName(), EXAMPLE_OIDC_HYBRID_FLOW.serviceName(), EXAMPLE_OIDC_IMPLICIT_FLOW.serviceName(), EXAMPLE_OIDC_FRAGMENT_FLOW.serviceName())
                 .withEnv("SAFED_APP_PORT", port)
                 .withExposedService(EXAMPLE_SAML.serviceName(), EXAMPLE_SAML.servicePort())
                 .withExposedService(EXAMPLE_MTLS.serviceName(), EXAMPLE_MTLS.servicePort())
                 .withExposedService(EXAMPLE_OIDC_CODE_FLOW.serviceName(), EXAMPLE_OIDC_CODE_FLOW.servicePort())
                 .withExposedService(EXAMPLE_OIDC_HYBRID_FLOW.serviceName(), EXAMPLE_OIDC_HYBRID_FLOW.servicePort())
                 .withExposedService(EXAMPLE_OIDC_IMPLICIT_FLOW.serviceName(), EXAMPLE_OIDC_IMPLICIT_FLOW.servicePort())
+                .withExposedService(EXAMPLE_OIDC_FRAGMENT_FLOW.serviceName(), EXAMPLE_OIDC_FRAGMENT_FLOW.servicePort())
                 .waitingFor(SAFED_SERVICE_NAME, Wait.forLogMessage(".*Keycloak (.*) is ready.*", 1))
                 .withLogConsumer(SAFED_SERVICE_NAME, new Slf4jLogConsumer(LOG).withPrefix(SAFED_SERVICE_NAME))
                 .withEnv("WEBHOOK_ENABLED", "true")
@@ -119,7 +124,8 @@ public abstract class ApplicationBaseTest implements AutoCloseable {
         exampleOidcCodeFlowApp = ExampleApp.from(ENVIRONMENT, EXAMPLE_OIDC_CODE_FLOW);
         exampleOidcHybridFlowApp = ExampleApp.from(ENVIRONMENT, EXAMPLE_OIDC_HYBRID_FLOW);
         exampleOidcImplicitFlowApp = ExampleApp.from(ENVIRONMENT, EXAMPLE_OIDC_IMPLICIT_FLOW);
-        exampleApps = List.of(exampleSamlApp, exampleMtlsApp, exampleOidcCodeFlowApp, exampleOidcHybridFlowApp, exampleOidcImplicitFlowApp);
+        exampleOidcFragmentFlowApp = ExampleApp.from(ENVIRONMENT, EXAMPLE_OIDC_FRAGMENT_FLOW);
+        exampleApps = List.of(exampleSamlApp, exampleMtlsApp, exampleOidcCodeFlowApp, exampleOidcHybridFlowApp, exampleOidcImplicitFlowApp, exampleOidcFragmentFlowApp);
     }
 
     public Report runAssessment(String clientId, List<String> triggeredScanners){
