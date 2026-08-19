@@ -44,8 +44,12 @@ Scanners can be found here:
 
 ### Verification Strategies
 Multiple verification strategies determine if an attack succeeded, by comparing baseline results with scan results (`src/main/java/de/denniskniep/safed/common/verifications`)
-- `DiffVerification` - Compares visible text differences between baseline and scan
-- `StatusCodeVerification` - Compares final URL and HTTP status code
+- `LineDiffVerification` - Compares visible text line-by-line between baseline and scan
+- `WordDiffVerification` - Compares visible text word-by-word between baseline and scan
+- `StatusCodeVerification` - Compares the HTTP status code
+- `TitleVerification` - Compares the page title
+- `CookieVerification` - Compares cookies set on the response
+- `UrlVerification` - Compares the final URL and its parts (scheme, host, port, path, query, fragment)
 
 ## Webhook
 The webhook mechanism allows SAFED to automatically send assessment reports to a configured HTTP endpoint.
