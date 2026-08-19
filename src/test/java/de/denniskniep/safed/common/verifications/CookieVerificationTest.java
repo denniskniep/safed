@@ -41,7 +41,7 @@ class CookieVerificationTest {
         assertThat(infos).hasSize(1);
         assertThat(infos.getFirst().status()).isEqualTo(EvidenceStatus.INFO);
         assertThat(infos.getFirst().type()).isEqualTo("Cookies");
-        assertThat(infos.getFirst().value().split(", ")).containsExactlyInAnyOrder("sessionId", "csrf");
+        assertThat(infos.getFirst().value().split(", ")).containsExactlyInAnyOrder("sessionId:abc", "csrf:xyz");
     }
 
     @Test

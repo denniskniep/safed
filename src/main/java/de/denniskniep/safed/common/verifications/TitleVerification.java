@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 
 
 @Service
-public class TitleVerification extends StringCompareScanResultVerificationStrategy {
+public class TitleVerification extends StringCompareVerification {
 
     public TitleVerification() {
         super("Title");

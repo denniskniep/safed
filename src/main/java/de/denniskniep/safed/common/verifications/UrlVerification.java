@@ -1,100 +1,27 @@
 package de.denniskniep.safed.common.verifications;
 
 import de.denniskniep.safed.common.scans.AuthResult;
-import de.denniskniep.safed.common.scans.ScanResultStatus;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
-public class UrlVerification implements ScanResultVerificationStrategy {
-
-    public static final String UNSTABLE_VALUE = "<unstable value>";
+public class UrlVerification extends PartsVerification {
 
     @Override
-    public List<Evidence> extractInfos(AuthResult scanAuthResult) {
-        return List.of(
-            new Evidence(EvidenceStatus.INFO, "Url.Parts", asString(getUrlParts(scanAuthResult)))
-        );
+    protected String getEvidenceType() {
+        return "Url";
     }
 
     @Override
-    public VerificationResult evaluateScanResult(AuthResult firstPositiveAuthResult, AuthResult secondPositiveAuthResult, AuthResult scanAuthResult) {
-        // Which parts of the Url are the same on both successful authentications.
-        // Expectation is that a stable part (e.g. path) is also present and unchanged on a scan.
-        // Parts that legitimately vary between the two positive auths (e.g. a one-time query token) are ignored.
-        var firstParts = getUrlParts(firstPositiveAuthResult);
-        var secondParts = getUrlParts(secondPositiveAuthResult);
-        var scanParts = getUrlParts(scanAuthResult);
-
-        var expectedPartsOnBothSides = intersectedParts(firstParts, secondParts);
-        var actualPartsOnBothSides = intersectedParts(firstParts, scanParts);
-
-        var partsDiff = diff(expectedPartsOnBothSides, actualPartsOnBothSides);
-        ScanResultStatus status = ScanResultStatus.OK;
-        if(!partsDiff.isEmpty()){
-            status = ScanResultStatus.VULNERABLE;
-        }
-
-        var evidences = List.of(
-            new Evidence(EvidenceStatus.INFO, "Url.Expected", asString(expectedPartsOnBothSides)),
-            new Evidence(EvidenceStatus.INFO, "Url.Current", asString(actualPartsOnBothSides)),
-            new Evidence(EvidenceStatus.from(status), "Url.Diff", partsDiff.size() + " diff between url parts was detected. "+ String.join(",", partsDiff))
-        );
-        return new VerificationResult(status, evidences);
-    }
-
-    private List<String> diff(Map<String, String> partsA, Map<String, String> partsB) {
-        var partsDiff = new ArrayList<String>();
-
-        for (var partName : partsA.keySet()){
-            String partAValue = partsA.get(partName);
-            String partBValue = partsB.get(partName);
-
-            if(StringUtils.equals(partAValue, partBValue)){
-                // Both parts exist and value match!
-                continue;
-            }
-
-            if(partAValue != null && partBValue != null && StringUtils.equals(partAValue, UNSTABLE_VALUE)){
-                // Both parts exist, but it must not match!
-                continue;
-            }
-
-            if(partBValue == null){
-                partsDiff.add("'"+partName + "' does not exist");
-                continue;
-            }
-
-            if(!StringUtils.equals(partAValue, partBValue)){
-                partsDiff.add("The values for '" + partName + "' are not equal");
-                continue;
-            }
-
-            throw new RuntimeException("Case not handled!");
-        }
-
-        for (var partName : partsB.keySet()){
-            String partAValue = partsA.get(partName);
-
-            if(partAValue == null){
-                partsDiff.add("'"+partName + "' does not exist");
-            }
-        }
-
-        return partsDiff;
-    }
-
-    private String asString(Map<String, String> parts){
+    protected String asString(Map<String, String> parts){
         var url = new StringBuilder();
 
         if(parts.containsKey("Scheme")){
@@ -142,26 +69,8 @@ public class UrlVerification implements ScanResultVerificationStrategy {
                 .collect(Collectors.joining("&"));
     }
 
-    private Map<String, String> intersectedParts(Map<String, String> partsA, Map<String, String> partsB){
-        var parts = new HashMap<String, String>();
-        var sortedPartsA = partsA.keySet().stream().sorted().toList();
-
-        for (String partName : sortedPartsA) {
-            String partAValue = partsA.get(partName);
-            String partBValue = partsB.get(partName);
-
-            if(StringUtils.equals(partAValue, partBValue)){
-                // pin the value if equal!
-                parts.put(partName, partAValue);
-            } else if(partAValue != null && partBValue != null){
-                // only expect the name if not equal!
-                parts.put(partName, UNSTABLE_VALUE);
-            }
-        }
-        return parts;
-    }
-
-    private Map<String, String> getUrlParts(AuthResult authResult){
+    @Override
+    protected Map<String, String> extractParts(AuthResult authResult){
         var parts = new HashMap<String, String>();
         if(authResult.getResponsePage() == null){
             return parts;

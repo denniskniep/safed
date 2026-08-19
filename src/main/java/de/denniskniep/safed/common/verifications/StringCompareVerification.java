@@ -6,11 +6,11 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
-public abstract class StringCompareScanResultVerificationStrategy implements ScanResultVerificationStrategy {
+public abstract class StringCompareVerification implements ScanResultVerificationStrategy {
 
     private final String type;
 
-    public StringCompareScanResultVerificationStrategy(String type) {
+    public StringCompareVerification(String type) {
         this.type = type;
     }
 

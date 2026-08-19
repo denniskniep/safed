@@ -1,14 +1,10 @@
 package de.denniskniep.safed.common.verifications;
 
 import de.denniskniep.safed.common.scans.AuthResult;
-import de.denniskniep.safed.common.scans.ScanResultStatus;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
-public class StatusCodeVerification extends StringCompareScanResultVerificationStrategy {
+public class StatusCodeVerification extends StringCompareVerification {
 
     public StatusCodeVerification() {
         super("StatusCode");
