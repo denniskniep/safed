@@ -35,3 +35,4 @@ build/
 CLAUDE.md
 
 .wiki/.cache
+.firecrawl
