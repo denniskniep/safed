@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+## [1.1.0] - 2026-08-21
+
+### Added
+
+- Machine-readable `Evidence` (status/type/value) replacing free-text evidence strings across scan results and reports
+- `TitleVerification` - compares page title between baseline and scan
+- `UrlVerification` now compares individual URL parts (scheme, host, port, path segments, query params, fragment) instead of the whole URL string, tolerating parts known to vary between the two baseline logins
+- `CookieVerification` now actually diffs cookies present on baseline vs. scan (previously a stub that always reported OK)
+- `LineDiffVerification` and `WordDiffVerification` (line-based and word-based text diffing), replacing `DiffVerification`; detection now also checks that only previously-seen-as-unstable lines/words were removed, cutting false positives
+- Example OIDC app: fragment response mode flow (`fragmentflow` profile, port 8086) for testing implicit flow via URL fragment
+
+### Changed
+
+- `UrlAndStatusCodeVerification` split into `StatusCodeVerification` (status code only) and `UrlVerification` (URL only)
+- Screenshot resolution raised from 320x240 to 640x480
+- Selenium 4.41.0 → 4.47.0, Chromium 146 → 151.0.7922.169
+
 ## [1.0.9] - 2026-03-31
 
 ### Changed
