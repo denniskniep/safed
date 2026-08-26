@@ -74,7 +74,7 @@ class UrlVerificationTest {
         VerificationResult result = urlVerification.evaluateScanResult(first, second, scan);
 
         assertThat(result.getStatus()).isEqualTo(ScanResultStatus.VULNERABLE);
-        assertThat(diffValue(result)).contains("The values for 'Path.0' are not equal");
+        assertThat(diffValue(result)).contains("The values for 'Path' are not equal");
     }
 
     @Test
@@ -86,7 +86,7 @@ class UrlVerificationTest {
         VerificationResult result = urlVerification.evaluateScanResult(first, second, scan);
 
         assertThat(result.getStatus()).isEqualTo(ScanResultStatus.VULNERABLE);
-        assertThat(diffValue(result)).contains("'Path.1' does not exist");
+        assertThat(diffValue(result)).contains("'Path' are not equal");
     }
 
     @Test

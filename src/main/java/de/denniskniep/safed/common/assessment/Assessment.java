@@ -116,13 +116,25 @@ public abstract class Assessment<T extends Scanner, C extends AppConfig> {
             // if not we remove all verifications that are not reporting OK!
             scannerConfig = (C)scannerConfig.deepCopy();
             scannerConfig.setVerificationStrategies(okVerifications);
-            LOG.info("Restart test scan - proof ok (Adopted Verification Strategy)");
+            LOG.info("Restart test scan - proof ok (Adopted Verification Strategy to: "+String.join(",", okVerifications)+")");
             isOkScan = runScan(scannerConfig, failureScanner, false);
         }
 
         LOG.info("Start test scan - proof vulnerable");
         // Scan with success - means VULNERABLE
         isVulnerableScan = runScan(scannerConfig, successScanner, false);
+
+        // Dynamically adopt Verification Strategy
+        okVerifications = isVulnerableScan.getVerificationStrategies(ScanResultStatus.OK);
+        vulnVerifications = isVulnerableScan.getVerificationStrategies(ScanResultStatus.VULNERABLE);
+        if(!vulnVerifications.isEmpty() && !okVerifications.isEmpty()){
+            // no drift in the response is expected, therefore verifications should report VULN
+            // if not we remove all verifications that are not reporting VULN!
+            scannerConfig = (C)scannerConfig.deepCopy();
+            scannerConfig.setVerificationStrategies(vulnVerifications);
+            LOG.info("Restart test scan - proof vulnerable (Adopted Verification Strategy to: "+String.join(",", vulnVerifications)+")");
+            isVulnerableScan = runScan(scannerConfig, successScanner, false);
+        }
 
         // For a malicious scan, we expect a significant drift in the response
         // The successScanner does not have that drift on purpose!

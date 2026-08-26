@@ -34,7 +34,9 @@ public class UrlVerification extends PartsVerification {
             url.append(":").append(parts.get("Port"));
         }
 
-        url.append(pathAsString(parts));
+        if(parts.containsKey("Path")){
+            url.append(parts.get("Path"));
+        }
 
         var query = queryAsString(parts);
         if(!query.isEmpty()){
@@ -46,19 +48,6 @@ public class UrlVerification extends PartsVerification {
         }
 
         return url.toString();
-    }
-
-    private String pathAsString(Map<String, String> parts){
-        var segments = parts.keySet().stream()
-                .filter(k -> k.startsWith("Path."))
-                .sorted(Comparator.comparingInt(k -> Integer.parseInt(k.substring("Path.".length()))))
-                .map(parts::get)
-                .toList();
-
-        if(segments.isEmpty()){
-            return "";
-        }
-        return "/" + String.join("/", segments);
     }
 
     private String queryAsString(Map<String, String> parts){
@@ -93,31 +82,15 @@ public class UrlVerification extends PartsVerification {
         if(components.getPort() != -1){
             parts.put("Port", String.valueOf(components.getPort()));
         }
-        putPathSegments(parts, components.getPath());
+        putIfPresent(parts, "Path", components.getPath());
         putIfPresent(parts, "Fragment", components.getFragment());
         putQueryParams(parts, components);
-
         return parts;
     }
 
     private void putIfPresent(Map<String, String> parts, String name, String value){
         if(value != null){
             parts.put(name, value);
-        }
-    }
-
-    private void putPathSegments(Map<String, String> parts, String path){
-        if(StringUtils.isBlank(path)){
-            return;
-        }
-
-        int index = 0;
-        for (String segment : path.split("/")){
-            if(segment.isEmpty()){
-                continue;
-            }
-            parts.put("Path." + index, segment);
-            index++;
         }
     }
 
