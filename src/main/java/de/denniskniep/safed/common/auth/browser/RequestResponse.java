@@ -47,6 +47,11 @@ public record RequestResponse(Instant created, String context, ResponseDataDetai
             url = url.substring(0, Math.min(150, url.length()-1));
         }
 
+        var fragmentIndex = url.indexOf('#');
+        if(fragmentIndex >= 0) {
+            url = url.substring(0, fragmentIndex + 1) + "<masked>";
+        }
+
         return ctx + method + " " + url + " -> " + status + " (t:"+ type + "; i:"+ initiator + ")";
     }
 }
