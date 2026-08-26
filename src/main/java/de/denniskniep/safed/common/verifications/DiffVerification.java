@@ -63,16 +63,16 @@ public abstract class DiffVerification implements ScanResultVerificationStrategy
 
         var changed = new ArrayList<String>();
         for (var delta : patch.getDeltas()) {
-            delta.getSource().getLines().forEach(unit -> changed.add("--" + unit));
-            delta.getTarget().getLines().forEach(unit -> changed.add("++" + unit));
+            delta.getSource().getLines().forEach(unit -> changed.add("-" + unit));
+            delta.getTarget().getLines().forEach(unit -> changed.add("+" + unit));
         }
         return changed;
     }
 
     private Set<String> removedTokens(List<String> changed){
         return changed.stream()
-                .filter(unit -> unit.startsWith("--"))
-                .map(unit -> unit.substring(2))
+                .filter(unit -> unit.startsWith("-"))
+                .map(unit -> unit.substring(1))
                 .collect(Collectors.toSet());
     }
 }

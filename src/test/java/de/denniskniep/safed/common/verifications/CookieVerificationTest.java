@@ -91,7 +91,7 @@ class CookieVerificationTest {
                 .filter(e -> e.type().equals("Cookies.Diff"))
                 .findFirst()
                 .orElseThrow();
-        assertThat(diffEvidence.value()).contains("'sessionId' does not exist");
+        assertThat(diffEvidence.value()).contains("sessionId: \"abc\" → (missing)");
     }
 
     @Test
@@ -107,7 +107,7 @@ class CookieVerificationTest {
                 .filter(e -> e.type().equals("Cookies.Diff"))
                 .findFirst()
                 .orElseThrow();
-        assertThat(diffEvidence.value()).contains("'sessionId' does not exist");
+        assertThat(diffEvidence.value()).contains("sessionId: \"<unstable value>\" → (missing)");
     }
 
     @Test
@@ -123,7 +123,7 @@ class CookieVerificationTest {
                 .filter(e -> e.type().equals("Cookies.Diff"))
                 .findFirst()
                 .orElseThrow();
-        assertThat(diffEvidence.value()).contains("'csrf' does not exist");
+        assertThat(diffEvidence.value()).contains("csrf: (missing) → \"tok1\"");
     }
 
     @Test
@@ -163,7 +163,9 @@ class CookieVerificationTest {
                 .filter(e -> e.type().equals("Cookies.Diff"))
                 .findFirst()
                 .orElseThrow();
-        assertThat(diffEvidence.value()).contains("1 diff between cookies was detected. The values for 'sessionId' are not equal");
+        assertThat(diffEvidence.value())
+                .contains("1 diff between cookies was detected.")
+                .contains("sessionId: \"abc\" → \"xyz\"");
     }
 
     @Test
@@ -211,7 +213,9 @@ class CookieVerificationTest {
                 .orElseThrow();
         assertThat(diffEvidence.status()).isEqualTo(EvidenceStatus.VULNERABLE);
         assertThat(diffEvidence.value()).startsWith("2 diff between cookies was detected.");
-        assertThat(diffEvidence.value()).contains("'a' does not exist").contains("'b' does not exist");
+        assertThat(diffEvidence.value())
+                .contains("a: \"1\" → (missing)")
+                .contains("b: \"2\" → (missing)");
     }
 
     private String evidenceValue(VerificationResult result, String type) {

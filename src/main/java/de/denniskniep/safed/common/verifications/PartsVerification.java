@@ -37,9 +37,9 @@ public abstract class PartsVerification implements ScanResultVerificationStrateg
         var scanParts = extractParts(scanAuthResult);
 
         var expectedPartsOnBothSides = intersect(firstParts, secondParts);
-        var actualPartsOnBothSides = intersect(firstParts, scanParts);
 
-        var partsDiff = diff(expectedPartsOnBothSides, actualPartsOnBothSides);
+        var partsDiff = diff(expectedPartsOnBothSides, scanParts);
+
         ScanResultStatus status = ScanResultStatus.OK;
         if(!partsDiff.isEmpty()){
             status = ScanResultStatus.VULNERABLE;
@@ -47,8 +47,8 @@ public abstract class PartsVerification implements ScanResultVerificationStrateg
 
         var evidences = List.of(
             new Evidence(EvidenceStatus.INFO, getEvidenceType() + ".Expected", asString(expectedPartsOnBothSides)),
-            new Evidence(EvidenceStatus.INFO, getEvidenceType() + ".Current", asString(actualPartsOnBothSides)),
-            new Evidence(EvidenceStatus.from(status), getEvidenceType() + ".Diff", partsDiff.size() + " diff between " + getEvidenceType().toLowerCase() + " was detected. " + String.join(",", partsDiff))
+            new Evidence(EvidenceStatus.INFO, getEvidenceType() + ".Current", asString(scanParts)),
+            new Evidence(EvidenceStatus.from(status), getEvidenceType() + ".Diff", partsDiff.size() + " diff between " + getEvidenceType().toLowerCase() + " was detected. Differences:\n" + String.join("\n", partsDiff))
         );
         return new VerificationResult(status, evidences);
     }
@@ -71,12 +71,12 @@ public abstract class PartsVerification implements ScanResultVerificationStrateg
             }
 
             if(partBValue == null){
-                partsDiff.add("'"+partName + "' does not exist");
+                partsDiff.add(partName + ": " + quote(partAValue) + " → (missing)");
                 continue;
             }
 
             if(!StringUtils.equals(partAValue, partBValue)){
-                partsDiff.add("The values for '" + partName + "' are not equal");
+                partsDiff.add(partName + ": " + quote(partAValue) + " → " + quote(partBValue));
                 continue;
             }
 
@@ -87,11 +87,15 @@ public abstract class PartsVerification implements ScanResultVerificationStrateg
             String partAValue = partsA.get(partName);
 
             if(partAValue == null){
-                partsDiff.add("'"+partName + "' does not exist");
+                partsDiff.add(partName + ": (missing) → " + quote(partsB.get(partName)));
             }
         }
 
         return partsDiff;
+    }
+
+    private String quote(String value){
+        return "\"" + value + "\"";
     }
 
     private Map<String, String> intersect(Map<String, String> partsA, Map<String, String> partsB){

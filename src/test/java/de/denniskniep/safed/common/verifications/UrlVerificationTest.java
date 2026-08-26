@@ -74,7 +74,7 @@ class UrlVerificationTest {
         VerificationResult result = urlVerification.evaluateScanResult(first, second, scan);
 
         assertThat(result.getStatus()).isEqualTo(ScanResultStatus.VULNERABLE);
-        assertThat(diffValue(result)).contains("The values for 'Path' are not equal");
+        assertThat(diffValue(result)).contains("Path: \"/dashboard\" → \"/login\"");
     }
 
     @Test
@@ -86,7 +86,7 @@ class UrlVerificationTest {
         VerificationResult result = urlVerification.evaluateScanResult(first, second, scan);
 
         assertThat(result.getStatus()).isEqualTo(ScanResultStatus.VULNERABLE);
-        assertThat(diffValue(result)).contains("'Path' are not equal");
+        assertThat(diffValue(result)).contains("Path: \"/users/123\" → \"/users\"");
     }
 
     @Test
@@ -110,7 +110,7 @@ class UrlVerificationTest {
         VerificationResult result = urlVerification.evaluateScanResult(first, second, scan);
 
         assertThat(result.getStatus()).isEqualTo(ScanResultStatus.VULNERABLE);
-        assertThat(diffValue(result)).contains("'Query.role' does not exist");
+        assertThat(diffValue(result)).contains("Query.role: \"admin\" → (missing)");
     }
 
     @Test
@@ -122,7 +122,7 @@ class UrlVerificationTest {
         VerificationResult result = urlVerification.evaluateScanResult(first, second, scan);
 
         assertThat(result.getStatus()).isEqualTo(ScanResultStatus.VULNERABLE);
-        assertThat(diffValue(result)).contains("The values for 'Scheme' are not equal");
+        assertThat(diffValue(result)).contains("Scheme: \"https\" → \"http\"");
     }
 
     @Test
@@ -134,7 +134,7 @@ class UrlVerificationTest {
         VerificationResult result = urlVerification.evaluateScanResult(first, second, scan);
 
         assertThat(result.getStatus()).isEqualTo(ScanResultStatus.VULNERABLE);
-        assertThat(diffValue(result)).contains("The values for 'Host' are not equal");
+        assertThat(diffValue(result)).contains("Host: \"example.com\" → \"evil.com\"");
     }
 
     @Test
@@ -146,7 +146,7 @@ class UrlVerificationTest {
         VerificationResult result = urlVerification.evaluateScanResult(first, second, scan);
 
         assertThat(result.getStatus()).isEqualTo(ScanResultStatus.VULNERABLE);
-        assertThat(diffValue(result)).contains("'Port' does not exist");
+        assertThat(diffValue(result)).contains("Port: \"8443\" → (missing)");
     }
 
     @Test
@@ -169,7 +169,7 @@ class UrlVerificationTest {
         VerificationResult result = urlVerification.evaluateScanResult(first, second, scan);
 
         assertThat(result.getStatus()).isEqualTo(ScanResultStatus.VULNERABLE);
-        assertThat(diffValue(result)).contains("'Fragment' does not exist");
+        assertThat(diffValue(result)).contains("Fragment: \"section\" → (missing)");
     }
 
     @Test
