@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+
+## [1.2.0] - 2026-08-27
+
+### Added
+
+- `TemplateDiffVerification` - diffs text against a placeholder-aware template, tolerating expected variable parts instead of flagging them as differences
+- `Assessment` now dynamically adopts verification strategy based on whether the scan is a vulnerable scan
+
+### Changed
+
+- `CookieVerification` output now displayed using natural cookie syntax instead of raw evidence dump
+- Improved visualisation for `PartsVerification` diffs
+- `UrlVerification` path comparison simplified to a single string diff
+- URL fragment hidden from access log for privacy
+
 ## [1.1.0] - 2026-08-21
 
 ### Added

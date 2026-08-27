@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>de.denniskniep</groupId>
 	<artifactId>safed</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.2.0</version>
 	<name>safed</name>
 	<description>SAFED - Security Assessment for Federations</description>
 	<url/>
