@@ -46,6 +46,7 @@ Scanners can be found here:
 Multiple verification strategies determine if an attack succeeded, by comparing baseline results with scan results (`src/main/java/de/denniskniep/safed/common/verifications`)
 - `LineDiffVerification` - Compares visible text line-by-line between baseline and scan
 - `WordDiffVerification` - Compares visible text word-by-word between baseline and scan
+- `TemplateDiffVerification` - Builds a word template from the two baselines (varying words marked as unstable) and checks whether the scan matches it
 - `StatusCodeVerification` - Compares the HTTP status code
 - `TitleVerification` - Compares the page title
 - `CookieVerification` - Compares cookies set on the response

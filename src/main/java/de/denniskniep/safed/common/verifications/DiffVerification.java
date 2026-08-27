@@ -1,6 +1,7 @@
 package de.denniskniep.safed.common.verifications;
 
 import com.github.difflib.DiffUtils;
+import com.github.difflib.patch.Patch;
 import de.denniskniep.safed.common.scans.AuthResult;
 import de.denniskniep.safed.common.scans.ScanResultStatus;
 import org.apache.commons.lang3.StringUtils;
@@ -17,6 +18,10 @@ public abstract class DiffVerification implements ScanResultVerificationStrategy
 
     protected abstract List<String> split(AuthResult authResult);
 
+    protected String formatDiff(List<String> unitsA, Patch<String> patch) {
+        return String.join("\n", changedUnits(patch));
+    }
+
     private String getEvidenceType() {
         return StringUtils.capitalize(getUnitName()) + "Diff";
     }
@@ -28,39 +33,41 @@ public abstract class DiffVerification implements ScanResultVerificationStrategy
 
     @Override
     public VerificationResult evaluateScanResult(AuthResult firstPositiveAuthResult, AuthResult secondPositiveAuthResult, AuthResult scanAuthResult) {
-        var normalDiff = diff(firstPositiveAuthResult, secondPositiveAuthResult);
-        var scanDiff = diff(firstPositiveAuthResult, scanAuthResult);
+        var firstUnits = split(firstPositiveAuthResult);
+        var normalPatch = DiffUtils.diff(firstUnits, split(secondPositiveAuthResult));
+        var scanPatch = DiffUtils.diff(firstUnits, split(scanAuthResult));
+
+        var normalChanged = changedUnits(normalPatch);
+        var scanChanged = changedUnits(scanPatch);
 
         // Same diff size alone isn't proof: it could remove totally different content
         // by coincidence. Only trust it if every removed unit is one we already saw
         // vary between the two known-good authentications.
-        var unknownRemoved = new HashSet<>(removedTokens(scanDiff));
-        unknownRemoved.removeAll(removedTokens(normalDiff));
+        var unknownRemoved = new HashSet<>(removedTokens(scanChanged));
+        unknownRemoved.removeAll(removedTokens(normalChanged));
         boolean onlyKnownRemoved = unknownRemoved.isEmpty();
 
         ScanResultStatus status = ScanResultStatus.OK;
-        if(scanDiff.size() <= normalDiff.size() && onlyKnownRemoved){
+        if(scanChanged.size() <= normalChanged.size() && onlyKnownRemoved){
             status = ScanResultStatus.VULNERABLE;
         }
 
-        var summary = "Normal diff of " + getUnitName() + "s between successful authentications: " + normalDiff.size()
-                + " and " + getUnitName() + " distance of scan: " + scanDiff.size()
+        var summary = "Normal diff of " + getUnitName() + "s between successful authentications: " + normalChanged.size()
+                + " and " + getUnitName() + " distance of scan: " + scanChanged.size()
                 + (onlyKnownRemoved
                     ? "; only known " + getUnitName() + "s removed"
-                    : "; unexpected " + getUnitName() + "s removed: " + String.join("\n", unknownRemoved));
+                    : "; unexpected removed " + getUnitName() + "s: " + String.join("\n", unknownRemoved));
 
         var evidences = List.of(
-            new Evidence(EvidenceStatus.INFO, getEvidenceType() + ".Expected", String.join("\n", normalDiff)),
-            new Evidence(EvidenceStatus.INFO, getEvidenceType() + ".Current", String.join("\n", scanDiff)),
+            new Evidence(EvidenceStatus.INFO, getEvidenceType() + ".Expected", formatDiff(firstUnits, normalPatch)),
+            new Evidence(EvidenceStatus.INFO, getEvidenceType() + ".Current", formatDiff(firstUnits, scanPatch)),
             new Evidence(EvidenceStatus.from(status), getEvidenceType() + ".Summary", summary)
         );
 
         return new VerificationResult(status, evidences);
     }
 
-    private List<String> diff(AuthResult authResultA, AuthResult authResultB){
-        var patch = DiffUtils.diff(split(authResultA), split(authResultB));
-
+    private List<String> changedUnits(Patch<String> patch){
         var changed = new ArrayList<String>();
         for (var delta : patch.getDeltas()) {
             delta.getSource().getLines().forEach(unit -> changed.add("-" + unit));
