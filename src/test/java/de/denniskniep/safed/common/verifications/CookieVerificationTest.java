@@ -41,7 +41,7 @@ class CookieVerificationTest {
         assertThat(infos).hasSize(1);
         assertThat(infos.getFirst().status()).isEqualTo(EvidenceStatus.INFO);
         assertThat(infos.getFirst().type()).isEqualTo("Cookies");
-        assertThat(infos.getFirst().value().split(", ")).containsExactlyInAnyOrder("sessionId:abc", "csrf:xyz");
+        assertThat(infos.getFirst().value().split(";")).containsExactlyInAnyOrder("sessionId=abc", "csrf=xyz");
     }
 
     @Test
@@ -188,8 +188,8 @@ class CookieVerificationTest {
 
         VerificationResult result = cookieVerification.evaluateScanResult(first, second, scan);
 
-        assertThat(evidenceValue(result, "Cookies.Expected")).isEqualTo("a:1, b:2");
-        assertThat(evidenceValue(result, "Cookies.Current")).isEqualTo("a:1, b:2");
+        assertThat(evidenceValue(result, "Cookies.Expected")).isEqualTo("a=1;b=2");
+        assertThat(evidenceValue(result, "Cookies.Current")).isEqualTo("a=1;b=2");
         var diffEvidence = result.getEvidences().stream()
                 .filter(e -> e.type().equals("Cookies.Diff"))
                 .findFirst()

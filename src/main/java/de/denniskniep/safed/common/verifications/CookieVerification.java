@@ -35,8 +35,8 @@ public class CookieVerification extends PartsVerification {
       return cookies
               .entrySet()
               .stream()
-              .map(kv -> kv.getKey() + ":" +  kv.getValue())
+              .map(kv -> kv.getKey() + "=" +  kv.getValue())
               .sorted()
-              .collect(Collectors.joining(", "));
+              .collect(Collectors.joining(";"));
     }
 }
