@@ -10,6 +10,7 @@ import org.openqa.selenium.WebDriver;
         @JsonSubTypes.Type(value = ClickElementById.class, name = "ClickElementById"),
         @JsonSubTypes.Type(value = ClickElementByText.class, name = "ClickElementByText"),
         @JsonSubTypes.Type(value = ClickElementByCssSelector.class, name = "ClickElementByCssSelector"),
+        @JsonSubTypes.Type(value = ClickElementByXPath.class, name = "ClickElementByXPath"),
         @JsonSubTypes.Type(value = InputTextByName.class, name = "InputTextByName"),
         @JsonSubTypes.Type(value = InputTextById.class, name = "InputTextById"),
         @JsonSubTypes.Type(value = InputTextByCssSelector.class, name = "InputTextByCssSelector")
