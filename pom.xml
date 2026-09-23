@@ -71,13 +71,6 @@
 
 		<dependency>
 			<groupId>org.keycloak</groupId>
-			<artifactId>keycloak-saml-core</artifactId>
-			<version>${keycloak.version}</version>
-			<scope>provided</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.keycloak</groupId>
 			<artifactId>keycloak-core</artifactId>
 			<version>${keycloak.version}</version>
 		</dependency>
@@ -100,6 +93,17 @@
 			<groupId>org.keycloak</groupId>
 			<artifactId>keycloak-services</artifactId>
 			<version>${keycloak.version}</version>
+			<!-- Avoid warning for 'Class path contains multiple SLF4J providers.' -->
+			<exclusions>
+				<exclusion>
+					<groupId>org.jboss.logmanager</groupId>
+					<artifactId>jboss-logmanager</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.jboss.slf4j</groupId>
+					<artifactId>slf4j-jboss-logmanager</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
