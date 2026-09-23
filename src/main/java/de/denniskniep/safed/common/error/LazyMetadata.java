@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class LazyMetadata {
 
@@ -23,12 +24,12 @@ public class LazyMetadata {
         this.lazyValues = values;
     }
 
-    public static List<LazyMetadata> list(LazyMetadata...entries){
-        return Arrays.stream(entries).toList();
+    public static ArrayList<LazyMetadata> list(LazyMetadata...entries){
+        return Arrays.stream(entries).collect(Collectors.toCollection(ArrayList::new));
     }
 
-    public static List<LazyMetadata> list(List<LazyMetadata> existing, LazyMetadata...entries){
-        List<LazyMetadata> copy = new ArrayList<>(existing);
+    public static ArrayList<LazyMetadata> list(List<LazyMetadata> existing, LazyMetadata...entries){
+        ArrayList<LazyMetadata> copy = new ArrayList<>(existing);
         copy.addAll(List.of(entries));
         return copy;
     }
