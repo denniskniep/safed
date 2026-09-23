@@ -14,8 +14,13 @@ public class UrlUtils {
         return StringUtils.startsWithIgnoreCase(sanitize(url), sanitize(urlPrefix));
     }
 
-    public static String sanitize(String url) {
-        URI uri = URI.create(url);
+    private static String sanitize(String url) {
+        URI uri;
+        try {
+            uri = URI.create(url);
+        } catch (IllegalArgumentException e) {
+            return url;
+        }
         var scheme = uri.getScheme();
         var host = uri.getHost();
         var port = uri.getPort();
