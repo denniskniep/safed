@@ -1,7 +1,7 @@
 package de.denniskniep.safed.common.verifications;
 
 import de.denniskniep.safed.saml.SamlAuthResult;
-import de.denniskniep.safed.saml.auth.browser.SamlInitializationResult;
+import de.denniskniep.safed.saml.auth.browser.SamlRequestData;
 import de.denniskniep.safed.saml.auth.server.SamlResponseResult;
 import org.junit.jupiter.api.Test;
 
@@ -55,12 +55,12 @@ class SamlProtocolInfoTest {
     }
 
     private List<Evidence> extractInfosForRawSamlResponse(String samlResponseAsBase64) {
-        SamlInitializationResult initializationResult = new SamlInitializationResult();
-        initializationResult.setSamlRequestAsBase64("request");
+        SamlRequestData samlRequestData = new SamlRequestData();
+        samlRequestData.setRaw("request");
 
         SamlResponseResult responseResult = new SamlResponseResult(null, samlResponseAsBase64, "relayState");
 
-        SamlAuthResult authResult = new SamlAuthResult(null, null, initializationResult, null, responseResult, null, null);
+        SamlAuthResult authResult = new SamlAuthResult(null, null, samlRequestData, responseResult, null, null);
 
         return samlProtocolInfo.extractInfos(authResult);
     }

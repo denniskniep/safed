@@ -37,9 +37,8 @@ public class SamlAssessment extends Assessment<SamlScanner, SamlAppConfig> {
         var browserConfig = config.getBrowserConfig();
 
         try (SamlBrowserAuthenticationFlow samlAuthentication = new SamlBrowserAuthenticationFlow(config.getIssuerEndpointUrl(), browserConfig)){
-            SamlInitializationResult samlInitializationResult = samlAuthentication.initialize(config.getSignInUrl(), config.getSignInSeleniumActions());
+            SamlRequestData samlRequestData = samlAuthentication.initialize(config.getSignInUrl(), config.getSignInSeleniumActions());
 
-            SamlRequestData samlRequestData = samlInitializationResult.asSamlRequestData();
             samlRequestData = scanner.getSamlRequestData(samlRequestData);
 
             SamlResponseBuilder samlResponseBuilder = new SamlResponseBuilder(
@@ -50,7 +49,7 @@ public class SamlAssessment extends Assessment<SamlScanner, SamlAppConfig> {
             var samlResponseResult = samlResponseBuilder.create(config, samlRequestData, samlAuthData);
 
             Page responsePage = samlAuthentication.answerWith(samlResponseResult.getHttpRequest());
-            return new SamlAuthResult(config, samlAuthData, samlInitializationResult, samlRequestData, samlResponseResult, samlAuthentication.getAuthenticationLog(), responsePage);
+            return new SamlAuthResult(config, samlAuthData, samlRequestData, samlResponseResult, samlAuthentication.getAuthenticationLog(), responsePage);
         }
     }
 }

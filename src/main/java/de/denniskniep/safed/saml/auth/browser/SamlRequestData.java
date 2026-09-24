@@ -3,9 +3,18 @@ package de.denniskniep.safed.saml.auth.browser;
 import java.net.URI;
 
 public class SamlRequestData {
+    private String raw;
     private String id;
     private String relayState;
     private URI redirectUri;
+
+    public String getRaw() {
+        return raw;
+    }
+
+    public void setRaw(String raw) {
+        this.raw = raw;
+    }
 
     public String getId() {
         return id;

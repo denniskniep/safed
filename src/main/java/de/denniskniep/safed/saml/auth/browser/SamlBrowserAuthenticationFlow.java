@@ -12,7 +12,7 @@ import org.keycloak.saml.processing.core.saml.v2.common.SAMLDocumentHolder;
 import java.net.URL;
 import java.util.Map;
 
-public class SamlBrowserAuthenticationFlow extends BrowserAuthenticationFlow<SamlInitializationResult> {
+public class SamlBrowserAuthenticationFlow extends BrowserAuthenticationFlow<SamlRequestData> {
 
     private final URL idpSamlEndpointUrl;
 
@@ -27,7 +27,7 @@ public class SamlBrowserAuthenticationFlow extends BrowserAuthenticationFlow<Sam
     }
 
     @Override
-    protected SamlInitializationResult parse(RequestDataWithBody request) {
+    protected SamlRequestData parse(RequestDataWithBody request) {
         Map<String, String> queryParams = request.getQueryParams();
         var samlInitializationResult = new SamlInitializationResult();
         var samlRequestAsBase64 = queryParams.get("SAMLRequest");
@@ -61,6 +61,6 @@ public class SamlBrowserAuthenticationFlow extends BrowserAuthenticationFlow<Sam
         }
 
         samlInitializationResult.setSamlRequest(authnRequest);
-        return samlInitializationResult;
+        return samlInitializationResult.asSamlRequestData();
     }
 }

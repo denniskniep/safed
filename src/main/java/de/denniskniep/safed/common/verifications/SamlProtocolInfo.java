@@ -24,7 +24,7 @@ public class SamlProtocolInfo implements ScanResultVerificationStrategy {
     public List<Evidence> extractInfos(AuthResult scanAuthResult) {
         if(scanAuthResult instanceof SamlAuthResult samlAuthResult){
             return List.of(
-                new Evidence(EvidenceStatus.INFO, "SamlRequest", samlAuthResult.getSamlInitializationResult().getSamlRequestAsBase64()),
+                new Evidence(EvidenceStatus.INFO, "SamlRequest", samlAuthResult.getSamlRequestData().getRaw()),
                 new Evidence(EvidenceStatus.INFO, "SamlResponse", redactSignature(samlAuthResult.getSamlResponseResult().getSamlResponse()))
             );
         }

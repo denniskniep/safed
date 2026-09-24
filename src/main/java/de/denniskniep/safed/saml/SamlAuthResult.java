@@ -13,17 +13,15 @@ public class SamlAuthResult implements AuthResult {
 
     SamlAppConfig clientConfig;
     SamlAuthData samlAuthData;
-    private final SamlInitializationResult samlInitializationResult;
     SamlRequestData samlRequestData;
 
     SamlResponseResult samlResponseResult;
     AuthenticationLog authenticationLog;
     Page responsePage;
 
-    public SamlAuthResult(SamlAppConfig clientConfig, SamlAuthData samlAuthData, SamlInitializationResult samlInitializationResult, SamlRequestData samlRequestData, SamlResponseResult samlResponseResult, AuthenticationLog authenticationLog, Page responsePage) {
+    public SamlAuthResult(SamlAppConfig clientConfig, SamlAuthData samlAuthData, SamlRequestData samlRequestData, SamlResponseResult samlResponseResult, AuthenticationLog authenticationLog, Page responsePage) {
         this.clientConfig = clientConfig;
         this.samlAuthData = samlAuthData;
-        this.samlInitializationResult = samlInitializationResult;
         this.samlRequestData = samlRequestData;
         this.authenticationLog = authenticationLog;
         this.samlResponseResult = samlResponseResult;
@@ -54,7 +52,4 @@ public class SamlAuthResult implements AuthResult {
         return samlResponseResult;
     }
 
-    public SamlInitializationResult getSamlInitializationResult() {
-        return samlInitializationResult;
-    }
 }
