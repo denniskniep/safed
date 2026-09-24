@@ -85,4 +85,16 @@ public class OidcAuthenticationRequest {
     public boolean hasResponseType(String responseType) {
         return Arrays.stream(getResponseTypes()).anyMatch(r -> StringUtils.equalsIgnoreCase(r,responseType));
     }
+
+    public String asRequestUrl() {
+        return "OidcAuthenticationRequest{" +
+                "responseType='" + responseType + '\'' +
+                ", responseMode='" + responseMode + '\'' +
+                ", clientId='" + clientId + '\'' +
+                ", scopes='" + scopes + '\'' +
+                ", state='" + state + '\'' +
+                ", redirectUri='" + redirectUri + '\'' +
+                ", nonce='" + nonce + '\'' +
+                '}';
+    }
 }

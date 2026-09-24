@@ -36,7 +36,7 @@ public class OidcAssessment extends Assessment<OidcScanner, OidcAppConfig> {
             Page responsePage = oidcAuthentication.answerWith(oidcFlow.buildWebRequest());
             oidcService.unregisterBackChannelResponse(oidcFlow);
 
-            return new OidcAuthResult(config, oidcRequestData, oidcAuthentication.getAuthenticationLog(), responsePage);
+            return new OidcAuthResult(config, oidcRequestData, oidcFlow.buildTokenResponse(), oidcAuthentication.getAuthenticationLog(), responsePage);
         }
     }
 }
