@@ -13,7 +13,8 @@ public class CapturedRequestUrlInfo implements ScanResultVerificationStrategy {
     @Override
     public List<Evidence> extractInfos(AuthResult scanAuthResult) {
         return List.of(
-            new Evidence(EvidenceStatus.INFO, "CapturedRequestUrl", scanAuthResult.getResponsePage().capturedHttpRequest().getUrl())
+            new Evidence(EvidenceStatus.INFO, "IdpInit.CapturedRequestUrl", scanAuthResult.getRequestPage().isPresent() ? scanAuthResult.getRequestPage().get().capturedHttpRequest().getUrl() : ""),
+            new Evidence(EvidenceStatus.INFO, "IdpResponse.CapturedRequestUrl", scanAuthResult.getResponsePage().capturedHttpRequest().getUrl())
         );
     }
 

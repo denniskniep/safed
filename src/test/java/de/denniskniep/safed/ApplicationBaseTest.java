@@ -41,6 +41,7 @@ public abstract class ApplicationBaseTest implements AutoCloseable {
     protected static final Logger LOG = LoggerFactory.getLogger(ApplicationBaseTest.class);
 
     protected static final ExampleAppData EXAMPLE_SAML = new ExampleAppData("examplesaml001", 8081, "http", "example-saml-001");
+    protected static final ExampleAppData EXAMPLE_SAML_IDP_INITIATED = new ExampleAppData("examplesaml001", 8081, "http", "example-saml-001-idp-initiated");
     protected static final ExampleAppData EXAMPLE_OIDC_CODE_FLOW = new ExampleAppData("exampleoidc002codeflow", 8082, "http","example-oidc-002-codeflow");
     protected static final ExampleAppData EXAMPLE_OIDC_HYBRID_FLOW = new ExampleAppData("exampleoidc002hybridflow", 8083, "http","example-oidc-002-hybridflow");
     protected static final ExampleAppData EXAMPLE_OIDC_IMPLICIT_FLOW = new ExampleAppData("exampleoidc002implicitflow", 8084, "http","example-oidc-002-implicitflow");
@@ -53,6 +54,7 @@ public abstract class ApplicationBaseTest implements AutoCloseable {
     protected final ComposeContainer ENVIRONMENT;
 
     protected final ExampleApp exampleSamlApp;
+    protected final ExampleApp exampleSamlIdpInitiatedApp;
     protected final ExampleApp exampleMtlsApp;
     protected final ExampleApp exampleOidcCodeFlowApp;
     protected final ExampleApp exampleOidcHybridFlowApp;
@@ -120,12 +122,13 @@ public abstract class ApplicationBaseTest implements AutoCloseable {
         ENVIRONMENT.start();
 
         exampleSamlApp = ExampleApp.from(ENVIRONMENT, EXAMPLE_SAML);
+        exampleSamlIdpInitiatedApp = ExampleApp.from(ENVIRONMENT, EXAMPLE_SAML_IDP_INITIATED);
         exampleMtlsApp = ExampleApp.from(ENVIRONMENT, EXAMPLE_MTLS);
         exampleOidcCodeFlowApp = ExampleApp.from(ENVIRONMENT, EXAMPLE_OIDC_CODE_FLOW);
         exampleOidcHybridFlowApp = ExampleApp.from(ENVIRONMENT, EXAMPLE_OIDC_HYBRID_FLOW);
         exampleOidcImplicitFlowApp = ExampleApp.from(ENVIRONMENT, EXAMPLE_OIDC_IMPLICIT_FLOW);
         exampleOidcFragmentFlowApp = ExampleApp.from(ENVIRONMENT, EXAMPLE_OIDC_FRAGMENT_FLOW);
-        exampleApps = List.of(exampleSamlApp, exampleMtlsApp, exampleOidcCodeFlowApp, exampleOidcHybridFlowApp, exampleOidcImplicitFlowApp, exampleOidcFragmentFlowApp);
+        exampleApps = List.of(exampleSamlApp, exampleSamlIdpInitiatedApp, exampleMtlsApp, exampleOidcCodeFlowApp, exampleOidcHybridFlowApp, exampleOidcImplicitFlowApp, exampleOidcFragmentFlowApp);
     }
 
     public Report runAssessment(String clientId, List<String> triggeredScanners){

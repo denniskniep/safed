@@ -1,6 +1,7 @@
 package de.denniskniep.safed.oidc;
 
 import de.denniskniep.safed.common.assessment.Assessment;
+import de.denniskniep.safed.common.auth.browser.InitializationResult;
 import de.denniskniep.safed.common.scans.AuthResult;
 import de.denniskniep.safed.oidc.auth.browser.OidcBrowserAuthenticationFlow;
 import de.denniskniep.safed.oidc.auth.browser.OidcAuthenticationRequest;
@@ -11,6 +12,7 @@ import de.denniskniep.safed.oidc.scans.FailOidcScanner;
 import de.denniskniep.safed.oidc.scans.OidcBaseScanner;
 import de.denniskniep.safed.oidc.scans.OidcScanner;
 import de.denniskniep.safed.common.scans.Page;
+import de.denniskniep.safed.saml.auth.browser.SamlRequestData;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -27,8 +29,8 @@ public class OidcAssessment extends Assessment<OidcScanner, OidcAppConfig> {
     protected AuthResult scan(OidcAppConfig config, OidcScanner scanner, boolean isBaselineScan) {
         var browserConfig = config.getBrowserConfig();
         try (OidcBrowserAuthenticationFlow oidcAuthentication = new OidcBrowserAuthenticationFlow(config.getIssuerEndpointUrl(), browserConfig)){
-            OidcAuthenticationRequest oidcRequestData = oidcAuthentication.initialize(config.getSignInUrl(), config.getSignInSeleniumActions());
-            oidcRequestData = scanner.getOidcRequestData(oidcRequestData.deepCopy());
+            InitializationResult<OidcAuthenticationRequest> initResult = oidcAuthentication.initialize(config.getSignInUrl(), config.getSignInSeleniumActions());
+            var oidcRequestData = scanner.getOidcRequestData(initResult.result().deepCopy());
 
             var oidcFlow = new OidcFlow(config, oidcRequestData, scanner.getTokenInterceptors(), scanner.getBackchannelInterceptor());
 
@@ -36,7 +38,7 @@ public class OidcAssessment extends Assessment<OidcScanner, OidcAppConfig> {
             Page responsePage = oidcAuthentication.answerWith(oidcFlow.buildWebRequest());
             oidcService.unregisterBackChannelResponse(oidcFlow);
 
-            return new OidcAuthResult(config, oidcRequestData, oidcFlow.buildTokenResponse(), oidcAuthentication.getAuthenticationLog(), responsePage);
+            return new OidcAuthResult(config, oidcRequestData, oidcFlow.buildTokenResponse(), oidcAuthentication.getAuthenticationLog(), initResult.page(), responsePage);
         }
     }
 }

@@ -25,7 +25,7 @@ public abstract class BrowserAuthenticationFlow<T> implements AutoCloseable  {
         this.authenticationLog = new AuthenticationLog();
     }
 
-    public T initialize(URL relyingPartySignInUrl, List<SeleniumAction> signInSeleniumActions) {
+    public InitializationResult<T> initialize(URL relyingPartySignInUrl, List<SeleniumAction> signInSeleniumActions) {
         LOG.debug("Start init");
         var httpRequest = new HttpRequest("GET", relyingPartySignInUrl.toString());
         var page = browser.execute(httpRequest, this::isRequestToIdp, signInSeleniumActions);
@@ -33,7 +33,7 @@ public abstract class BrowserAuthenticationFlow<T> implements AutoCloseable  {
         authenticationLog.clearTrafficAfter(page.capturedHttpRequest().getRequestId());
         var parsed = parse(page.capturedHttpRequest());
         LOG.debug("Finished init");
-        return parsed;
+        return new InitializationResult<>(parsed, page);
     }
 
     protected abstract boolean isRequestToIdp(RequestDataWithBody request);
@@ -65,3 +65,4 @@ public abstract class BrowserAuthenticationFlow<T> implements AutoCloseable  {
         }
     }
 }
+

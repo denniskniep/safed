@@ -7,6 +7,8 @@ import org.keycloak.saml.common.util.XmlKeyInfoKeyNameTransformer;
 
 public class SamlAppConfig extends FederationAppConfig {
 
+    private boolean idpInitiatedSso = false;
+
     private int assertionLifespanInMinutes = 1;
 
     private int sessionLifespanInMinutes = 120;
@@ -30,6 +32,14 @@ public class SamlAppConfig extends FederationAppConfig {
     private boolean signAssertion = false;
 
     private boolean encryptAssertion = false;
+
+    public boolean isIdpInitiatedSso() {
+        return idpInitiatedSso;
+    }
+
+    public void setIdpInitiatedSso(boolean idpInitiatedSso) {
+        this.idpInitiatedSso = idpInitiatedSso;
+    }
 
     public boolean isSignDocument() {
         return signDocument;
