@@ -2,6 +2,7 @@ package de.denniskniep.safed.saml;
 
 import de.denniskniep.safed.common.auth.browser.AuthenticationLog;
 import de.denniskniep.safed.common.scans.AuthResult;
+import de.denniskniep.safed.saml.auth.browser.SamlInitializationResult;
 import de.denniskniep.safed.saml.auth.server.SamlResponseResult;
 import de.denniskniep.safed.saml.config.SamlAppConfig;
 import de.denniskniep.safed.saml.config.SamlAuthData;

@@ -392,16 +392,14 @@ public class Browser implements AutoCloseable {
 
 
             var capturedRequest = authLog.find(t -> captureRequestCondition.test(t.getRequest()));
+            errorMetadataCollectors.add(LazyMetadata.ofOne(LazyMetadata.CAPTURED_REQUEST_URL, () -> capturedRequest.isPresent() ? capturedRequest.get().getRequest().getUrl() : "" ));
             if(capturedRequest.isEmpty()) {
                 throw new RuntimeExceptionWithMetadata("No captured request found!", errorMetadataCollectors);
             }
 
             var capturedResponse = authLog.findStartingAt(capturedRequest.get().getRequest().getRequestId(), t -> noRedirect(t) && isDocument(t));
             if(capturedResponse.isEmpty()) {
-                throw new RuntimeExceptionWithMetadata("Can not find first non redirect Response after captured request!", LazyMetadata.list(
-                    errorMetadataCollectors,
-                    LazyMetadata.ofOne(LazyMetadata.CAPTURED_REQUEST_URL, () -> capturedRequest.get().getRequest().getUrl())
-                ));
+                throw new RuntimeExceptionWithMetadata("Can not find first non redirect Response after captured request!", errorMetadataCollectors);
             }
 
             return new Page(driver.getCurrentUrl(), driver.getTitle(), driver.getPageSource(), visibleText.toString(), base64Screenshot.toString(), cookies, authLog, capturedRequest.get().getRequest(), capturedResponse.get().getResponse());

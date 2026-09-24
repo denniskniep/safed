@@ -166,7 +166,7 @@ public class OidcFlow implements FrontChannelRequest, BackchannelHandler {
         return Optional.empty();
     }
 
-    private TokenResponse buildTokenResponse(){
+    public TokenResponse buildTokenResponse(){
         var tokenResponse = new TokenResponse();
         tokenResponse.setIdToken(idToken.base64Encoded());
         tokenResponse.setAccessToken(accessToken.base64Encoded());
