@@ -16,10 +16,21 @@ public class OidcProtocolInfo implements ScanResultVerificationStrategy {
         if(scanAuthResult instanceof OidcAuthResult oidcAuthResult){
             return List.of(
                 new Evidence(EvidenceStatus.INFO, "OidcRequest", oidcAuthResult.getOidcRequestData().asRequestUrl()),
-                new Evidence(EvidenceStatus.INFO, "OidcResponse.IdToken", oidcAuthResult.getTokenResponse().getIdToken())
+                new Evidence(EvidenceStatus.INFO, "OidcResponse.IdToken", redactSignature(oidcAuthResult.getTokenResponse().getIdToken()))
             );
         }
         return List.of();
+    }
+
+    private static String redactSignature(String idToken) {
+        if(idToken == null){
+            return null;
+        }
+        String[] parts = idToken.split("\\.", -1);
+        if(parts.length != 3 || parts[2].isEmpty()){
+            return idToken;
+        }
+        return parts[0] + "." + parts[1] + ".redacted";
     }
 
     @Override
