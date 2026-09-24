@@ -14,13 +14,21 @@ public class UrlUtils {
         return StringUtils.startsWithIgnoreCase(sanitize(url), sanitize(urlPrefix));
     }
 
-    private static String sanitize(String url) {
-        URI uri;
-        try {
-            uri = URI.create(url);
-        } catch (IllegalArgumentException e) {
+    private static String prepareUrl(String url) {
+        if (url == null) {
+            throw new IllegalArgumentException("URL cannot be null");
+        }
+
+        if (url.contains("|")) {
+            return url.replaceAll("\\|", "%7C");
+        } else {
             return url;
         }
+    }
+
+    private static String sanitize(String url) {
+        final URI uri = URI.create(prepareUrl(url));
+
         var scheme = uri.getScheme();
         var host = uri.getHost();
         var port = uri.getPort();
@@ -31,11 +39,11 @@ public class UrlUtils {
 
         if (port == 443 && StringUtils.equalsIgnoreCase("https", uri.getScheme())) {
             port = -1;
-        }else if (port == 80 && StringUtils.equalsIgnoreCase("http", uri.getScheme())) {
+        } else if (port == 80 && StringUtils.equalsIgnoreCase("http", uri.getScheme())) {
             port = -1;
         }
 
-        if (path != null){
+        if (path != null) {
             path = StringUtils.removeEnd(path, "/");
         }
 

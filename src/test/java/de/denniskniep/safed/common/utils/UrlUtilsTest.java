@@ -1,6 +1,5 @@
-package de.denniskniep.safed.common;
+package de.denniskniep.safed.common.utils;
 
-import de.denniskniep.safed.common.utils.UrlUtils;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
