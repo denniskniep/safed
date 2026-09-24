@@ -3,6 +3,7 @@ package de.denniskniep.safed.oidc.auth.browser;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import de.denniskniep.safed.common.utils.Serialization;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Arrays;
 import java.util.List;
@@ -87,14 +88,20 @@ public class OidcAuthenticationRequest {
     }
 
     public String asRequestUrl() {
-        return "OidcAuthenticationRequest{" +
-                "responseType='" + responseType + '\'' +
-                ", responseMode='" + responseMode + '\'' +
-                ", clientId='" + clientId + '\'' +
-                ", scopes='" + scopes + '\'' +
-                ", state='" + state + '\'' +
-                ", redirectUri='" + redirectUri + '\'' +
-                ", nonce='" + nonce + '\'' +
-                '}';
+        var builder = UriComponentsBuilder.newInstance();
+        addQueryParamIfPresent(builder, "response_type", responseType);
+        addQueryParamIfPresent(builder, "response_mode", responseMode);
+        addQueryParamIfPresent(builder, "client_id", clientId);
+        addQueryParamIfPresent(builder, "scope", scopes);
+        addQueryParamIfPresent(builder, "state", state);
+        addQueryParamIfPresent(builder, "redirect_uri", redirectUri);
+        addQueryParamIfPresent(builder, "nonce", nonce);
+        return builder.build().encode().toUriString();
+    }
+
+    private static void addQueryParamIfPresent(UriComponentsBuilder builder, String name, String value) {
+        if (value != null) {
+            builder.queryParam(name, value);
+        }
     }
 }
