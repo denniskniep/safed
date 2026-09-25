@@ -60,7 +60,7 @@ class SamlProtocolInfoTest {
 
         SamlResponseResult responseResult = new SamlResponseResult(null, samlResponseAsBase64, "relayState");
 
-        SamlAuthResult authResult = new SamlAuthResult(null, null, samlRequestData, responseResult, null, null);
+        SamlAuthResult authResult = new SamlAuthResult(null, null, samlRequestData, responseResult, null, null, null);
 
         return samlProtocolInfo.extractInfos(authResult);
     }

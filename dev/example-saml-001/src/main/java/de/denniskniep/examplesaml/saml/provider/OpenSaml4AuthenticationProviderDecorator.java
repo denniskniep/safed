@@ -45,7 +45,8 @@ public class OpenSaml4AuthenticationProviderDecorator {
                         .map(ServletRequestAttributes::getRequest)
                         .orElseThrow();
 
-                var originalRelayState = responseToken.getToken().getAuthenticationRequest().getRelayState();
+                var authenticationRequest = responseToken.getToken().getAuthenticationRequest();
+                var originalRelayState = authenticationRequest == null ? null : authenticationRequest.getRelayState();
                 var currentRelayState = currentRequest.getParameter(Saml2ParameterNames.RELAY_STATE);
                 if (originalRelayState != null && !originalRelayState.equals(currentRelayState)) {
                     result = result.concat(new Saml2Error("invalid_relay_state", "RelayState in response: " + (currentRelayState == null ? "<null>" : currentRelayState) + " differs from sent RelayState: "+ originalRelayState));

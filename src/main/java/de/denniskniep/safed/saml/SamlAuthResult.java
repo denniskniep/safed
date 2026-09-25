@@ -9,6 +9,8 @@ import de.denniskniep.safed.saml.config.SamlAuthData;
 import de.denniskniep.safed.saml.auth.browser.SamlRequestData;
 import de.denniskniep.safed.common.scans.Page;
 
+import java.util.Optional;
+
 public class SamlAuthResult implements AuthResult {
 
     SamlAppConfig clientConfig;
@@ -17,14 +19,16 @@ public class SamlAuthResult implements AuthResult {
 
     SamlResponseResult samlResponseResult;
     AuthenticationLog authenticationLog;
+    Page requestPage;
     Page responsePage;
 
-    public SamlAuthResult(SamlAppConfig clientConfig, SamlAuthData samlAuthData, SamlRequestData samlRequestData, SamlResponseResult samlResponseResult, AuthenticationLog authenticationLog, Page responsePage) {
+    public SamlAuthResult(SamlAppConfig clientConfig, SamlAuthData samlAuthData, SamlRequestData samlRequestData, SamlResponseResult samlResponseResult, AuthenticationLog authenticationLog, Page requestPage, Page responsePage) {
         this.clientConfig = clientConfig;
         this.samlAuthData = samlAuthData;
         this.samlRequestData = samlRequestData;
         this.authenticationLog = authenticationLog;
         this.samlResponseResult = samlResponseResult;
+        this.requestPage = requestPage;
         this.responsePage = responsePage;
     }
 
@@ -46,6 +50,11 @@ public class SamlAuthResult implements AuthResult {
 
     public Page getResponsePage() {
         return responsePage;
+    }
+
+    @Override
+    public Optional<Page> getRequestPage() {
+        return Optional.of(requestPage);
     }
 
     public SamlResponseResult getSamlResponseResult() {

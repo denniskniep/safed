@@ -68,7 +68,7 @@ class OidcProtocolInfoTest {
         TokenResponse tokenResponse = new TokenResponse();
         tokenResponse.setIdToken(idToken);
 
-        OidcAuthResult authResult = new OidcAuthResult(null, requestData, tokenResponse, null, null);
+        OidcAuthResult authResult = new OidcAuthResult(null, requestData, tokenResponse, null, null, null);
 
         return oidcProtocolInfo.extractInfos(authResult);
     }

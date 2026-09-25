@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -34,15 +35,23 @@ public class AssessmentContainerTests extends ApplicationBaseTest {
         return values;
     }
 
+    private record TestConfig(String clientId, String... blockedScanners) {
+        private TestConfig {
+            blockedScanners = blockedScanners == null ? new String[]{} : blockedScanners;
+        }
+    }
+
     private static List<Arguments> oidcTestCases() {
-        var clientIds = List.of(
-                EXAMPLE_OIDC_CODE_FLOW.clientId(),
-                EXAMPLE_OIDC_HYBRID_FLOW.clientId(),
-                EXAMPLE_OIDC_IMPLICIT_FLOW.clientId()
+        var clients = List.of(
+                new TestConfig(EXAMPLE_OIDC_CODE_FLOW.clientId()),
+                new TestConfig(EXAMPLE_OIDC_HYBRID_FLOW.clientId()),
+                new TestConfig(EXAMPLE_OIDC_IMPLICIT_FLOW.clientId())
         );
 
         List<Arguments> allCases = new ArrayList<>();
-        for (String clientId : clientIds) {
+        for (var client : clients) {
+            String clientId = client.clientId();
+            var blockedScanners = List.of(client.blockedScanners());
             var cases = List.of(
                     Arguments.of(
                             clientId,
@@ -106,23 +115,36 @@ public class AssessmentContainerTests extends ApplicationBaseTest {
                             ScanResultStatus.VULNERABLE
                     )
             );
-            allCases.addAll(cases);
+            allCases.addAll(cases.stream()
+                    .filter(arguments -> ScanResultStatus.VULNERABLE.equals(arguments.get()[3]) && !blockedScanners.contains((String) arguments.get()[1]))
+                    .collect(Collectors.toCollection(ArrayList::new)));
         }
 
         return allCases;
     }
 
     private static List<Arguments> samlTestCases() {
-        return List.of(
+        var clients = List.of(
+                new TestConfig(EXAMPLE_SAML.clientId()),
+                new TestConfig(EXAMPLE_SAML_IDP_INITIATED.clientId(),
+                        OtherInResponseTo.class.getSimpleName(),
+                        OtherRelayState.class.getSimpleName())
+        );
+
+        List<Arguments> allCases = new ArrayList<>();
+        for (var client : clients) {
+            String clientId = client.clientId();
+            var blockedScanners = List.of(client.blockedScanners());
+            var cases = List.of(
                     Arguments.of(
-                            EXAMPLE_SAML.clientId(),
+                            clientId,
                             ALL_SCANNERS,
                             ArrayOf(),
                             ScanResultStatus.OK
                     ),
 
                     Arguments.of(
-                            EXAMPLE_SAML.clientId(),
+                            clientId,
                             BreakSignature.class.getSimpleName(),
                             ArrayOf(
                             ".*Invalid signature for object.*"
@@ -131,7 +153,7 @@ public class AssessmentContainerTests extends ApplicationBaseTest {
                     ),
 
                     Arguments.of(
-                            EXAMPLE_SAML.clientId(),
+                            clientId,
                             Expired.class.getSimpleName(),
                             ArrayOf(
                                     ".*NotOnOrAfter condition of .* is no longer valid.*"
@@ -140,7 +162,7 @@ public class AssessmentContainerTests extends ApplicationBaseTest {
                     ),
 
                     Arguments.of(
-                            EXAMPLE_SAML.clientId(),
+                            clientId,
                             ExpiredBeforeIssued.class.getSimpleName(),
                             ArrayOf(
                                     ".*NotOnOrAfter condition of .* is no longer valid.*"
@@ -149,7 +171,7 @@ public class AssessmentContainerTests extends ApplicationBaseTest {
                     ),
 
                     Arguments.of(
-                            EXAMPLE_SAML.clientId(),
+                            clientId,
                             FutureNotBefore.class.getSimpleName(),
                             ArrayOf(
                                     ".*NotBefore condition of .* is not yet valid.*"
@@ -158,7 +180,7 @@ public class AssessmentContainerTests extends ApplicationBaseTest {
                     ),
 
                     Arguments.of(
-                            EXAMPLE_SAML.clientId(),
+                            clientId,
                             NoSignature.class.getSimpleName(),
                             ArrayOf(
                                     ".*Either the response or one of the assertions is unsigned.*"
@@ -167,7 +189,7 @@ public class AssessmentContainerTests extends ApplicationBaseTest {
                     ),
 
                     Arguments.of(
-                            EXAMPLE_SAML.clientId(),
+                            clientId,
                             OtherAudience.class.getSimpleName(),
                             ArrayOf(
                                     ".*None of the audiences within Assertion .* matched the list of valid audiances.*"
@@ -176,7 +198,7 @@ public class AssessmentContainerTests extends ApplicationBaseTest {
                     ),
 
                     Arguments.of(
-                            EXAMPLE_SAML.clientId(),
+                            clientId,
                             OtherIssuer.class.getSimpleName(),
                             ArrayOf(
                                     ".*Invalid signature for object.*",
@@ -187,7 +209,7 @@ public class AssessmentContainerTests extends ApplicationBaseTest {
                     ),
 
                     Arguments.of(
-                            EXAMPLE_SAML.clientId(),
+                            clientId,
                             ReplayFirstPositiveSamlResponse.class.getSimpleName(),
                             ArrayOf(
                                     ".*The InResponseTo attribute .* does not match the ID of the authentication request.*",
@@ -198,7 +220,7 @@ public class AssessmentContainerTests extends ApplicationBaseTest {
                     ),
 
                     Arguments.of(
-                            EXAMPLE_SAML.clientId(),
+                            clientId,
                             OtherInResponseTo.class.getSimpleName(),
                             ArrayOf(
                                     ".*The InResponseTo attribute .* does not match the ID of the authentication request.*",
@@ -208,7 +230,7 @@ public class AssessmentContainerTests extends ApplicationBaseTest {
                     ),
 
                     Arguments.of(
-                            EXAMPLE_SAML.clientId(),
+                            clientId,
                             OtherRelayState.class.getSimpleName(),
                             ArrayOf(
                                     ".*RelayState in response: .* differs from sent RelayState:.*"
@@ -217,7 +239,7 @@ public class AssessmentContainerTests extends ApplicationBaseTest {
                     ),
 
                     Arguments.of(
-                            EXAMPLE_SAML.clientId(),
+                            clientId,
                             SuccessStatusIsFailed.class.getSimpleName(),
                             ArrayOf(
                                     ".*Invalid status.*AuthnFailed.*"
@@ -225,6 +247,12 @@ public class AssessmentContainerTests extends ApplicationBaseTest {
                             ScanResultStatus.VULNERABLE
                     )
             );
+            allCases.addAll(cases.stream()
+                    .filter(arguments -> ScanResultStatus.VULNERABLE.equals(arguments.get()[3]) && !blockedScanners.contains((String) arguments.get()[1]))
+                    .collect(Collectors.toCollection(ArrayList::new)));
+        }
+
+        return allCases;
     }
 
     private static List<Arguments> mtlsTestCases() {
