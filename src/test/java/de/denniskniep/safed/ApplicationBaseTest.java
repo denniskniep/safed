@@ -42,6 +42,7 @@ public abstract class ApplicationBaseTest implements AutoCloseable {
 
     protected static final ExampleAppData EXAMPLE_SAML = new ExampleAppData("examplesaml001", 8081, "http", "example-saml-001");
     protected static final ExampleAppData EXAMPLE_SAML_IDP_INITIATED = new ExampleAppData("examplesaml001", 8081, "http", "example-saml-001-idp-initiated");
+    protected static final ExampleAppData EXAMPLE_SAML_ENCRYPTION_REQUIRED = new ExampleAppData("examplesaml001encryptionrequired", 8087, "http", "example-saml-001-encryption-required");
     protected static final ExampleAppData EXAMPLE_OIDC_CODE_FLOW = new ExampleAppData("exampleoidc002codeflow", 8082, "http","example-oidc-002-codeflow");
     protected static final ExampleAppData EXAMPLE_OIDC_HYBRID_FLOW = new ExampleAppData("exampleoidc002hybridflow", 8083, "http","example-oidc-002-hybridflow");
     protected static final ExampleAppData EXAMPLE_OIDC_IMPLICIT_FLOW = new ExampleAppData("exampleoidc002implicitflow", 8084, "http","example-oidc-002-implicitflow");
@@ -55,6 +56,7 @@ public abstract class ApplicationBaseTest implements AutoCloseable {
 
     protected final ExampleApp exampleSamlApp;
     protected final ExampleApp exampleSamlIdpInitiatedApp;
+    protected final ExampleApp exampleSamlEncryptionRequiredApp;
     protected final ExampleApp exampleMtlsApp;
     protected final ExampleApp exampleOidcCodeFlowApp;
     protected final ExampleApp exampleOidcHybridFlowApp;
@@ -92,21 +94,24 @@ public abstract class ApplicationBaseTest implements AutoCloseable {
                 .withStartupTimeout(Duration.of(350, ChronoUnit.MINUTES))
                 .waitingFor(KEYCLOAK_SIDEKICK_SERVICE_NAME, Wait.forLogMessage("Finished Keycloak Setup\n", 1))
                 .waitingFor(EXAMPLE_SAML.serviceName(), Wait.forLogMessage(".*Started ExampleSamlApp.*", 1))
+                .waitingFor(EXAMPLE_SAML_ENCRYPTION_REQUIRED.serviceName(), Wait.forLogMessage(".*Started ExampleSamlApp.*", 1))
                 .waitingFor(EXAMPLE_MTLS.serviceName(), Wait.forLogMessage(".*Started ExampleMtlsApp.*", 1))
                 .waitingFor(EXAMPLE_OIDC_CODE_FLOW.serviceName(), Wait.forLogMessage(".*Started ExampleOidcApplication.*", 1))
                 .waitingFor(EXAMPLE_OIDC_HYBRID_FLOW.serviceName(), Wait.forLogMessage(".*Started ExampleOidcApplication.*", 1))
                 .waitingFor(EXAMPLE_OIDC_IMPLICIT_FLOW.serviceName(), Wait.forLogMessage(".*Started ExampleOidcApplication.*", 1))
                 .waitingFor(EXAMPLE_OIDC_FRAGMENT_FLOW.serviceName(), Wait.forLogMessage(".*Started ExampleOidcApplication.*", 1))
                 .withLogConsumer(EXAMPLE_SAML.serviceName(), new Slf4jLogConsumer(LOG).withPrefix(EXAMPLE_SAML.serviceName()))
+                .withLogConsumer(EXAMPLE_SAML_ENCRYPTION_REQUIRED.serviceName(), new Slf4jLogConsumer(LOG).withPrefix(EXAMPLE_SAML_ENCRYPTION_REQUIRED.serviceName()))
                 .withLogConsumer(EXAMPLE_MTLS.serviceName(), new Slf4jLogConsumer(LOG).withPrefix(EXAMPLE_MTLS.serviceName()))
                 .withLogConsumer(EXAMPLE_OIDC_CODE_FLOW.serviceName(), new Slf4jLogConsumer(LOG).withPrefix(EXAMPLE_OIDC_CODE_FLOW.serviceName()))
                 .withLogConsumer(EXAMPLE_OIDC_HYBRID_FLOW.serviceName(), new Slf4jLogConsumer(LOG).withPrefix(EXAMPLE_OIDC_HYBRID_FLOW.serviceName()))
                 .withLogConsumer(EXAMPLE_OIDC_IMPLICIT_FLOW.serviceName(), new Slf4jLogConsumer(LOG).withPrefix(EXAMPLE_OIDC_IMPLICIT_FLOW.serviceName()))
                 .withLogConsumer(EXAMPLE_OIDC_FRAGMENT_FLOW.serviceName(), new Slf4jLogConsumer(LOG).withPrefix(EXAMPLE_OIDC_FRAGMENT_FLOW.serviceName()))
                 .withLogConsumer(KEYCLOAK_SERVICE_NAME, new Slf4jLogConsumer(LOG).withPrefix(KEYCLOAK_SERVICE_NAME))
-                .withServices(SAFED_SERVICE_NAME, "postgres", KEYCLOAK_SERVICE_NAME, "keycloakorig", KEYCLOAK_SIDEKICK_SERVICE_NAME, EXAMPLE_SAML.serviceName(), EXAMPLE_MTLS.serviceName, EXAMPLE_OIDC_CODE_FLOW.serviceName(), EXAMPLE_OIDC_HYBRID_FLOW.serviceName(), EXAMPLE_OIDC_IMPLICIT_FLOW.serviceName(), EXAMPLE_OIDC_FRAGMENT_FLOW.serviceName())
+                .withServices(SAFED_SERVICE_NAME, "postgres", KEYCLOAK_SERVICE_NAME, "keycloakorig", KEYCLOAK_SIDEKICK_SERVICE_NAME, EXAMPLE_SAML.serviceName(), EXAMPLE_SAML_ENCRYPTION_REQUIRED.serviceName(), EXAMPLE_MTLS.serviceName, EXAMPLE_OIDC_CODE_FLOW.serviceName(), EXAMPLE_OIDC_HYBRID_FLOW.serviceName(), EXAMPLE_OIDC_IMPLICIT_FLOW.serviceName(), EXAMPLE_OIDC_FRAGMENT_FLOW.serviceName())
                 .withEnv("SAFED_APP_PORT", port)
                 .withExposedService(EXAMPLE_SAML.serviceName(), EXAMPLE_SAML.servicePort())
+                .withExposedService(EXAMPLE_SAML_ENCRYPTION_REQUIRED.serviceName(), EXAMPLE_SAML_ENCRYPTION_REQUIRED.servicePort())
                 .withExposedService(EXAMPLE_MTLS.serviceName(), EXAMPLE_MTLS.servicePort())
                 .withExposedService(EXAMPLE_OIDC_CODE_FLOW.serviceName(), EXAMPLE_OIDC_CODE_FLOW.servicePort())
                 .withExposedService(EXAMPLE_OIDC_HYBRID_FLOW.serviceName(), EXAMPLE_OIDC_HYBRID_FLOW.servicePort())
@@ -123,12 +128,13 @@ public abstract class ApplicationBaseTest implements AutoCloseable {
 
         exampleSamlApp = ExampleApp.from(ENVIRONMENT, EXAMPLE_SAML);
         exampleSamlIdpInitiatedApp = ExampleApp.from(ENVIRONMENT, EXAMPLE_SAML_IDP_INITIATED);
+        exampleSamlEncryptionRequiredApp = ExampleApp.from(ENVIRONMENT, EXAMPLE_SAML_ENCRYPTION_REQUIRED);
         exampleMtlsApp = ExampleApp.from(ENVIRONMENT, EXAMPLE_MTLS);
         exampleOidcCodeFlowApp = ExampleApp.from(ENVIRONMENT, EXAMPLE_OIDC_CODE_FLOW);
         exampleOidcHybridFlowApp = ExampleApp.from(ENVIRONMENT, EXAMPLE_OIDC_HYBRID_FLOW);
         exampleOidcImplicitFlowApp = ExampleApp.from(ENVIRONMENT, EXAMPLE_OIDC_IMPLICIT_FLOW);
         exampleOidcFragmentFlowApp = ExampleApp.from(ENVIRONMENT, EXAMPLE_OIDC_FRAGMENT_FLOW);
-        exampleApps = List.of(exampleSamlApp, exampleSamlIdpInitiatedApp, exampleMtlsApp, exampleOidcCodeFlowApp, exampleOidcHybridFlowApp, exampleOidcImplicitFlowApp, exampleOidcFragmentFlowApp);
+        exampleApps = List.of(exampleSamlApp, exampleSamlIdpInitiatedApp, exampleSamlEncryptionRequiredApp, exampleMtlsApp, exampleOidcCodeFlowApp, exampleOidcHybridFlowApp, exampleOidcImplicitFlowApp, exampleOidcFragmentFlowApp);
     }
 
     public Report runAssessment(String clientId, List<String> triggeredScanners){

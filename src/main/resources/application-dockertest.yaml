@@ -57,6 +57,17 @@ saml:
       redirect-url: "http://examplesaml001:8081/login/saml2/sso/example-saml-001"
       idp-initiated-sso: true
 
+    example-saml-001-encryption-required:
+      issuer-id: http://keycloak:8080/realms/demo
+      issuer-endpoint-url: http://keycloak:8080/realms/demo/protocol/saml
+      signing-private-key-pem-file-path: "/tmp/signing_key.pem"
+      signing-x509-cert-pem-file-path: "/tmp/signing_cert.pem"
+      client-id: example-saml-001
+      sign-in-url: "http://examplesaml001encryptionrequired:8087/"
+      redirect-url: "http://examplesaml001encryptionrequired:8087/login/saml2/sso/example-saml-001"
+      encrypt-assertion: true
+      encrypt-assertions-x509-cert-pem-file-path: "/tmp/decryption_cert.pem"
+
 mtls:
   clients:
     example-mtls-003:

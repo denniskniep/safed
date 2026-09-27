@@ -6,6 +6,7 @@ import de.denniskniep.examplesaml.saml.admin.SamlValidationService;
 import de.denniskniep.examplesaml.saml.provider.OpenSaml4AuthenticationProviderDecorator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.saml2.provider.service.authentication.OpenSaml4AuthenticationProvider;
@@ -44,7 +45,14 @@ public class SecurityConfiguration {
   }
 
   @Bean
+  @Profile("!encryptionrequired")
   OpenSaml4AuthenticationProvider openSaml4AuthenticationProvider(SamlValidationService samlValidationService) {
     return new OpenSaml4AuthenticationProviderDecorator(samlValidationService).decorate(new OpenSaml4AuthenticationProvider());
+  }
+
+  @Bean
+  @Profile("encryptionrequired")
+  OpenSaml4AuthenticationProvider openSaml4AuthenticationProviderRequiringEncryption(SamlValidationService samlValidationService) {
+    return new OpenSaml4AuthenticationProviderDecorator(samlValidationService, true).decorate(new OpenSaml4AuthenticationProvider());
   }
 }

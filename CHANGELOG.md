@@ -10,6 +10,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 
+## [1.4.0] - 2026-09-27
+
+### Added
+
+- SAML assertion encryption: `encrypt-assertion` client config option encrypts the assertion with the relying party's certificate before sending the response
+
+### Changed
+
+- Chromium pinned to 153.0.8010.52
+
+
+## [1.3.0] - 2026-09-25
+
+### Added
+
+- Support for SAML IdP-initiated (SSO-initiated) sign-in, alongside the existing SP-initiated flow
+- `ClickElementByXPath` Selenium action for driving custom sign-in UIs by XPath
+
+### Fixed
+
+- URL parsing no longer throws when a captured request URL is malformed or contains a pipe character, preventing assessments from failing outright on incompatible URLs
+
+### Changed
+
+- Chromium pinned to 150.0.7871.181
+- Captured URLs, TokenRequest & TokenResponses are now included as evidence infos for easier troubleshooting
+
 ## [1.2.0] - 2026-08-27
 
 ### Added

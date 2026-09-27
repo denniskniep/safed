@@ -16,9 +16,15 @@ public class OpenSaml4AuthenticationProviderDecorator {
 
     private static final String ASSERTION_SIGNATURE_VALIDATOR = "responseSignatureValidator";
     private final SamlValidationService samlValidationService;
+    private final boolean requireEncryptedAssertion;
 
     public OpenSaml4AuthenticationProviderDecorator(SamlValidationService samlValidationService) {
+        this(samlValidationService, false);
+    }
+
+    public OpenSaml4AuthenticationProviderDecorator(SamlValidationService samlValidationService, boolean requireEncryptedAssertion) {
         this.samlValidationService = samlValidationService;
+        this.requireEncryptedAssertion = requireEncryptedAssertion;
     }
 
     public OpenSaml4AuthenticationProvider decorate(OpenSaml4AuthenticationProvider authenticationProvider) {
@@ -50,6 +56,15 @@ public class OpenSaml4AuthenticationProviderDecorator {
                 var currentRelayState = currentRequest.getParameter(Saml2ParameterNames.RELAY_STATE);
                 if (originalRelayState != null && !originalRelayState.equals(currentRelayState)) {
                     result = result.concat(new Saml2Error("invalid_relay_state", "RelayState in response: " + (currentRelayState == null ? "<null>" : currentRelayState) + " differs from sent RelayState: "+ originalRelayState));
+                }
+
+                if (requireEncryptedAssertion) {
+                    var response = responseToken.getResponse();
+                    boolean hasEncryptedAssertion = !response.getEncryptedAssertions().isEmpty();
+                    boolean hasPlaintextAssertion = !response.getAssertions().isEmpty();
+                    if (!hasEncryptedAssertion || hasPlaintextAssertion) {
+                        result = result.concat(new Saml2Error("encrypted_assertion_required", "Assertion must be encrypted but an unencrypted assertion was received"));
+                    }
                 }
                 return result;
             };

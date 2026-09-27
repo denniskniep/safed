@@ -1,0 +1,27 @@
+server:
+  port: 8087
+
+logging:
+  level:
+    org.springframework.security: INFO
+    org.springframework.web.client.RestTemplate: INFO
+
+spring:
+  application:
+    name: ExampleSamlApp
+    title: Example SAML App
+
+  security:
+    saml2:
+      relyingparty:
+        registration:
+          example-saml-001:
+            entity-id: "example-saml-001"
+            decryption:
+              credentials:
+                - private-key-location: "classpath:certs/decryption_key.pem"
+                  certificate-location: "classpath:certs/decryption_cert.pem"
+            assertingparty:
+              singlesignon:
+                signRequest: false
+              metadata-uri: "http://keycloak:8080/realms/demo/protocol/saml/descriptor"
