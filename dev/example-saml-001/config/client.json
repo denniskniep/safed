@@ -11,7 +11,8 @@
   "clientAuthenticatorType": "client-secret",
   "redirectUris": [
     "http://localhost:8081/*",
-    "http://examplesaml001:8081/*"
+    "http://examplesaml001:8081/*",
+    "http://examplesaml001encryptionrequired:8087/*"
   ],
   "webOrigins": [
     "http://localhost:8081"

@@ -13,7 +13,7 @@ public class ExampleSamlApp {
 
 
     public static void main(final String[] args) {
-        SpringApplication.run(ExampleSamlApp.class);
+        SpringApplication.run(ExampleSamlApp.class, args);
         verifyMockMaker();
     }
 

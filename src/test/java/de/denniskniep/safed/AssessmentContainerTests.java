@@ -128,7 +128,8 @@ public class AssessmentContainerTests extends ApplicationBaseTest {
                 new TestConfig(EXAMPLE_SAML.clientId()),
                 new TestConfig(EXAMPLE_SAML_IDP_INITIATED.clientId(),
                         OtherInResponseTo.class.getSimpleName(),
-                        OtherRelayState.class.getSimpleName())
+                        OtherRelayState.class.getSimpleName()),
+                new TestConfig(EXAMPLE_SAML_ENCRYPTION_REQUIRED.clientId())
         );
 
         List<Arguments> allCases = new ArrayList<>();

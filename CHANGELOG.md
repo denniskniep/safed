@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 
+## [1.4.0] - 2026-09-27
+
+### Added
+
+- SAML assertion encryption: `encrypt-assertion` client config option encrypts the assertion with the relying party's certificate before sending the response
+
 ## [1.3.0] - 2026-09-25
 
 ### Added

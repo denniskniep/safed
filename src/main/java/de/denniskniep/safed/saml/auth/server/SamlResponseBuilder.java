@@ -124,7 +124,8 @@ public class SamlResponseBuilder {
         }
 
         if (clientConfig.requireEncryptAssertion()) {
-            // Todo: implement encryption (bindingBuilder.encrypt(publicKey);)
+            PublicKey encryptionPublicKey = KeyProvider.loadCertFromFile(clientConfig.getEncryptAssertionsX509CertPemFilePath()).getPublicKey();
+            bindingBuilder.encrypt(encryptionPublicKey);
         }
 
         Document samlDocument;

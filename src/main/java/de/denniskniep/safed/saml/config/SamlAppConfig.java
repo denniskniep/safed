@@ -33,6 +33,8 @@ public class SamlAppConfig extends FederationAppConfig {
 
     private boolean encryptAssertion = false;
 
+    private String encryptAssertionsX509CertPemFilePath;
+
     public boolean isIdpInitiatedSso() {
         return idpInitiatedSso;
     }
@@ -127,6 +129,14 @@ public class SamlAppConfig extends FederationAppConfig {
 
     public void setEncryptAssertion(boolean encryptAssertion) {
         this.encryptAssertion = encryptAssertion;
+    }
+
+    public String getEncryptAssertionsX509CertPemFilePath() {
+        return encryptAssertionsX509CertPemFilePath;
+    }
+
+    public void setEncryptAssertionsX509CertPemFilePath(String encryptAssertionsX509CertPemFilePath) {
+        this.encryptAssertionsX509CertPemFilePath = encryptAssertionsX509CertPemFilePath;
     }
 
     public XmlKeyInfoKeyNameTransformer getKeyNameTransformer() {
