@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - SAML assertion encryption: `encrypt-assertion` client config option encrypts the assertion with the relying party's certificate before sending the response
 
+### Changed
+
+- Chromium pinned to 153.0.8010.52
+
+
 ## [1.3.0] - 2026-09-25
 
 ### Added
