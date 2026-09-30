@@ -14,13 +14,17 @@ import java.util.List;
  * The window is selected by its zero-based index in the order the windows were opened
  * (0 = original window, 1 = first newly opened window, ...).
  */
-public class SwitchToWindowAction implements SeleniumAction {
+public class SwitchToWindowSelector implements SeleniumAction {
 
-    private static final Logger LOG = LoggerFactory.getLogger(SwitchToWindowAction.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SwitchToWindowSelector.class);
 
-    private final String windowIndex; // index starting at 0
+    private String windowIndex; // index starting at 0
 
-    public SwitchToWindowAction(String windowIndex) {
+    public String getWindowIndex() {
+        return windowIndex;
+    }
+
+    public void setWindowIndex(String windowIndex) {
         this.windowIndex = windowIndex;
     }
 
