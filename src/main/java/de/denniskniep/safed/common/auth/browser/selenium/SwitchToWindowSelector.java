@@ -70,7 +70,23 @@ public class SwitchToWindowSelector implements SeleniumAction {
             throw new RuntimeException("Window with index " + index + " did not appear within " + timeout.toSeconds() + "s, window handles: " + driver.getWindowHandles().size());
         }
 
+        if (LOG.isDebugEnabled()) {
+            logWindowHandleIndexAndPageTitle(driver, handles);
+        }
+
         driver.switchTo().window(handles.get(index));
-        LOG.debug("switched to window index {} of {} windows, current url: {}", index, handles.size(), driver.getCurrentUrl());
+        LOG.debug("switched to window index {} of {} windows, title: '{}', current url: {}", index, handles.size(), driver.getTitle(), driver.getCurrentUrl());
+    }
+
+    // Visits every window to read its title, the caller has to switch to the target window afterwards
+    private void logWindowHandleIndexAndPageTitle(WebDriver driver, List<String> handles) {
+        for (int i = 0; i < handles.size(); i++) {
+            try {
+                driver.switchTo().window(handles.get(i));
+                LOG.debug("window index {}: title: '{}'", i, driver.getTitle());
+            } catch (Exception e) {
+                LOG.debug("window index {}: title can not be read: {}", i, e.getMessage());
+            }
+        }
     }
 }

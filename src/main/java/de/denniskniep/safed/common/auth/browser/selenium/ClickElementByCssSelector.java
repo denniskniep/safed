@@ -24,8 +24,9 @@ public class ClickElementByCssSelector implements SeleniumAction {
     public void execute(WebDriver driver) {
         var allElements = driver.findElements(By.cssSelector(this.cssSelector));
 
-        for(WebElement element : allElements) {
-            if(element.isDisplayed()){
+        for (WebElement element : allElements) {
+            if (element.isDisplayed()) {
+                LOG.debug("clicking element by cssSelector: '{}', current url: {}", cssSelector, driver.getCurrentUrl());
                 element.click();
                 return;
             }
