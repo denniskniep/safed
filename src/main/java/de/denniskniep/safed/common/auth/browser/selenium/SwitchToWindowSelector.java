@@ -1,10 +1,13 @@
 package de.denniskniep.safed.common.auth.browser.selenium;
 
 import org.apache.commons.lang3.StringUtils;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,12 +16,16 @@ import java.util.List;
  * <p>
  * The window is selected by its zero-based index in the order the windows were opened
  * (0 = original window, 1 = first newly opened window, ...).
+ * If the window does not exist yet (e.g. a popup that is still opening), it waits up to 'timeoutInSeconds' for it.
  */
 public class SwitchToWindowSelector implements SeleniumAction {
 
     private static final Logger LOG = LoggerFactory.getLogger(SwitchToWindowSelector.class);
 
+    private static final int DEFAULT_TIMEOUT_IN_SECONDS = 10;
+
     private String windowIndex; // index starting at 0
+    private String timeoutInSeconds; // optional, defaults to DEFAULT_TIMEOUT_IN_SECONDS
 
     public String getWindowIndex() {
         return windowIndex;
@@ -26,6 +33,14 @@ public class SwitchToWindowSelector implements SeleniumAction {
 
     public void setWindowIndex(String windowIndex) {
         this.windowIndex = windowIndex;
+    }
+
+    public String getTimeoutInSeconds() {
+        return timeoutInSeconds;
+    }
+
+    public void setTimeoutInSeconds(String timeoutInSeconds) {
+        this.timeoutInSeconds = timeoutInSeconds;
     }
 
     @Override
@@ -38,12 +53,24 @@ public class SwitchToWindowSelector implements SeleniumAction {
     }
 
     private void switchByIndex(WebDriver driver, int index) {
-        List<String> handles = new ArrayList<>(driver.getWindowHandles());
-        LOG.debug("switching to window index {} of {} windows", index, handles.size());
-        if (index >= handles.size()) {
-            LOG.warn("index is greater that number of window handles. index: {}, window handles: {}", index, handles.size());
-            return;
+        var timeout = Duration.ofSeconds(StringUtils.isBlank(this.timeoutInSeconds) ? DEFAULT_TIMEOUT_IN_SECONDS : Integer.parseInt(this.timeoutInSeconds));
+        LOG.debug("switching to window index {}, currently {} windows (waiting up to {}s)", index, driver.getWindowHandles().size(), timeout.toSeconds());
+
+        List<String> handles;
+        try {
+            handles = new WebDriverWait(driver, timeout, Duration.ofMillis(200)).until(d -> {
+                var current = new ArrayList<>(d.getWindowHandles());
+                return current.size() > index ? current : null;
+            });
+        } catch (TimeoutException e) {
+            throw new RuntimeException("Window with index " + index + " did not appear within " + timeout.toSeconds() + "s, window handles: " + driver.getWindowHandles().size(), e);
         }
+
+        if (handles == null) {
+            throw new RuntimeException("Window with index " + index + " did not appear within " + timeout.toSeconds() + "s, window handles: " + driver.getWindowHandles().size());
+        }
+
         driver.switchTo().window(handles.get(index));
+        LOG.debug("switched to window index {} of {} windows, current url: {}", index, handles.size(), driver.getCurrentUrl());
     }
 }
