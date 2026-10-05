@@ -43,7 +43,7 @@ public class SwitchToWindowByTitle extends SwitchToWindowBase implements Seleniu
     }
 
     private void switchByTitle(WebDriver driver, String title) {
-        var timeout = getTimeout();
+        final Duration timeout = getTimeout();
         var originalHandle = driver.getWindowHandle();
         LOG.debug("switching to window with title containing '{}', currently {} windows (waiting up to {}s)", title, driver.getWindowHandles().size(), timeout.toSeconds());
 

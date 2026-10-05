@@ -45,7 +45,7 @@ saml:
           cssSelector: "button[data-testid='login-form-submit-button']"
         - type: "SwitchToWindowByIndex"
           windowIndex: 2
-          timeoutInSeconds: "5"
+          timeoutInSeconds: 5
         - type: "SwitchToWindowByTitle"
           windowTitle: "Sign in"
         - type: "ClickElementById"

@@ -12,20 +12,20 @@ public abstract class SwitchToWindowBase {
 
     private static final Logger LOG = LoggerFactory.getLogger(SwitchToWindowBase.class);
 
-    protected static final int DEFAULT_TIMEOUT_IN_SECONDS = 10;
+    protected static final Integer DEFAULT_TIMEOUT_IN_SECONDS = 10;
 
-    protected String timeoutInSeconds; // optional, defaults to DEFAULT_TIMEOUT_IN_SECONDS
+    protected Integer timeoutInSeconds; // optional, defaults to DEFAULT_TIMEOUT_IN_SECONDS
 
-    public String getTimeoutInSeconds() {
+    public Integer getTimeoutInSeconds() {
         return timeoutInSeconds;
     }
 
-    public void setTimeoutInSeconds(String timeoutInSeconds) {
+    public void setTimeoutInSeconds(Integer timeoutInSeconds) {
         this.timeoutInSeconds = timeoutInSeconds;
     }
 
     protected Duration getTimeout() {
-        return Duration.ofSeconds(StringUtils.isBlank(this.timeoutInSeconds) ? DEFAULT_TIMEOUT_IN_SECONDS : Integer.parseInt(this.timeoutInSeconds));
+        return Duration.ofSeconds(this.timeoutInSeconds == null ? DEFAULT_TIMEOUT_IN_SECONDS : this.timeoutInSeconds);
     }
 
     // Visits every window to read its title, the caller has to switch to the target window afterward

@@ -45,7 +45,7 @@ public class SwitchToWindowByIndex extends SwitchToWindowBase implements Seleniu
     }
 
     private void switchByIndex(WebDriver driver, Integer index) {
-        var timeout = getTimeout();
+        final Duration timeout = getTimeout();
         LOG.debug("switching to window index {}, currently {} windows (waiting up to {}s)", index, driver.getWindowHandles().size(), timeout.toSeconds());
 
         List<String> handles;

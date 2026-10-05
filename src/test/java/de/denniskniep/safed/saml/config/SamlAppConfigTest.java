@@ -84,7 +84,7 @@ public class SamlAppConfigTest {
         assertThat(actions.get(2))
                 .isInstanceOfSatisfying(SwitchToWindowByIndex.class, a -> {
                     assertThat(a.getWindowIndex()).isEqualTo(2);
-                    assertThat(a.getTimeoutInSeconds()).isEqualTo("5");
+                    assertThat(a.getTimeoutInSeconds()).isEqualTo(5);
                 });
 
         assertThat(actions.get(3))
