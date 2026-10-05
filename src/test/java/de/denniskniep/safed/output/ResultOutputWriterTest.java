@@ -13,18 +13,18 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 public class ResultOutputWriterTest {
 
     private static final String SCAN_STATUS_FILENAME = "safed-scan-status.txt";
 
     @TempDir
-    Path tempDir;
+    private Path tempDir;
 
     private String originalTmpDir;
+
     private ResultOutputWriter writer;
 
     @BeforeEach
@@ -40,17 +40,17 @@ public class ResultOutputWriterTest {
     }
 
     @Test
-    void writeScanStatusToFile_writesSingleStatus() throws IOException {
+    void writeScanStatusToFile_writesSingleStatus() {
         writer.writeScanStatusToFile(reports(ScanResultStatus.OK));
 
-        assertEquals("OK", Files.readString(statusFile()));
+        assertThat(statusFile()).hasContent("OK");
     }
 
     @Test
-    void writeScanStatusToFile_writesMultipleStatusesCommaSeparatedInOrder() throws IOException {
+    void writeScanStatusToFile_writesMultipleStatusesCommaSeparatedInOrder() {
         writer.writeScanStatusToFile(reports(ScanResultStatus.OK, ScanResultStatus.VULNERABLE, ScanResultStatus.FAILED));
 
-        assertEquals("OK, VULNERABLE, FAILED", Files.readString(statusFile()));
+        assertThat(statusFile()).hasContent("OK, VULNERABLE, FAILED");
     }
 
     @Test
@@ -59,28 +59,28 @@ public class ResultOutputWriterTest {
 
         writer.writeScanStatusToFile(reports(ScanResultStatus.OK));
 
-        assertEquals("OK", Files.readString(statusFile()));
+        assertThat(statusFile()).hasContent("OK");
     }
 
     @Test
     void writeScanStatusToFile_doesNotWriteFile_onNullReports() {
         writer.writeScanStatusToFile(null);
 
-        assertFalse(Files.exists(statusFile()));
+        assertThat(statusFile()).doesNotExist();
     }
 
     @Test
     void writeScanStatusToFile_doesNotWriteFile_onEmptyReports() {
         writer.writeScanStatusToFile(List.of());
 
-        assertFalse(Files.exists(statusFile()));
+        assertThat(statusFile()).doesNotExist();
     }
 
     @Test
     void writeScanStatusToFile_doesNotThrow_whenFileCannotBeWritten() {
         System.setProperty("java.io.tmpdir", tempDir.resolve("does-not-exist").toString());
 
-        assertDoesNotThrow(() -> writer.writeScanStatusToFile(reports(ScanResultStatus.OK)));
+        assertThatCode(() -> writer.writeScanStatusToFile(reports(ScanResultStatus.OK))).doesNotThrowAnyException();
     }
 
     private Path statusFile() {
