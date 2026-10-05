@@ -10,6 +10,7 @@ import de.denniskniep.safed.mtls.config.MtlsConfig;
 import de.denniskniep.safed.oidc.OidcAssessment;
 import de.denniskniep.safed.oidc.config.OidcAppConfig;
 import de.denniskniep.safed.oidc.config.OidcConfig;
+import de.denniskniep.safed.output.ResultOutputWriter;
 import de.denniskniep.safed.saml.SamlAssessment;
 import de.denniskniep.safed.saml.config.SamlAppConfig;
 import de.denniskniep.safed.saml.config.SamlConfig;
@@ -39,12 +40,15 @@ public class SafedCli implements CommandLineRunner {
     private final MtlsAssessment mtlsAssessment;
     private final ApplicationContext applicationContext;
     private final WebhookService webhookService;
+    private final ResultOutputWriter resultOutputWriter;
 
     private static final Logger LOG = LoggerFactory.getLogger(SafedCli.class);
     private final MtlsConfig mtlsConfig;
 
     @Autowired
-    public SafedCli(ApplicationContext applicationContext, SamlConfig samlConfig, SamlAssessment samlAssessment, OidcConfig oidcConfig, OidcAssessment oidcAssessment, MtlsAssessment mtlsAssessment, MtlsConfig mtlsConfig, WebhookService webhookService) {
+    public SafedCli(ApplicationContext applicationContext, SamlConfig samlConfig, SamlAssessment samlAssessment,
+                    OidcConfig oidcConfig, OidcAssessment oidcAssessment, MtlsAssessment mtlsAssessment,
+                    MtlsConfig mtlsConfig, WebhookService webhookService, ResultOutputWriter resultOutputWriter) {
         this.applicationContext = applicationContext;
         this.samlConfig = samlConfig;
         this.samlAssessment = samlAssessment;
@@ -53,6 +57,7 @@ public class SafedCli implements CommandLineRunner {
         this.mtlsAssessment = mtlsAssessment;
         this.mtlsConfig = mtlsConfig;
         this.webhookService = webhookService;
+        this.resultOutputWriter = resultOutputWriter;
     }
 
     @Override
@@ -101,6 +106,7 @@ public class SafedCli implements CommandLineRunner {
         }
 
         webhookService.sendReports(reports);
+        resultOutputWriter.writeScanStatusToFile(reports);
         SpringApplication.exit(applicationContext, () -> 0);
     }
 
