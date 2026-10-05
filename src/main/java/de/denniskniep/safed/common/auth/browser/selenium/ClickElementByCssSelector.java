@@ -3,8 +3,12 @@ package de.denniskniep.safed.common.auth.browser.selenium;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ClickElementByCssSelector implements SeleniumAction {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ClickElementByCssSelector.class);
 
     private String cssSelector;
 
@@ -18,13 +22,16 @@ public class ClickElementByCssSelector implements SeleniumAction {
 
     @Override
     public void execute(WebDriver driver) {
-        var allElements = driver.findElements(By.cssSelector(cssSelector));
+        var allElements = driver.findElements(By.cssSelector(this.cssSelector));
 
-        for(WebElement element : allElements) {
-            if(element.isDisplayed()){
+        for (WebElement element : allElements) {
+            if (element.isDisplayed()) {
+                LOG.debug("clicking element by cssSelector: '{}', current url: {}", cssSelector, driver.getCurrentUrl());
                 element.click();
-                break;
+                return;
             }
         }
+
+        LOG.warn("no displayed element found to click. cssSelector: '{}', matched elements: {}, current url: {}", cssSelector, allElements.size(), driver.getCurrentUrl());
     }
 }

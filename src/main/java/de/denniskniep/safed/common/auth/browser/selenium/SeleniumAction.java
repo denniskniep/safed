@@ -13,7 +13,9 @@ import org.openqa.selenium.WebDriver;
         @JsonSubTypes.Type(value = ClickElementByXPath.class, name = "ClickElementByXPath"),
         @JsonSubTypes.Type(value = InputTextByName.class, name = "InputTextByName"),
         @JsonSubTypes.Type(value = InputTextById.class, name = "InputTextById"),
-        @JsonSubTypes.Type(value = InputTextByCssSelector.class, name = "InputTextByCssSelector")
+        @JsonSubTypes.Type(value = InputTextByCssSelector.class, name = "InputTextByCssSelector"),
+        @JsonSubTypes.Type(value = SwitchToWindowByIndex.class, name = "SwitchToWindowByIndex"),
+        @JsonSubTypes.Type(value = SwitchToWindowByTitle.class, name = "SwitchToWindowByTitle")
 })
 public interface SeleniumAction {
     void execute(WebDriver driver);

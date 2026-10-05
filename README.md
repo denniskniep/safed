@@ -109,14 +109,19 @@ The webhook sends a JSON array of `Report` objects
 ### Using Selenium Actions to initialize the sign-in
 All types can be found here: `src/main/java/de/denniskniep/safed/common/auth/browser/selenium`
 
-```
+```yaml
 sign-in-selenium-actions:
     - type: "InputTextByName"
       name: "username"
       text: "MyUsername"
     - type: "ClickElementById"
       id: "signin"
+    - type: "SwitchToWindowByTitle"
+      windowTitle: "Sign in"
+      # timeoutInSeconds: "10"   # optional: how long to wait for the window to appear
 ```
+
+
 
 ## Troubleshooting
 
