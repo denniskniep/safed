@@ -7,11 +7,21 @@ import java.net.URI;
 public class UrlUtils {
 
     public static boolean laxEquals(String url1, String url2) {
-        return StringUtils.equalsIgnoreCase(sanitize(url1), sanitize(url2));
+        try {
+            return StringUtils.equalsIgnoreCase(sanitize(url1), sanitize(url2));
+        } catch (IllegalArgumentException e) {
+            // e.g. browser-reported data: URLs containing unescaped spaces
+            return StringUtils.equalsIgnoreCase(url1, url2);
+        }
     }
 
     public static boolean laxStartsWith(String url, String urlPrefix) {
-        return StringUtils.startsWithIgnoreCase(sanitize(url), sanitize(urlPrefix));
+        try {
+            return StringUtils.startsWithIgnoreCase(sanitize(url), sanitize(urlPrefix));
+        } catch (IllegalArgumentException e) {
+            // e.g. browser-reported data: URLs containing unescaped spaces
+            return StringUtils.startsWithIgnoreCase(url, urlPrefix);
+        }
     }
 
     private static String prepareUrl(String url) {
