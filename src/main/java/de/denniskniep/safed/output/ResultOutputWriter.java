@@ -25,12 +25,12 @@ public class ResultOutputWriter {
     public void writeScanStatusToFile(List<Report> reports) {
         String filePath = outputConfig.getScanStatusFile();
         if (StringUtils.isBlank(filePath)) {
-            LOG.debug("No scan status file configured, skip writing scan status to file.");
+            LOG.info("No scan status file configured, skip writing scan status to file.");
             return;
         }
 
         if (reports == null || reports.isEmpty()) {
-            LOG.warn("No reports given to write scan status to file.");
+            LOG.info("No reports given to write scan status to file.");
             return;
         }
 
