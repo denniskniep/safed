@@ -2,7 +2,6 @@ package de.denniskniep.safed.output;
 
 import de.denniskniep.safed.common.report.Report;
 import de.denniskniep.safed.common.scans.ScanResultStatus;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -23,20 +22,15 @@ public class ResultOutputWriterTest {
     @TempDir
     private Path tempDir;
 
-    private String originalTmpDir;
+    private OutputConfig outputConfig;
 
     private ResultOutputWriter writer;
 
     @BeforeEach
     void setUp() {
-        originalTmpDir = System.getProperty("java.io.tmpdir");
-        System.setProperty("java.io.tmpdir", tempDir.toString());
-        writer = new ResultOutputWriter();
-    }
-
-    @AfterEach
-    void tearDown() {
-        System.setProperty("java.io.tmpdir", originalTmpDir);
+        outputConfig = new OutputConfig();
+        outputConfig.setScanStatusFile(statusFile().toString());
+        writer = new ResultOutputWriter(outputConfig);
     }
 
     @Test
@@ -77,8 +71,26 @@ public class ResultOutputWriterTest {
     }
 
     @Test
+    void writeScanStatusToFile_doesNotWriteFile_whenNotConfigured() {
+        outputConfig.setScanStatusFile(null);
+
+        writer.writeScanStatusToFile(reports(ScanResultStatus.OK));
+
+        assertThat(tempDir).isEmptyDirectory();
+    }
+
+    @Test
+    void writeScanStatusToFile_doesNotWriteFile_whenConfiguredBlank() {
+        outputConfig.setScanStatusFile("  ");
+
+        writer.writeScanStatusToFile(reports(ScanResultStatus.OK));
+
+        assertThat(tempDir).isEmptyDirectory();
+    }
+
+    @Test
     void writeScanStatusToFile_doesNotThrow_whenFileCannotBeWritten() {
-        System.setProperty("java.io.tmpdir", tempDir.resolve("does-not-exist").toString());
+        outputConfig.setScanStatusFile(tempDir.resolve("does-not-exist").resolve(SCAN_STATUS_FILENAME).toString());
 
         assertThatCode(() -> writer.writeScanStatusToFile(reports(ScanResultStatus.OK))).doesNotThrowAnyException();
     }

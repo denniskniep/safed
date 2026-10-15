@@ -17,3 +17,6 @@ webhook:
   url: ""
   authHeaderName: ""
   authHeaderValue: ""
+
+output:
+  scanStatusFile: ""
