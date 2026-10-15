@@ -104,6 +104,22 @@ The webhook sends a JSON array of `Report` objects
 ]
 ```
 
+## Scan Status File
+SAFED can write the status of all reports (e.g. `OK, VULNERABLE, FAILED`) as a comma-separated list to a file after all assessments are completed.
+This is optional: if no file is configured, no scan status file is written. An existing file is overwritten.
+
+#### application.yaml
+```yaml
+output:
+  scanStatusFile: "/tmp/safed-scan-status.txt"
+```
+
+#### Environment Variables
+
+```bash
+OUTPUT_SCAN_STATUS_FILE=/tmp/safed-scan-status.txt
+```
+
 ## Configuration
 
 ### Using Selenium Actions to initialize the sign-in
