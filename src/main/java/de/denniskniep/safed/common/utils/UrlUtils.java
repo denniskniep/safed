@@ -6,22 +6,32 @@ import java.net.URI;
 
 public class UrlUtils {
 
+    private static final String DATA_URL_PREFIX = "data:";
+
     public static boolean laxEquals(String url1, String url2) {
-        try {
-            return StringUtils.equalsIgnoreCase(sanitize(url1), sanitize(url2));
-        } catch (IllegalArgumentException e) {
-            // e.g. browser-reported data: URLs containing unescaped spaces
+        if (url1 == null || url2 == null) {
             return StringUtils.equalsIgnoreCase(url1, url2);
         }
+        if (isDataUrl(url1) || isDataUrl(url2)) {
+            // data: URLs are not parsable by URI (e.g. unescaped spaces), compare them as-is
+            return StringUtils.equalsIgnoreCase(url1, url2);
+        }
+        return StringUtils.equalsIgnoreCase(sanitize(url1), sanitize(url2));
     }
 
     public static boolean laxStartsWith(String url, String urlPrefix) {
-        try {
-            return StringUtils.startsWithIgnoreCase(sanitize(url), sanitize(urlPrefix));
-        } catch (IllegalArgumentException e) {
-            // e.g. browser-reported data: URLs containing unescaped spaces
+        if (url == null || urlPrefix == null) {
             return StringUtils.startsWithIgnoreCase(url, urlPrefix);
         }
+        if (isDataUrl(url) || isDataUrl(urlPrefix)) {
+            // data: URLs are not parsable by URI (e.g. unescaped spaces), compare them as-is
+            return StringUtils.startsWithIgnoreCase(url, urlPrefix);
+        }
+        return StringUtils.startsWithIgnoreCase(sanitize(url), sanitize(urlPrefix));
+    }
+
+    private static boolean isDataUrl(String url) {
+        return StringUtils.startsWithIgnoreCase(StringUtils.trim(url), DATA_URL_PREFIX);
     }
 
     private static String prepareUrl(String url) {

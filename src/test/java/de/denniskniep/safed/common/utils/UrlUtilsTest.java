@@ -52,4 +52,17 @@ public class UrlUtilsTest {
     void laxEquals_stillMatches_parseableUrls() {
         assertThat(UrlUtils.laxEquals("https://idp.example.com:443/auth/", IDP_URL)).isTrue();
     }
+
+    @Test
+    void laxEquals_handlesNullUrls() {
+        assertThat(UrlUtils.laxEquals(null, IDP_URL)).isFalse();
+        assertThat(UrlUtils.laxEquals(IDP_URL, null)).isFalse();
+        assertThat(UrlUtils.laxEquals(null, null)).isTrue();
+    }
+
+    @Test
+    void laxStartsWith_handlesNullUrls() {
+        assertThat(UrlUtils.laxStartsWith(null, IDP_URL)).isFalse();
+        assertThat(UrlUtils.laxStartsWith(IDP_URL, null)).isFalse();
+    }
 }
