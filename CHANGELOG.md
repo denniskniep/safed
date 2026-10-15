@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+## [1.5.0] - 2026-10-15
+
+### Added
+
+- Write scan status to file
+- Selenium Action: SwitchToWindowByIndex
+- Selenium Action: SwitchToWindowByTitleContaining
+
+### Changed
+
+- Chromium pinned to 153.0.8010.52
+- Fixed comparison of data:/ urls
 
 ## [1.4.0] - 2026-09-27
 
