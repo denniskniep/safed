@@ -36,3 +36,5 @@ CLAUDE.md
 
 .wiki/.cache
 .firecrawl
+
+application-local.yaml
