@@ -88,7 +88,7 @@ public class SamlAppConfigTest {
                 });
 
         assertThat(actions.get(3))
-                .isInstanceOfSatisfying(SwitchToWindowByTitle.class, a -> {
+                .isInstanceOfSatisfying(SwitchToWindowByTitleContaining.class, a -> {
                     assertThat(a.getWindowTitle()).isEqualTo("Sign in");
                     assertThat(a.getTimeoutInSeconds()).isNull();
                 });

@@ -116,12 +116,13 @@ sign-in-selenium-actions:
       text: "MyUsername"
     - type: "ClickElementById"
       id: "signin"
-    - type: "SwitchToWindowByTitle"
+    - type: "SwitchToWindowByTitleContaining"
       windowTitle: "Sign in"
       # timeoutInSeconds: "10"   # optional: how long to wait for the window to appear
+    - type: "SwitchToWindowByIndex"
+      windowIndex: 1
+      # timeoutInSeconds: "10"   # optional: how long to wait for the window to appear  
 ```
-
-
 
 ## Troubleshooting
 

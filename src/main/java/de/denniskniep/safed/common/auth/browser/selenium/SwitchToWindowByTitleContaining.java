@@ -16,9 +16,9 @@ import java.util.ArrayList;
  * </ul>
  * If the window does not exist yet (e.g. a popup that is still opening or loading), it waits up to 'timeoutInSeconds' for it.
  */
-public class SwitchToWindowByTitle extends SwitchToWindowBase implements SeleniumAction {
+public class SwitchToWindowByTitleContaining extends SwitchToWindowBase implements SeleniumAction {
 
-    private static final Logger LOG = LoggerFactory.getLogger(SwitchToWindowByTitle.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SwitchToWindowByTitleContaining.class);
 
     private String windowTitle;
 
