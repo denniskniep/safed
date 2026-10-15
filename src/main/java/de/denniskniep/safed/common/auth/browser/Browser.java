@@ -12,6 +12,7 @@ import de.denniskniep.safed.common.utils.UrlUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.NoSuchWindowException;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.TimeoutException;
@@ -385,6 +386,7 @@ public class Browser implements AutoCloseable {
                 throw new RuntimeExceptionWithMetadata("Timeout waiting for captured request!", e, errorMetadataCollectors);
             }
 
+            switchToOpenWindowIfCurrentClosed();
             var cookies = driver.manage().getCookies();
             var visibleText = driver.findElement(By.tagName("body")).getText();
 
@@ -406,6 +408,8 @@ public class Browser implements AutoCloseable {
         }catch (Exception e){
             var additionalErrorInfo = "";
             try{
+                // so that error metadata (title, url, screenshot) is collected from an open window
+                switchToOpenWindowIfCurrentClosed();
                 if(StringUtils.equalsIgnoreCase("Privacy error", driver.getTitle())) {
                     additionalErrorInfo += " Privacy error " + getPrivacyErrorDetails() + ";";
                 }
@@ -507,11 +511,40 @@ public class Browser implements AutoCloseable {
     private ExpectedCondition<Boolean> documentReadyStateComplete() {
         return driver -> {
             if (driver instanceof JavascriptExecutor) {
-                String readyState = (String) ((JavascriptExecutor) driver).executeScript("return document.readyState");
-                return "complete".equals(readyState);
+                try {
+                    String readyState = (String) ((JavascriptExecutor) driver).executeScript("return document.readyState");
+                    return "complete".equals(readyState);
+                } catch (NoSuchWindowException e) {
+                    // current window was closed while loading (e.g. popup closes itself after login), retry on remaining window
+                    switchToOpenWindowIfCurrentClosed();
+                    return false;
+                }
             }
             return true;
         };
+    }
+
+    // A window selected via SwitchToWindowSelector (e.g. a login popup) can close itself.
+    // In that case the driver points to a closed window, so switch to the most recently opened remaining window.
+    private void switchToOpenWindowIfCurrentClosed() {
+        final List<String> handles = new ArrayList<>(driver.getWindowHandles());
+        String current;
+        try {
+            current = driver.getWindowHandle();
+        } catch (NoSuchWindowException e) {
+            current = null;
+        }
+
+        if (current != null && handles.contains(current)) {
+            return;
+        }
+
+        if (handles.isEmpty()) {
+            throw new RuntimeException("Current window was closed and no other window is open");
+        }
+
+        driver.switchTo().window(handles.getLast());
+        LOG.debug("Current window was closed, switched to window index {} of {} windows, current url: {}", handles.size() - 1, handles.size(), driver.getCurrentUrl());
     }
 
     @Override

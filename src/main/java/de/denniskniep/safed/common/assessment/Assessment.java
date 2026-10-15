@@ -157,13 +157,15 @@ public abstract class Assessment<T extends Scanner, C extends AppConfig> {
         LOG.info("Finished baseline and test scans");
 
         var scanResults = new HashMap<String, ScanResult>();
+
+        int i = 0;
         for (var scanner : scanners) {
             if (!scannersToUse.contains(scanner.getClass().getSimpleName())) {
                 LOG.info("Skip scanning with {}", scanner.getClass().getSimpleName());
                 continue;
             }
 
-            LOG.debug("Start scanning with {}", scanner.getClass().getSimpleName());
+            LOG.debug("Start scanning with: {} ({}/{})", scanner.getClass().getSimpleName(), ++i, scannersToUse.size());
             try{
                 var scanResult = runScan(scannerConfig, scanner, false);
                 if(!errors.isEmpty()){

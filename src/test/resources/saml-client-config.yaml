@@ -1,0 +1,52 @@
+saml:
+  clients:
+    saml-example:
+      client-id: example-saml-001
+      sign-in-url: "http://localhost:8081/"
+      redirect-url: "http://localhost:8081/login/saml2/sso/example-saml-001"
+      valid-redirect-urls:
+        - "http://localhost:8081/login/saml2/sso/*"
+      issuer-id: http://keycloak:8080/realms/demo
+      issuer-endpoint-url: http://keycloak:8080/realms/demo/protocol/saml
+      signing-private-key-pem-file-path: "./dev/keycloak/signing_key.pem"
+      signing-x509-cert-pem-file-path: "./dev/keycloak/signing_cert.pem"
+      signature-algorithm: RSA_SHA512
+      claims:
+        - name: "name"
+          values:
+            - "Pen Tester"
+        - name: "given_name"
+          values:
+            - "Tester"
+      idp-initiated-sso: true
+      assertion-lifespan-in-minutes: 5
+      session-lifespan-in-minutes: 60
+      enable-authn-statement: false
+      enable-one-time-use: false
+      name-id-format: "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+      name-id: "pen.tester@example.com"
+      canonicalization-method: INCLUSIVE
+      key-name-transformer: CERT_SUBJECT
+      sign-document: false
+      sign-assertion: true
+      encrypt-assertion: true
+      encrypt-assertions-x509-cert-pem-file-path: "./dev/example-saml-001/src/main/resources/certs/decryption_cert.pem"
+      page-load-timeout-in-seconds: 10
+      ignore-ssl-errors: true
+      scanners:
+        - "NoSignature"
+      extra-headers:
+        X-Test: "test"
+      sign-in-selenium-actions:
+        - type: "InputTextByName"
+          name: "username"
+          text: "MyUsername"
+        - type: "ClickElementByCssSelector"
+          cssSelector: "button[data-testid='login-form-submit-button']"
+        - type: "SwitchToWindowByIndex"
+          windowIndex: 2
+          timeoutInSeconds: 5
+        - type: "SwitchToWindowByTitle"
+          windowTitle: "Sign in"
+        - type: "ClickElementById"
+          id: "signin"
