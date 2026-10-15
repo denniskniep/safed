@@ -1,13 +1,10 @@
 package de.denniskniep.safed.common.auth.browser.selenium;
 
 import org.apache.commons.lang3.StringUtils;
-import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Duration;
 import java.util.ArrayList;
 
 /**
@@ -43,20 +40,10 @@ public class SwitchToWindowByTitle extends SwitchToWindowBase implements Seleniu
     }
 
     private void switchByTitle(WebDriver driver, String title) {
-        final Duration timeout = getTimeout();
-        var originalHandle = driver.getWindowHandle();
-        LOG.debug("switching to window with title containing '{}', currently {} windows (waiting up to {}s)", title, driver.getWindowHandles().size(), timeout.toSeconds());
+        LOG.debug("switching to window with title containing '{}', currently {} windows (waiting up to {}s)", title, driver.getWindowHandles().size(), getTimeout().toSeconds());
 
-        String handle;
-        try {
-            // the title is polled, because a new window might exist before its page (and title) is loaded
-            handle = new WebDriverWait(driver, timeout, Duration.ofMillis(200)).until(d -> findWindowByTitle(d, title));
-        } catch (TimeoutException e) {
-            var handles = new ArrayList<>(driver.getWindowHandles());
-            logWindowHandleIndexAndPageTitle(driver, handles);
-            switchBack(driver, originalHandle);
-            throw new RuntimeException("Window with title containing '" + title + "' did not appear within " + timeout.toSeconds() + "s, window handles: " + handles.size(), e);
-        }
+        // the title is polled, because a new window might exist before its page (and title) is loaded
+        String handle = waitForWindow(driver, d -> findWindowByTitle(d, title), "Window with title containing '" + title + "'");
 
         driver.switchTo().window(handle);
         LOG.debug("switched to window with title '{}', current url: {}", driver.getTitle(), driver.getCurrentUrl());
@@ -78,13 +65,5 @@ public class SwitchToWindowByTitle extends SwitchToWindowBase implements Seleniu
             }
         }
         return null;
-    }
-
-    private void switchBack(WebDriver driver, String handle) {
-        try {
-            driver.switchTo().window(handle);
-        } catch (Exception e) {
-            LOG.debug("can not switch back to original window: {}", e.getMessage());
-        }
     }
 }

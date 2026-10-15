@@ -1,14 +1,10 @@
 package de.denniskniep.safed.common.auth.browser.selenium;
 
-import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Duration;
 import java.util.ArrayList;
-import java.util.List;
 
 
 /**
@@ -45,28 +41,18 @@ public class SwitchToWindowByIndex extends SwitchToWindowBase implements Seleniu
     }
 
     private void switchByIndex(WebDriver driver, Integer index) {
-        final Duration timeout = getTimeout();
-        LOG.debug("switching to window index {}, currently {} windows (waiting up to {}s)", index, driver.getWindowHandles().size(), timeout.toSeconds());
+        LOG.debug("switching to window index {}, currently {} windows (waiting up to {}s)", index, driver.getWindowHandles().size(), getTimeout().toSeconds());
 
-        List<String> handles;
-        try {
-            handles = new WebDriverWait(driver, timeout, Duration.ofMillis(200)).until(d -> {
-                var current = new ArrayList<>(d.getWindowHandles());
-                return current.size() > index ? current : null;
-            });
-        } catch (TimeoutException e) {
-            throw new RuntimeException("Window with index " + index + " did not appear within " + timeout.toSeconds() + "s, window handles: " + driver.getWindowHandles().size(), e);
-        }
-
-        if (handles == null) {
-            throw new RuntimeException("Window with index " + index + " did not appear within " + timeout.toSeconds() + "s, window handles: " + driver.getWindowHandles().size());
-        }
+        String handle = waitForWindow(driver, d -> {
+            var handles = new ArrayList<>(d.getWindowHandles());
+            return handles.size() > index ? handles.get(index) : null;
+        }, "Window with index " + index);
 
         if (LOG.isDebugEnabled()) {
-            logWindowHandleIndexAndPageTitle(driver, handles);
+            logWindowHandleIndexAndPageTitle(driver, new ArrayList<>(driver.getWindowHandles()));
         }
 
-        driver.switchTo().window(handles.get(index));
-        LOG.debug("switched to window index {} of {} windows, title: '{}', current url: {}", index, handles.size(), driver.getTitle(), driver.getCurrentUrl());
+        driver.switchTo().window(handle);
+        LOG.debug("switched to window index {}, title: '{}', current url: {}", index, driver.getTitle(), driver.getCurrentUrl());
     }
 }
