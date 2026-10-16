@@ -46,7 +46,7 @@ saml:
         - type: "SwitchToWindowByIndex"
           windowIndex: 2
           timeoutInSeconds: 5
-        - type: "SwitchToWindowByTitle"
+        - type: "SwitchToWindowByTitleContaining"
           windowTitle: "Sign in"
         - type: "ClickElementById"
           id: "signin"

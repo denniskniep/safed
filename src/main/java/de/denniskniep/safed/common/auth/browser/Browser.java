@@ -407,13 +407,26 @@ public class Browser implements AutoCloseable {
             return new Page(driver.getCurrentUrl(), driver.getTitle(), driver.getPageSource(), visibleText.toString(), base64Screenshot.toString(), cookies, authLog, capturedRequest.get().getRequest(), capturedResponse.get().getResponse());
         }catch (Exception e){
             var additionalErrorInfo = "";
+
             try{
-                // so that error metadata (title, url, screenshot) is collected from an open window
-                switchToOpenWindowIfCurrentClosed();
+                if(isCurrentWindowClosed()){
+                    additionalErrorInfo += " CurrentWindow is closed!";
+                }
+            }catch(Exception x){
+                // attempt to enrich err msg failed!
+                e.addSuppressed(x);
+            }
+
+            try{
                 if(StringUtils.equalsIgnoreCase("Privacy error", driver.getTitle())) {
                     additionalErrorInfo += " Privacy error " + getPrivacyErrorDetails() + ";";
                 }
+            }catch(Exception x){
+                // attempt to enrich err msg failed!
+                e.addSuppressed(x);
+            }
 
+            try{
                 String currentUrl = driver.getCurrentUrl();
                 Optional<RequestResponse> requestResponse = authLog.find(r -> StringUtils.equalsIgnoreCase(r.getRequest().getUrl(), currentUrl));
                 if(requestResponse.isPresent() && requestResponse.get().getResponse().getStatus() > 399) {
@@ -421,6 +434,7 @@ public class Browser implements AutoCloseable {
                 }
             }catch(Exception x){
                 // attempt to enrich err msg failed!
+                e.addSuppressed(x);
             }
 
             throw new RuntimeExceptionWithMetadata("Loading Page failed! " + e.getMessage() + additionalErrorInfo, e, errorMetadataCollectors);
@@ -524,9 +538,7 @@ public class Browser implements AutoCloseable {
         };
     }
 
-    // A window selected via SwitchToWindowSelector (e.g. a login popup) can close itself.
-    // In that case the driver points to a closed window, so switch to the most recently opened remaining window.
-    private void switchToOpenWindowIfCurrentClosed() {
+    private boolean isCurrentWindowClosed(){
         final List<String> handles = new ArrayList<>(driver.getWindowHandles());
         String current;
         try {
@@ -535,10 +547,17 @@ public class Browser implements AutoCloseable {
             current = null;
         }
 
-        if (current != null && handles.contains(current)) {
+        return current == null || !handles.contains(current);
+    }
+
+    // A window selected via SwitchToWindowSelector (e.g. a login popup) can close itself.
+    // In that case the driver points to a closed window, so switch to the most recently opened remaining window.
+    private void switchToOpenWindowIfCurrentClosed() {
+        if (!isCurrentWindowClosed()) {
             return;
         }
 
+        final List<String> handles = new ArrayList<>(driver.getWindowHandles());
         if (handles.isEmpty()) {
             throw new RuntimeException("Current window was closed and no other window is open");
         }
