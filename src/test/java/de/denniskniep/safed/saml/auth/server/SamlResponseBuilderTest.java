@@ -63,6 +63,47 @@ class SamlResponseBuilderTest {
         assertThat(xml).doesNotContain(config.getNameId());
     }
 
+    @Test
+    void create_appliesLifespansInMinutes() throws Exception {
+        SamlAppConfig config = new SamlAppConfig();
+        config.setIssuerId(new URL("https://safed.example/issuer"));
+        config.setClientId("example-client");
+        config.setRedirectUrl(new URL("https://rp.example/acs"));
+        config.setSignDocument(false);
+        config.setAssertionLifespanInMinutes(5);
+        config.setSessionLifespanInMinutes(120);
+
+        SamlRequestData requestData = new SamlRequestData();
+        requestData.setId("_request-id");
+        requestData.setRedirectUri(URI.create("https://rp.example/acs"));
+
+        SamlAuthData authData = new SamlAuthData();
+        authData.setAuthMethod("urn:oasis:names:tc:SAML:2.0:ac:classes:unspecified");
+        authData.setSessionIndex("session-index");
+        authData.setAudiences(List.of("example-client"));
+
+        SamlResponseBuilder builder = new SamlResponseBuilder(null, document -> document, encoded -> encoded);
+        String xml = new String(Base64.getDecoder().decode(builder.create(config, requestData, authData).getSamlResponse()));
+
+        Instant notBefore = Instant.parse(extractAttribute(xml, "Conditions", "NotBefore"));
+        Instant conditionsNotOnOrAfter = Instant.parse(extractAttribute(xml, "Conditions", "NotOnOrAfter"));
+        Instant subjectNotOnOrAfter = Instant.parse(extractAttribute(xml, "SubjectConfirmationData", "NotOnOrAfter"));
+        Instant issueInstant = Instant.parse(extractAttribute(xml, "AuthnStatement", "AuthnInstant"));
+        Instant sessionNotOnOrAfter = Instant.parse(extractAttribute(xml, "AuthnStatement", "SessionNotOnOrAfter"));
+
+        assertThat(java.time.Duration.between(notBefore, conditionsNotOnOrAfter)).isEqualTo(java.time.Duration.ofMinutes(5));
+        assertThat(java.time.Duration.between(notBefore, subjectNotOnOrAfter)).isEqualTo(java.time.Duration.ofMinutes(5));
+        assertThat(java.time.Duration.between(issueInstant, sessionNotOnOrAfter)).isEqualTo(java.time.Duration.ofMinutes(120));
+    }
+
+    private static String extractAttribute(String xml, String element, String attribute) {
+        var matcher = java.util.regex.Pattern
+                .compile("<(?:\\w+:)?" + element + "\\b[^>]*\\b" + attribute + "=\"([^\"]+)\"")
+                .matcher(xml);
+        assertThat(matcher.find()).as("%s/@%s present", element, attribute).isTrue();
+        return matcher.group(1);
+    }
+
     private static KeyPair generateRsaKeyPair() throws Exception {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
         generator.initialize(2048);

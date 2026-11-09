@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Fixed
+
+- SAML: `assertion-lifespan-in-minutes` and `session-lifespan-in-minutes` were applied as seconds (assertion was only valid for 1 second by default, causing e.g. "SAMLResponse expired")
+
 ## [1.5.0] - 2026-10-15
 
 ### Added
