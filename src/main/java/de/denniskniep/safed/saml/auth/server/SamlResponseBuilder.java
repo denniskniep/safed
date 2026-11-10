@@ -58,9 +58,9 @@ public class SamlResponseBuilder {
                 .destination(redirectUrl.toString())
                 .issuer(clientConfig.getIssuerId().toExternalForm())
                 // Keycloak's builder expects expiration values in seconds
-                .assertionExpiration(minutesToSeconds(clientConfig.getAssertionLifespanInMinutes()))
-                .subjectExpiration(minutesToSeconds(clientConfig.getAssertionLifespanInMinutes()))
-                .sessionExpiration(minutesToSeconds(clientConfig.getSessionLifespanInMinutes()))
+                .assertionExpiration(clientConfig.getAssertionLifespanInSeconds())
+                .subjectExpiration(clientConfig.getAssertionLifespanInSeconds())
+                .sessionExpiration(clientConfig.getSessionLifespanInSeconds())
                 .requestIssuer(clientConfig.getClientId())
                 .authMethod(samlAuthData.getAuthMethod())
                 .sessionIndex(samlAuthData.getSessionIndex())
@@ -148,10 +148,6 @@ public class SamlResponseBuilder {
         } catch (Exception e) {
             throw new RuntimeException("Can not build SAMLResponse", e);
         }
-    }
-
-    private static int minutesToSeconds(int minutes) {
-        return Math.multiplyExact(minutes, 60);
     }
 
     private AudienceRestrictionType locateAudienceRestriction(ResponseType samlModel) {

@@ -64,14 +64,14 @@ class SamlResponseBuilderTest {
     }
 
     @Test
-    void create_appliesLifespansInMinutes() throws Exception {
+    void create_appliesLifespansInSeconds() throws Exception {
         SamlAppConfig config = new SamlAppConfig();
         config.setIssuerId(new URL("https://safed.example/issuer"));
         config.setClientId("example-client");
         config.setRedirectUrl(new URL("https://rp.example/acs"));
         config.setSignDocument(false);
-        config.setAssertionLifespanInMinutes(5);
-        config.setSessionLifespanInMinutes(120);
+        config.setAssertionLifespanInSeconds(5 * 60);
+        config.setSessionLifespanInSeconds(120 * 60);
 
         SamlRequestData requestData = new SamlRequestData();
         requestData.setId("_request-id");

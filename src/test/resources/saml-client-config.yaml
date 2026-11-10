@@ -19,8 +19,8 @@ saml:
           values:
             - "Tester"
       idp-initiated-sso: true
-      assertion-lifespan-in-minutes: 5
-      session-lifespan-in-minutes: 60
+      assertion-lifespan-in-seconds: 300
+      session-lifespan-in-seconds: 3600
       enable-authn-statement: false
       enable-one-time-use: false
       name-id-format: "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
