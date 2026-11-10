@@ -57,9 +57,10 @@ public class SamlResponseBuilder {
                 .requestID(request.getId()) // InResponseTo
                 .destination(redirectUrl.toString())
                 .issuer(clientConfig.getIssuerId().toExternalForm())
-                .assertionExpiration(clientConfig.getAssertionLifespanInMinutes())
-                .subjectExpiration(clientConfig.getAssertionLifespanInMinutes())
-                .sessionExpiration(clientConfig.getSessionLifespanInMinutes())
+                // Keycloak's builder expects expiration values in seconds
+                .assertionExpiration(clientConfig.getAssertionLifespanInSeconds())
+                .subjectExpiration(clientConfig.getAssertionLifespanInSeconds())
+                .sessionExpiration(clientConfig.getSessionLifespanInSeconds())
                 .requestIssuer(clientConfig.getClientId())
                 .authMethod(samlAuthData.getAuthMethod())
                 .sessionIndex(samlAuthData.getSessionIndex())
