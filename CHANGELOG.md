@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Fixed
+- `304 Not Modified` responses are no longer treated as redirects when detecting the page loaded after the captured request ("Can not find first non redirect Response after captured request!")
+
 ## [1.5.0] - 2026-10-15
 
 ### Added
