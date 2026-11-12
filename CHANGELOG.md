@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Optional `audienceOverride` client config to override the audience (OIDC `aud` claim / SAML `Audience`), defaults to `clientId`
 
+### Changed
+
+- Chromium pinned to 156.0.8078.79
+
 ## [1.5.0] - 2026-10-15
 
 ### Added
@@ -21,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Chromium pinned to 153.0.8010.52
+- Chromium pinned to 155.0.8059.39
 - Fixed comparison of data:/ urls
 
 ## [1.4.0] - 2026-09-27
