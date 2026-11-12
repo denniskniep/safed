@@ -37,13 +37,17 @@ public class SamlAssessment extends Assessment<SamlScanner, SamlAppConfig> {
         }
     }
 
-    @Override
-    protected AuthResult scan(SamlAppConfig config, SamlScanner scanner, boolean isBaselineScan) {
+    SamlAuthData createDefaultAuthData(SamlAppConfig config) {
         SamlAuthData samlAuthData = new SamlAuthData();
         samlAuthData.setAuthMethod(JBossSAMLURIConstants.AC_UNSPECIFIED.get());
         samlAuthData.setSessionIndex(UUID.randomUUID() + "::" + UUID.randomUUID());
         samlAuthData.setAudiences(Collections.singletonList(config.getAudience()));
-        samlAuthData = scanner.getAuthData(samlAuthData);
+        return samlAuthData;
+    }
+
+    @Override
+    protected AuthResult scan(SamlAppConfig config, SamlScanner scanner, boolean isBaselineScan) {
+        SamlAuthData samlAuthData = scanner.getAuthData(createDefaultAuthData(config));
 
         try (var samlAuthentication = createSamlBrowserAuthenticationFlow(config)){
             InitializationResult<SamlRequestData> initResult = samlAuthentication.initialize(config.getSignInUrl(), config.getSignInSeleniumActions());

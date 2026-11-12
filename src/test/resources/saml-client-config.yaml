@@ -2,6 +2,7 @@ saml:
   clients:
     saml-example:
       client-id: example-saml-001
+      audience-override: "https://sp.example.com/metadata"
       sign-in-url: "http://localhost:8081/"
       redirect-url: "http://localhost:8081/login/saml2/sso/example-saml-001"
       valid-redirect-urls:

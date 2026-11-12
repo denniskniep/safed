@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.net.URL;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -29,5 +30,26 @@ class SamlAssessmentTest {
         config.setRedirectUrl(new URL("http://localhost:8081/login/saml2/sso/example-saml-001"));
 
         assertThatCode(() -> assessment.validate(config)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void createDefaultAuthData_withoutAudienceOverride_usesClientIdAsAudience() {
+        var config = new SamlAppConfig();
+        config.setClientId("example-saml-001");
+
+        var authData = assessment.createDefaultAuthData(config);
+
+        assertThat(authData.getAudiences()).containsExactly("example-saml-001");
+    }
+
+    @Test
+    void createDefaultAuthData_withAudienceOverride_usesOverrideAsAudience() {
+        var config = new SamlAppConfig();
+        config.setClientId("example-saml-001");
+        config.setAudienceOverride("https://sp.example.com/metadata");
+
+        var authData = assessment.createDefaultAuthData(config);
+
+        assertThat(authData.getAudiences()).containsExactly("https://sp.example.com/metadata");
     }
 }
