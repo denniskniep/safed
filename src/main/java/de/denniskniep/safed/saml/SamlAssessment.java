@@ -42,7 +42,7 @@ public class SamlAssessment extends Assessment<SamlScanner, SamlAppConfig> {
         SamlAuthData samlAuthData = new SamlAuthData();
         samlAuthData.setAuthMethod(JBossSAMLURIConstants.AC_UNSPECIFIED.get());
         samlAuthData.setSessionIndex(UUID.randomUUID() + "::" + UUID.randomUUID());
-        samlAuthData.setAudiences(Collections.singletonList(config.getClientId()));
+        samlAuthData.setAudiences(Collections.singletonList(config.getAudience()));
         samlAuthData = scanner.getAuthData(samlAuthData);
 
         try (var samlAuthentication = createSamlBrowserAuthenticationFlow(config)){

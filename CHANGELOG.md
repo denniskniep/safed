@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Optional `audienceOverride` client config to override the audience (OIDC `aud` claim / SAML `Audience`), defaults to `clientId`
+
 ## [1.5.0] - 2026-10-15
 
 ### Added
