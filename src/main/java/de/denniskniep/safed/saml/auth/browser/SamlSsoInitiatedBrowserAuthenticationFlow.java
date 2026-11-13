@@ -7,7 +7,6 @@ import de.denniskniep.safed.common.utils.UrlUtils;
 
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.UUID;
 
 public class SamlSsoInitiatedBrowserAuthenticationFlow extends BrowserAuthenticationFlow<SamlRequestData> {
 
@@ -28,7 +27,10 @@ public class SamlSsoInitiatedBrowserAuthenticationFlow extends BrowserAuthentica
     @Override
     protected SamlRequestData parse(RequestDataWithBody request) {
         var samlRequestData = new SamlRequestData();
-        samlRequestData.setId(UUID.randomUUID().toString());
+        // IdP-initiated SSO: the Response is unsolicited, there is no AuthnRequest.
+        // The ID stays null so that no InResponseTo is emitted
+        // (SAML Core 3.2.2: InResponseTo MUST NOT be present if the response is not generated in response to a request;
+        //  SAML Profiles 4.1.5: unsolicited responses MUST NOT contain InResponseTo)
 
         var relayState = request.getQueryParams().get("RelayState");
         if (relayState != null) {
