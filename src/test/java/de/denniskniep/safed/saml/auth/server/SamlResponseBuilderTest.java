@@ -63,6 +63,45 @@ class SamlResponseBuilderTest {
         assertThat(xml).doesNotContain(config.getNameId());
     }
 
+    @Test
+    void create_withRequestId_includesInResponseTo() throws Exception {
+        SamlRequestData requestData = new SamlRequestData();
+        requestData.setId("_request-id");
+        requestData.setRedirectUri(URI.create("https://rp.example/acs"));
+
+        String xml = createUnsignedResponseXml(requestData);
+
+        assertThat(xml).contains("InResponseTo=\"_request-id\"");
+    }
+
+    @Test
+    void create_withoutRequestId_omitsInResponseTo() throws Exception {
+        // IdP-initiated (unsolicited) response: no AuthnRequest, therefore no InResponseTo
+        SamlRequestData requestData = new SamlRequestData();
+        requestData.setRedirectUri(URI.create("https://rp.example/acs"));
+
+        String xml = createUnsignedResponseXml(requestData);
+
+        assertThat(xml).doesNotContain("InResponseTo");
+    }
+
+    private static String createUnsignedResponseXml(SamlRequestData requestData) throws Exception {
+        SamlAppConfig config = new SamlAppConfig();
+        config.setIssuerId(new URL("https://safed.example/issuer"));
+        config.setClientId("example-client");
+        config.setRedirectUrl(new URL("https://rp.example/acs"));
+        config.setSignDocument(false);
+
+        SamlAuthData authData = new SamlAuthData();
+        authData.setAuthMethod("urn:oasis:names:tc:SAML:2.0:ac:classes:unspecified");
+        authData.setSessionIndex("session-index");
+        authData.setAudiences(List.of("example-client"));
+
+        SamlResponseBuilder builder = new SamlResponseBuilder(null, document -> document, encoded -> encoded);
+        SamlResponseResult result = builder.create(config, requestData, authData);
+        return new String(Base64.getDecoder().decode(result.getSamlResponse()));
+    }
+
     private static KeyPair generateRsaKeyPair() throws Exception {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
         generator.initialize(2048);
