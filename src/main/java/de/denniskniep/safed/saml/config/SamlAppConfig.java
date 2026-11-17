@@ -9,9 +9,9 @@ public class SamlAppConfig extends FederationAppConfig {
 
     private boolean idpInitiatedSso = false;
 
-    private int assertionLifespanInMinutes = 1;
+    private int assertionLifespanInSeconds = 60; // 1 minute
 
-    private int sessionLifespanInMinutes = 120;
+    private int sessionLifespanInSeconds = 7200; // 2 hours
 
     private boolean enableAuthnStatement = true;
 
@@ -22,8 +22,6 @@ public class SamlAppConfig extends FederationAppConfig {
     private String nameId = "jonny.tester";
 
     private SamlCanonicalizationMethod canonicalizationMethod = SamlCanonicalizationMethod.EXCLUSIVE;
-
-
 
     private XmlKeyInfoKeyNameTransformer keyNameTransformer = XmlKeyInfoKeyNameTransformer.NONE;
 
@@ -51,12 +49,12 @@ public class SamlAppConfig extends FederationAppConfig {
         return signAssertion;
     }
 
-    public int getAssertionLifespanInMinutes() {
-        return assertionLifespanInMinutes;
+    public int getAssertionLifespanInSeconds() {
+        return assertionLifespanInSeconds;
     }
 
-    public void setAssertionLifespanInMinutes(int assertionLifespanInMinutes) {
-        this.assertionLifespanInMinutes = assertionLifespanInMinutes;
+    public void setAssertionLifespanInSeconds(int assertionLifespanInSeconds) {
+        this.assertionLifespanInSeconds = assertionLifespanInSeconds;
     }
 
     public boolean isEnableAuthnStatement() {
@@ -91,12 +89,12 @@ public class SamlAppConfig extends FederationAppConfig {
         this.nameId = nameId;
     }
 
-    public int getSessionLifespanInMinutes() {
-        return sessionLifespanInMinutes;
+    public int getSessionLifespanInSeconds() {
+        return sessionLifespanInSeconds;
     }
 
-    public void setSessionLifespanInMinutes(int sessionLifespanInMinutes) {
-        this.sessionLifespanInMinutes = sessionLifespanInMinutes;
+    public void setSessionLifespanInSeconds(int sessionLifespanInSeconds) {
+        this.sessionLifespanInSeconds = sessionLifespanInSeconds;
     }
 
     public SamlCanonicalizationMethod getCanonicalizationMethod() {
@@ -147,7 +145,7 @@ public class SamlAppConfig extends FederationAppConfig {
         this.keyNameTransformer = keyNameTransformer;
     }
 
-    public SamlAppConfig deepCopy(){
+    public SamlAppConfig deepCopy() {
         return Serialization.DeepCopy(this, SamlAppConfig.class);
     }
 }

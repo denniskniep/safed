@@ -45,8 +45,8 @@ public class SamlAppConfigTest {
                         tuple("given_name", List.of("Tester")));
 
         assertThat(config.isIdpInitiatedSso()).isTrue();
-        assertThat(config.getAssertionLifespanInMinutes()).isEqualTo(5);
-        assertThat(config.getSessionLifespanInMinutes()).isEqualTo(60);
+        assertThat(config.getAssertionLifespanInSeconds()).isEqualTo(300);
+        assertThat(config.getSessionLifespanInSeconds()).isEqualTo(3600);
         assertThat(config.isEnableAuthnStatement()).isFalse();
         assertThat(config.isEnableOneTimeUse()).isFalse();
         assertThat(config.getNameIdFormat()).isEqualTo("urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress");
