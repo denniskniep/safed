@@ -1,5 +1,6 @@
 package de.denniskniep.safed.common.config;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.denniskniep.safed.common.auth.browser.selenium.SeleniumAction;
 import org.keycloak.saml.SignatureAlgorithm;
@@ -13,6 +14,7 @@ public abstract class FederationAppConfig extends AppConfig {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private String clientId;
+    private String audienceOverride;
     private URL redirectUrl;
     private List<String> validRedirectUrls;
     private URL signInUrl;
@@ -63,6 +65,26 @@ public abstract class FederationAppConfig extends AppConfig {
 
     public void setClientId(String clientId) {
         this.clientId = clientId;
+    }
+
+    public String getAudienceOverride() {
+        return audienceOverride;
+    }
+
+    public void setAudienceOverride(String audienceOverride) {
+        this.audienceOverride = audienceOverride;
+    }
+
+    /**
+     * Returns the audience to use in issued tokens/assertions:
+     * {@code audienceOverride} if set, otherwise the {@code clientId}.
+     */
+    @JsonIgnore
+    public String getAudience() {
+        if (audienceOverride != null && !audienceOverride.isBlank()) {
+            return audienceOverride;
+        }
+        return clientId;
     }
 
     public URL getRedirectUrl() {

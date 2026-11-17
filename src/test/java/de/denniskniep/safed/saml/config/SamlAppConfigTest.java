@@ -29,6 +29,8 @@ public class SamlAppConfigTest {
         assertThat(config).isNotNull();
 
         assertThat(config.getClientId()).isEqualTo("example-saml-001");
+        assertThat(config.getAudienceOverride()).isEqualTo("https://sp.example.com/metadata");
+        assertThat(config.getAudience()).isEqualTo("https://sp.example.com/metadata");
         assertThat(config.getSignInUrl()).isEqualTo(url("http://localhost:8081/"));
         assertThat(config.getRedirectUrl()).isEqualTo(url("http://localhost:8081/login/saml2/sso/example-saml-001"));
         assertThat(config.getValidRedirectUrls()).containsExactly("http://localhost:8081/login/saml2/sso/*");

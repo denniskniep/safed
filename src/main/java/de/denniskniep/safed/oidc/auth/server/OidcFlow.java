@@ -215,7 +215,7 @@ public class OidcFlow implements FrontChannelRequest, BackchannelHandler {
 
     private RawJwtEncoded generateIdToken(){
         var tokenBuilder = (CustomJwtBuilder)generateTokenBase("ID")
-                .audience().single(clientConfig.getClientId());
+                .audience().single(clientConfig.getAudience());
         return compactToken(tokenBuilder, tokenInterceptors.getIdTokenInterceptor());
     }
 

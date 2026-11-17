@@ -9,9 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Optional `audienceOverride` client config to override the audience (OIDC `aud` claim / SAML `Audience`), defaults to `clientId`
+
+### Changed
+
+- Chromium pinned to 156.0.8078.79
+
 ### Fixed
 
 - SAML: `assertion-lifespan-in-minutes` and `session-lifespan-in-minutes` were applied as seconds (assertion was only valid for 1 second by default, causing e.g. "SAMLResponse expired"). Refactored properties to `assertion-lifespan-in-seconds` and `session-lifespan-in-seconds` to avoid confusion. Default assertion lifespan is 1 minute, session lifespan is 2 hours.
+
 
 ## [1.5.0] - 2026-10-15
 
@@ -23,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Chromium pinned to 153.0.8010.52
+- Chromium pinned to 155.0.8059.39
 - Fixed comparison of data:/ urls
 
 ## [1.4.0] - 2026-09-27
