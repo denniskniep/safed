@@ -489,7 +489,7 @@ public class Browser implements AutoCloseable {
     static boolean noRedirect(RequestResponse r) {
         // Only real redirects are skipped; e.g. 304 (Not Modified) is a cache revalidation of the final page
         final int status = r.getResponse().getStatus();
-        final boolean isNoRedirectCode = !REDIRECT_STATUS_CODES.contains(status) || status >= 400;
+        final boolean isNoRedirectCode = !REDIRECT_STATUS_CODES.contains(status);
         if (isNoRedirectCode) {
             LOG.debug("handled statusCode={} as no redirect", status);
         }
