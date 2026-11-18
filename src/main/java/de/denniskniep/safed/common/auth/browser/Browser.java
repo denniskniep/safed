@@ -50,6 +50,8 @@ public class Browser implements AutoCloseable {
 
     private static final Logger LOG = LoggerFactory.getLogger(Browser.class);
 
+    private static final Set<Integer> REDIRECT_STATUS_CODES = Set.of(301, 302, 303, 307, 308);
+
     private static final String FORM_INIT = """
         function exec(method, path, params) {
   
@@ -483,8 +485,18 @@ public class Browser implements AutoCloseable {
         }
     }
 
-    private static boolean noRedirect(RequestResponse r) {
-        return (r.getResponse().getStatus() < 300 || r.getResponse().getStatus() >= 400);
+    // package-private for testing
+    static boolean noRedirect(RequestResponse r) {
+        // Only real redirects are skipped; e.g. 304 (Not Modified) is a cache revalidation of the final page
+        final int status = r.getResponse().getStatus();
+        final boolean isNoRedirectCode = !REDIRECT_STATUS_CODES.contains(status) || status >= 400;
+        if (isNoRedirectCode) {
+            LOG.debug("handled statusCode={} as no redirect", status);
+        }
+        else {
+            LOG.debug("handled statusCode={} as a redirect", status);
+        }
+        return isNoRedirectCode;
     }
 
     private boolean isDocument(RequestResponse l) {
