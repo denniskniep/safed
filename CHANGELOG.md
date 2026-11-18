@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - SAML: `assertion-lifespan-in-minutes` and `session-lifespan-in-minutes` were applied as seconds (assertion was only valid for 1 second by default, causing e.g. "SAMLResponse expired"). Refactored properties to `assertion-lifespan-in-seconds` and `session-lifespan-in-seconds` to avoid confusion. Default assertion lifespan is 1 minute, session lifespan is 2 hours.
-
+- `304 Not Modified` responses are no longer treated as redirects when detecting the page loaded after the captured request ("Can not find first non redirect Response after captured request!")
 
 ## [1.5.0] - 2026-10-15
 
