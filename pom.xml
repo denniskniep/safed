@@ -52,8 +52,8 @@
 		<dependency>
 			<groupId>org.seleniumhq.selenium</groupId>
 			<artifactId>selenium-java</artifactId>
-			<!-- Support CDP versions: v156, v157, v158 -->
-			<version>4.54.0</version>
+			<!-- Support CDP versions: v154, v155, v156 -->
+			<version>4.52.0</version>
 		</dependency>
 
 		<dependency>
