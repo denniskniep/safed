@@ -1,4 +1,4 @@
-FROM maven:3.9-eclipse-temurin-21 AS build
+FROM maven:3.9-eclipse-temurin-25 AS build
 
 WORKDIR /app
 
@@ -15,7 +15,7 @@ USER root
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update -qqy && apt-get -qqy install wget curl default-jdk
+RUN apt-get update -qqy && apt-get -qqy install wget curl openjdk-25-jdk
 
 COPY docker/install-chromium.sh ./install-chromium.sh
 RUN ./install-chromium.sh
