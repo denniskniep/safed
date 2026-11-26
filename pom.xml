@@ -49,7 +49,6 @@
 		<dependency>
 			<groupId>org.htmlunit</groupId>
 			<artifactId>htmlunit</artifactId>
-			<version>4.21.0</version>
 		</dependency>
 
 		<dependency>
