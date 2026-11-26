@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Smoke test mode for `AssessmentContainerTests` (`-Dsafed.smoke=true`): runs only the first test case per protocol instead of the full matrix
+- Test selection by protocol for `AssessmentContainerTests` (`-Dsafed.protocols=saml,oidc,mtls`, case-insensitive, can be combined with smoke mode)
+- `WebhookServiceTest`
+- Startup banners for the example apps (mTLS, OIDC, SAML)
+
+### Changed
+
+- Java 21 → 25 (build, Docker image and GitHub workflow)
+- Spring Boot 3.5.0 → 4.2.0
+- Selenium 4.52.0 → 4.54.0 (now set via `selenium.version` property so all Selenium modules share the same version)
+- HtmlUnit version now managed by the Spring Boot parent POM
+- Keycloak 26.4.7 → 26.7.5 (dependency and dev container, previously 26.2.5)
+- Testcontainers 2.0.2 → 2.0.5
+- `WebhookService` migrated from deprecated `RestTemplate` to `RestClient`
+- Replaced `Initiator.fromJson()` (removed in newer Selenium versions) when parsing BiDi request data
+- Dev environment: adapted Keycloak config to 26.7 (bind to `0.0.0.0`, health endpoint enabled, `KC_HTTP_ACCESS_LOG_ENABLED`, no trailing slash in `KEYCLOAK_URL`); `wait-for-keycloak.sh` optionally waits for the health endpoint (`KEYCLOAK_HEALTH_URL`)
+- Added project URL and SCM information to `pom.xml`
+
 ## [1.6.0] - 2026-11-18
 
 ### Added
