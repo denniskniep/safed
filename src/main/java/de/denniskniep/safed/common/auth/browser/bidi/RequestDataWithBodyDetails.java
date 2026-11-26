@@ -32,7 +32,8 @@ public class RequestDataWithBodyDetails {
              JsonInput requestInput = JSON.newInput(requestReader);
         ) {
             var baseParameter = BaseParameters.fromJson(baseParamsInput);
-            var initiatorParameter =  Initiator.fromJson(initiatorInput);
+            // Initiator.fromJson() was removed after Selenium 4.43 (gone in 4.51); same approach as Selenium's BeforeRequestSent.fromJsonMap()
+            Initiator initiatorParameter = initiatorInput.readNonNull(Initiator.class);
             var requestParameter = RequestDataWithBody.fromJson(requestInput);
 
             return new RequestDataWithBodyDetails(baseParameter, initiatorParameter, requestParameter);
