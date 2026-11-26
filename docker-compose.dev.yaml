@@ -24,7 +24,7 @@ services:
     networks: [ "safed-net" ]
 
   keycloakorig:
-    image: quay.io/keycloak/keycloak:26.2.5
+    image: quay.io/keycloak/keycloak:26.7.5
     command: --verbose start-dev --import-realm --features=preview
     depends_on:
       - postgres
@@ -39,10 +39,12 @@ services:
       - KC_DB_USERNAME=keycloak
       - KC_DB_PASSWORD=password
       - KC_LOG_CONSOLE_COLOR=true
-      - KC_FEATURES=preview
-      - QUARKUS_HTTP_ACCESS_LOG_ENABLED=true
+      - KC_HTTP_ACCESS_LOG_ENABLED=true
       - QUARKUS_HTTP_RECORD_REQUEST_START_TIME=true
-      - KEYCLOAK_IMPORT=/opt/keycloak/data/import/realm-demo.json
+      # start-dev binds to localhost only since 26.6; envoy needs to reach it over the docker network
+      - KC_HTTP_HOST=0.0.0.0
+      # exposes /health/ready on the management port 9000 (used by keycloaksidekick)
+      - KC_HEALTH_ENABLED=true
       - KC_PROXY_HEADERS=xforwarded
       - KC_HOSTNAME=http://keycloak:8080
     volumes:
@@ -56,7 +58,9 @@ services:
       - keycloak
       - keycloakorig
     environment:
-      - KEYCLOAK_URL=http://keycloak:8080/
+      # no trailing slash: Keycloak >= 26.4.3 rejects non-normalized paths like //admin/... with 400
+      - KEYCLOAK_URL=http://keycloak:8080
+      - KEYCLOAK_HEALTH_URL=http://keycloakorig:9000/health/ready
     entrypoint: "sh -c"
     command: ["/tmp/keycloak/wait-for-keycloak.sh && /tmp/keycloak/setup-keycloak.sh"]
     volumes:
