@@ -16,8 +16,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -288,12 +294,36 @@ public class AssessmentContainerTests extends ApplicationBaseTest {
     // instead of the full matrix, e.g. for a quick local check of the docker-compose environment.
     private static final boolean SMOKE = Boolean.getBoolean("safed.smoke");
 
+    // Run e.g. 'mvn test -Dsafed.protocols=saml' or '-Dsafed.protocols=oidc,mtls' to execute only the test cases
+    // of the given protocols (comma-separated, case-insensitive). Unset or blank runs all protocols.
+    // Can be combined with -Dsafed.smoke=true.
+    private static final String PROTOCOLS = System.getProperty("safed.protocols", "");
+
+    private static Set<String> selectedProtocols(Set<String> available) {
+        var selected = Arrays.stream(PROTOCOLS.split(","))
+                .map(p -> p.trim().toLowerCase(Locale.ROOT))
+                .filter(p -> !p.isEmpty())
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        if (selected.isEmpty()) {
+            return available;
+        }
+        var unknown = new LinkedHashSet<>(selected);
+        unknown.removeAll(available);
+        if (!unknown.isEmpty()) {
+            throw new IllegalArgumentException("Unknown value(s) in safed.protocols: " + unknown + ", allowed: " + available);
+        }
+        LOG.info("safed.protocols={}: running only test cases for {}", PROTOCOLS, selected);
+        return selected;
+    }
+
     private static Stream<Arguments> testCases() {
-        var casesPerProtocol = Stream.of(
-            samlTestCases(),
-            oidcTestCases(),
-            mtlsTestCases()
-        );
+        var allCases = new LinkedHashMap<String, Supplier<List<Arguments>>>();
+        allCases.put("saml", AssessmentContainerTests::samlTestCases);
+        allCases.put("oidc", AssessmentContainerTests::oidcTestCases);
+        allCases.put("mtls", AssessmentContainerTests::mtlsTestCases);
+
+        var casesPerProtocol = selectedProtocols(allCases.keySet()).stream()
+                .map(protocol -> allCases.get(protocol).get());
         if (SMOKE) {
             LOG.info("safed.smoke=true: running only the first test case per protocol");
             return casesPerProtocol.filter(cases -> !cases.isEmpty()).map(List::getFirst);

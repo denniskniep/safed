@@ -278,3 +278,16 @@ In smoke mode `AssessmentContainerTests` executes only the first test case per p
 The unit tests still run completely. The environment startup itself (building and starting all containers) is unchanged and takes a few minutes.
 
 Without the flag, `mvn test` runs the full matrix — this is what the GitHub workflow does.
+
+### Running Tests for Selected Protocols
+
+To run only the test cases of specific client types, set `safed.protocols` to a comma-separated list of `saml`, `oidc` and/or `mtls` (case-insensitive):
+
+```bash
+mvn test -Dsafed.protocols=saml
+mvn test -Dsafed.protocols=oidc,mtls
+```
+
+If the property is unset or empty, all protocols are tested. An unknown value fails the test run with an error listing the allowed values.
+It can be combined with the smoke mode, e.g. `mvn test -Dsafed.protocols=oidc -Dsafed.smoke=true` runs a single OIDC test case.
+Note that the complete `docker-compose` environment (all example apps) is still started.
