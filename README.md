@@ -264,3 +264,17 @@ Each parameterized test case follows this flow:
 2. **Execute SAFED inside the container** — runs `java -jar /app/app.jar <clientId> <triggeredScanners>` via `docker exec` inside the running SAFED container
 3. **Receive report via webhook** — `WebhookReceiver` collects the JSON report POSTed by SAFED to `http://host.docker.internal:9999/webhook`
 4. **Assert results** — verifies the overall `EvidenceStatus` and that exactly the expected scanners reported a vulnerability
+
+### Smoke Test
+
+Running the complete test matrix takes a long time (~45 min), because every combination of example app and scanner is executed.
+For a quick local check, e.g. after updating Keycloak or the `docker-compose` environment, enable the smoke mode:
+
+```bash
+mvn test -Dsafed.smoke=true
+```
+
+In smoke mode `AssessmentContainerTests` executes only the first test case per protocol (SAML, OIDC, mTLS) instead of the full matrix.
+The unit tests still run completely. The environment startup itself (building and starting all containers) is unchanged and takes a few minutes.
+
+Without the flag, `mvn test` runs the full matrix — this is what the GitHub workflow does.

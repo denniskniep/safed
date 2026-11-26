@@ -284,12 +284,21 @@ public class AssessmentContainerTests extends ApplicationBaseTest {
         );
     }
 
+    // Just run 'mvn test -Dsafed.smoke=true' to execute only the first case per protocol (SAML, OIDC, mTLS)
+    // instead of the full matrix, e.g. for a quick local check of the docker-compose environment.
+    private static final boolean SMOKE = Boolean.getBoolean("safed.smoke");
+
     private static Stream<Arguments> testCases() {
-        return Stream.of(
+        var casesPerProtocol = Stream.of(
             samlTestCases(),
             oidcTestCases(),
             mtlsTestCases()
-        ).flatMap(Collection::stream);
+        );
+        if (SMOKE) {
+            LOG.info("safed.smoke=true: running only the first test case per protocol");
+            return casesPerProtocol.filter(cases -> !cases.isEmpty()).map(List::getFirst);
+        }
+        return casesPerProtocol.flatMap(Collection::stream);
     }
 
     @ParameterizedTest
